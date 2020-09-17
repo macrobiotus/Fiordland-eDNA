@@ -1,7 +1,7 @@
 # *****************************************************************************
 # * associating fluorescence signal with DNA concentrations, lab book page 48 *
 # *****************************************************************************
-# 16-Sep-2020
+# 17-Sep-2020
 
 # load packages
 # =============
@@ -11,22 +11,33 @@ gc()
 library("tidyverse")   # work using tibbles and ggplot
 library("readxl")      # read excel sheets 
 library("openxlsx")    # write Excel tables
-library("cowplot")     # multiple plots per page
 
 # read-in and format data 
 # =======================
 
-# measured qbit values from lab book for plate positions H1  - H8 
-qbit_values <- c(0, 9.1, 4.64, 2.21, 1.15, 0.58, 0.282, 0.148)
+# HS Standards
+# **measured** qbit values from lab book for plate positions H1  - H8 
+#   qbit_values <- c(0, 9.1, 4.64, 2.21, 1.15, 0.58, 0.282, 0.148)
+# **targeted** qbit values from lab book for plate positions H1  - H8 
+qbit_values <- c(0, 10, 5, 2.5, 1.25, 0.625, 0.3125, 0.156)
+
+# BR Standards
+# **targeted** qbit values from lab book for plate positions H1  - H8 
+qbit_values <- c(0, 100, 50, 25, 12.5, 6.25, 3.125, 1.56)
 
 # pathnames to Excel exports of plate quantifications
 paths <- list(
   "/Users/paul/Documents/OU_eDNA/200128_lab_work/Eplate1_20200914 234405.xlsx",
   "/Users/paul/Documents/OU_eDNA/200128_lab_work/Eplate2_20200914 234524.xlsx",
   "/Users/paul/Documents/OU_eDNA/200128_lab_work/Uplate1_20200914 234210.xlsx",
-  "/Users/paul/Documents/OU_eDNA/200128_lab_work/Uplate2_20200914 234305.xlsx")
+  "/Users/paul/Documents/OU_eDNA/200128_lab_work/Uplate2_20200914 234305.xlsx",
+  "/Users/paul/Documents/OU_eDNA/200128_lab_work/200917_Eplate1_2nd_20200917 041057.xlsx",
+  "/Users/paul/Documents/OU_eDNA/200128_lab_work/200917_Eplate2_20200917 041000.xlsx",
+  "/Users/paul/Documents/OU_eDNA/200128_lab_work/200917_Uplate1_20200917 041151.xlsx",
+  "/Users/paul/Documents/OU_eDNA/200128_lab_work/200917_Uplate2_20200917 041123.xlsx"
+  )
 
-tib_msr <- read_excel(paths[[4]], sheet = 2, col_names = TRUE, skip = 22, .name_repair = "unique") %>%
+tib_msr <- read_excel(paths[[8]], sheet = 2, col_names = TRUE, skip = 22, .name_repair = "unique") %>%
   rename ("well" = "Well", "pos" = `Well Position`, "cycl" = `Cycle Number`, "picg" =  "SYBR")
 
 # correct and set columns 
@@ -36,8 +47,8 @@ tib_msr$conc <- NA
 # add qbit values 
 tib_msr$conc[which(tib_msr$pos %in% c("H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8"))] <- qbit_values
 
-# calculate variables  
-# ==================
+# calculate variables
+# ===================
 
 # see https://stats.stackexchange.com/questions/176595/simple-log-regression-model-in-r/176612
 
@@ -50,17 +61,26 @@ fit <- lm(conc ~ picg, data = tib_msr[complete.cases(tib_msr), ] )
 # check fit - good fit
 summary(fit)
 
+# plot quantification data - with ggplot2
+ggplot( tib_msr[complete.cases(tib_msr), ] , aes(x = conc, y = picg)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red") +
+  labs(title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
+                     "Intercept =",signif(fit$coef[[1]],5 ),
+                     " Slope =",signif(fit$coef[[2]], 5),
+                     " P =",signif(summary(fit)$coef[2,4], 5)))
+
 # predict new values and plot 
-new_concs = predict(fit, newdata <-  tib_msr[!complete.cases(tib_msr), ], interval="confidence")
+new_concs = predict(fit, newdata <- tib_msr[!complete.cases(tib_msr), ], interval="confidence")
 plot(new_concs[ ,1] ,  tib_msr[!complete.cases(tib_msr), ]$picg, 
   main = "predicted relationship pico-green to DNA concentration",
   ylab = "fluorescence",
   xlab = "[ng/µl]")
-  matlines(new_concs, tib_msr[!complete.cases(tib_msr), ]$picg , lwd=1) 
+  matlines(new_concs, tib_msr[!complete.cases(tib_msr), ]$picg , lwd=1)
     
 # backtransform concentration values - not used  - formerly contained function call 
 tib_imp <- cbind( tib_msr[!complete.cases(tib_msr), ],  data.frame( conc = c( new_concs[ ,1])))
-tib_imp <- tib_imp[, !duplicated(colnames(tib_imp), fromLast = TRUE)] 
+tib_imp <- tib_imp[, !duplicated(colnames(tib_imp), fromLast = TRUE)]
 
 # combine predicted and measured data for verification purposes
 # ============================================================
@@ -85,6 +105,6 @@ plate <- matrix( round(tib_new$conc, digits = 2), nrow = 8, ncol = 12, dimnames 
 plate <- replace(plate, which(plate < 0), NA)
 plate
 
-write.xlsx(plate, "/Users/paul/Documents/OU_eDNA/200128_lab_work/200916_Eplate2_ng-ul.xlsx", 
+write.xlsx(plate, "/Users/paul/Documents/OU_eDNA/200128_lab_work/200917_Uplate2_ng-ul.xlsx", 
   rowNames = TRUE, colNames = TRUE, overwrite = FALSE)
 
