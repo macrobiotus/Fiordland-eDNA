@@ -106,6 +106,11 @@ save(primer_sequences, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201
 
 # **pending**
 
+## Read sample metadata
+## ================================
+
+# **pending**
+
 
 ## Merge data for further fomatting
 ## =======================================================================
@@ -117,10 +122,22 @@ big_table <- left_join(big_table,  primer_sequences, by=c("content.y" = "Name"),
 ## Write Excel Sheet compatible with Otago genomics sample submssion sheet
 ## =======================================================================
 
-# **pending**
+# - Extract unique needed rows and key
+smpl <- big_table %>% select("key", "content.x") %>% distinct() %>% rename("Library name" = "content.x")
+pr_rev <- big_table %>% filter(type.y == "r_primer") %>% select("key", "content.y", "Index") %>% rename("i7 index ID" = "content.y", "i7 index sequence" = "Index")
+pr_fwd <- big_table %>% filter(type.y == "f_primer") %>% select("key", "content.y", "Index") %>% rename("i5 index ID" = "content.y", "i5 index sequence" = "Index")
 
+# - Join needed primer rows by key 
+smpl <- left_join(smpl, pr_rev, by = "key", copy = TRUE, keep = TRUE)
+smpl <- left_join(smpl, pr_fwd, by = c("key.x" = "key"),copy = TRUE, keep = TRUE)  
+smpl <- select(smpl, -c("key.x", "key.y", "key")) %>% filter(complete.cases(.))
+smpl %>% print(n = Inf)
 
-pivot_wider(og_big_table, names_from = c(type))
+# write data to clibboard fr pasting into Excel
+clip <- pipe("pbcopy", "w")                       
+write.table(smpl, file=clip)                               
+close(clip)
+
 
 ## Write mapping file for Qiime imports or other sequenc processing
 ## ================================================================

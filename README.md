@@ -1,4 +1,4 @@
-# Fiorldand project utility scripts
+# Fiordldand project utility scripts
 
 * **1-Sep-2020**
   * creating `/Users/paul/Documents/OU_eDNA/200901_scripts/200901_quantification_calibration.R`
@@ -26,10 +26,14 @@
     * `/Users/paul/Documents/OU_eDNA/200128_lab_work/201028_Otago_Genomics_sample_info.xlsx`
     * and later possibly the mapping file
   * next: spread and subset for Otago Genomics - **pending**
+  * commit `c51356eb489093cc333cd4c5024d3d535ce362a2`
+* **29-Oct-2020** - continuing `/Users/paul/Documents/OU_eDNA/200901_scripts/201028_sample_matadata_managment.R`
+  * finished compiling sample data for Otago Genomics
+  * commit ``
 
-  
 * **unfinished**
   * `/Users/paul/Documents/OU_eDNA/200901_scripts/201028_sample_matadata_managment.R`
     * use for creation of mapping file - **pending**
     * read in library concentrations befor pooling for mapping file  - **pending**
+    * read in other sample metadata - **pending**
 
