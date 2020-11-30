@@ -1,19 +1,20 @@
-# Fiordldand project 28-10-2020
+# Fiordland project 28-10-2020
 #
 # Read cells from 
 #   "/Users/paul/Documents/OU_eDNA/200128_lab_work/200907_plate_layouts.xlsx"
 #   "/Users/paul/Documents/OU_eDNA/191031_primers/200302_Bunce_et_al_0000_MiFishEmod_single_step_primers.xlsx"  
 # output appropriate format for
 #   "/Users/paul/Documents/OU_eDNA/200128_lab_work/201028_Otago_Genomics_sample_info.xlsx"
-#    and later possibly the mapping file
-
+#    and later possibly the mapping file - with format as described here
+#      `https://docs.qiime2.org/2020.8/tutorials/metadata/`
+# example file at `/Users/paul/Documents/OU_eDNA/201126_script_scratch/sample-metadata_example.tsv`
 
 ## Environment
 ## ===========
+library(tidyverse)
 
 rm(list = ls())
 
-library(tidyverse)
 
 
 ## Read in sample data
@@ -77,13 +78,24 @@ amplicon_positions <- bind_rows(u1s, u2s, e1s, e2s) %>%
   mutate(col = str_remove(col, "...")) %>% 
   mutate(col, col = as.integer(col)) %>% 
   mutate(key = paste0(plate,".",row,".",col)) %>% print(n = Inf)
-save(amplicon_positions, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__amplicon_positions")
+  
+# add and format variable for merging with metadata object `mdata`
+#  remove everything after first whitespace
+amplicon_positions$sample_name <- sub(" .*", "", amplicon_positions$content)
+
+# remove everything that isn't a sample id
+amplicon_positions <- amplicon_positions %>% 
+  mutate(sample_name = case_when(grepl("PC", sample_name) ~ sample_name, grepl("AK", sample_name) ~ sample_name)) %>%
+  print(n = Inf)
+ 
+save(amplicon_positions, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__amplicon_positions.Rdata")
 
 primer_positions <- bind_rows(u1pf, u1pr, u2pf, u2pr, e1pf, e1pr, e2pf, e2pr) %>% 
   mutate(col = str_remove(col, "...")) %>% 
   mutate(col, col = as.integer(col)) %>% 
   mutate(key = paste0(plate,".",row,".",col))
-save(primer_positions, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__primer_positions")
+save(primer_positions, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__primer_positions.Rdata")
+
 
 ## Read in primer data
 ## ===================
@@ -98,22 +110,58 @@ ep7 <- readxl::read_excel(path[2], range = "E52:J68", .name_repair = "universal"
 # ---------------------------------------------
 
 primer_sequences <- bind_rows(up5, up7, ep5, ep7)
-save(primer_sequences, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__primers")
+save(primer_sequences, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__primers.Rdata")
 
 
-## Read amplicon concentration data
-## ================================
+## Read amplicon concentration data prior to pooling 
+## =================================================
 
-# **pending**
+# read in 
+
+qpath <- c(
+  "/Users/paul/Documents/OU_eDNA/200128_lab_work/200916_Eplate1_HS_ng-ul.xlsx",
+  "/Users/paul/Documents/OU_eDNA/200128_lab_work/200916_Eplate2_HS_ng-ul.xlsx",
+  "/Users/paul/Documents/OU_eDNA/200128_lab_work/200916_Uplate1_HS_ng-ul.xlsx",
+  "/Users/paul/Documents/OU_eDNA/200128_lab_work/200916_Uplate2_HS_ng-ul.xlsx"
+)
+
+e1concs <- readxl::read_excel(qpath[1], range = "A4:M11", .name_repair = "universal", col_names =  c("row", as.character(seq(1,12))), col_types = c("guess", rep("numeric", 12))) %>%
+  add_column(plate = "E.1")
+e2concs <- readxl::read_excel(qpath[2], range = "A4:M11", .name_repair = "universal", col_names =  c("row", as.character(seq(1,12))), col_types = c("guess", rep("numeric", 12))) %>%
+  add_column(plate = "E.2")
+u1concs <- readxl::read_excel(qpath[3], range = "A4:M11", .name_repair = "universal", col_names =  c("row", as.character(seq(1,12))), col_types = c("guess", rep("numeric", 12))) %>%
+  add_column(plate = "U.1")
+u2concs <- readxl::read_excel(qpath[4], range = "A4:M11", .name_repair = "universal", col_names =  c("row", as.character(seq(1,12))), col_types = c("guess", rep("numeric", 12))) %>%
+  add_column(plate = "U.2")
+  
+# reformat for merging with outher tables (such as `amplicon_positions and `primer_positions`)
+#   col names:   plate row col key     
+#   var format:  U.1   A     1 U.1.A.1 
+
+list_concs_long <- lapply(list(e1concs, e2concs, u1concs, u2concs), function(x) x %>% pivot_longer(cols = !c(row, plate), names_to = "col", values_to = "ng_ul") %>% mutate(col = str_remove(col, "...")) %>% mutate(col, col = as.integer(col))) 
+list_concs_long <- do.call("rbind", list_concs_long) 
+list_concs_long <- list_concs_long %>% mutate(key = paste0(plate,".",row,".",col)) %>% print(n = Inf)
+
+# save for redundancy 
+save(list_concs_long, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__pooling_concs.Rdata")
+
 
 ## Read sample metadata
-## ================================
+## ====================
 
-# **pending**
+# read in
+mdpath <- c("/Users/paul/Documents/OU_eDNA/191213_field_work/201130_sample_overview_updated.xlsx")
+mdata <- readxl::read_excel(mdpath[1], range = "A1:L91", .name_repair = "universal")
+
+# correct dates and erase superflous information
+lubridate::date(mdata$sample_time) <- lubridate::date(mdata$sample_date)
+mdata$sample_date <- NULL
+
+save(mdata, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment_mdata.Rdata")
 
 
-## Merge data for further fomatting
-## =======================================================================
+## Merge data for further formatting
+## =================================
 
 big_table <- left_join(amplicon_positions,  primer_positions, by=c("key"), copy = TRUE, Keep = TRUE) %>% print(n = Inf)
 big_table <- left_join(big_table,  primer_sequences, by=c("content.y" = "Name"), copy = TRUE, Keep = TRUE) %>% print(n = Inf)
@@ -139,15 +187,50 @@ write.table(smpl, file=clip)
 close(clip)
 
 
-## Write mapping file for Qiime imports or other sequenc processing
+## Write mapping file for Qiime imports or other sequence processing
 ## ================================================================
 
-# **pending**
+# pre-cleaning column types
+big_table[c("plate.y", "row.y", "col.y")] <- NULL
 
+# merging sample metadata
+# -----------------------
 
+#  check input data
+amplicon_positions %>% print(n = Inf)
+mdata %>% print(n = Inf)
 
-primer_plates %>% filter(type %in% c("f_primer","fr_primer"))
+#  get keys in metadata table `mdata`
+mdata <- left_join(mdata, amplicon_positions %>% select("key", "sample_name"), by = c("sample_name"), copy = TRUE) 
 
-primer_plates
+#  check output data
+mdata %>% print(n = Inf)
 
-pool_plates$type
+# merge metadata with all other data
+big_table <- left_join(big_table,  mdata, by = c("key"), copy = TRUE) 
+big_table %>% print(n = Inf)
+
+# merging concentration values
+# ----------------------------
+
+big_table <- left_join(big_table,  list_concs_long, by = c("key"), copy = TRUE) 
+big_table %>% print(n = Inf)
+
+# correct column names
+# --------------------
+
+colnames(big_table)
+big_table$type.x <- NULL
+big_table$plate.x <- NULL
+identical(big_table$row.x, big_table$row)
+big_table$row.x <- NULL
+identical(big_table$"content.x", big_table$"content.y")
+big_table <- dplyr::rename(big_table, "pool_content" = "content.x" )
+big_table <- dplyr::rename(big_table, "primer_label" = "content.y" )
+identical(big_table$"col.x", big_table$"col")
+big_table$"col.x" <- NULL
+identical(big_table$"sample_name.y", big_table$"sample_name.x")
+big_table <- dplyr::rename(big_table, "sample_name" = "sample_name.y" )
+big_table$"sample_name.x" <- NULL
+big_table <- dplyr::rename(big_table, "primer_direction" = "type.y")
+colnames(big_table) <- tolower(colnames(big_table)) 
