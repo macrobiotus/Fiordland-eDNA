@@ -79,7 +79,13 @@
       * using cutadapt parameters `--revcomp -e 0` - **running**
       * if unsuccessful:
         * trim only by index and keep reads pooled be primer U/E - **check results first**
-        * requires adjustment of ``/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R`  - **check results first**
+        * requires adjustment of `/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R`  - **check results first**
+  * commit `acc6ce02a13594827313fbce8c71f5c6539a7842`
+  * corrected for correct reverse complemneting
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R`
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/300_conda_cutadapt_demultiplex.sh`
+    
+    
 
 * **unfinished**
   * use `/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R` to import file - **pending**

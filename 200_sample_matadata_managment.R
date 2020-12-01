@@ -284,7 +284,12 @@ demux_table <- demux_table %>% pivot_wider(id_cols = seq_set, names_from = prime
 # remove superflous information 
 demux_table <- demux_table %>% filter(f_primer != "NANA" & r_primer != "NANA") %>% print(n = Inf)
 
-# write three-column-text file for bash parsing
+#reverse complemnet 3' tagged preimer
+strReverse <- function(x) sapply(lapply(strsplit(x, NULL), rev), paste, collapse = "")
+demux_table <- demux_table %>% mutate(r_primer, strReverse(chartr("acgtACGT", "tgcaTGCA", r_primer))) %>% rename(r_primer_rc = `strReverse(chartr("acgtACGT", "tgcaTGCA", r_primer))`)
+
+
+# write four-column-text file for bash parsing
 write_delim(demux_table, file = "/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/200_cutadapt_barcode_input.txt", delim = " ", append = FALSE, col_names = FALSE, quote_escape = "none", eol = "\n")
 
 # Get manifest file for Qiime 

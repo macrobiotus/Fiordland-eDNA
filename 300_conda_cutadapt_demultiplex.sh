@@ -52,7 +52,7 @@ for ((i=1;i<=1;i++)); do
     # echo "$namest"
     
     # step through barcode file
-    while IFS=" " read -r smplnm fwdbc revbc
+    while IFS=" " read -r smplnm fwdbc revbc revbcrc
       do
         
         # generate output file name
@@ -61,16 +61,14 @@ for ((i=1;i<=1;i++)); do
         # for debugging only
         # echo "$outfile"
         
-        # reverse complement trailing adapter
-        revbc_rc=$(echo $revbc | grep '^[atcg]' | rev | tr atcg tagc)
         
         # echo "$revbc"
-        # echo "$revbc_rc"
+        # echo "$revbcrc"
 
           # call import only if output file isn't already there
           if [ ! -f "$outfile" ]; then
             
-            cutadapt -g "$fwdbc"..."$revbc_rc" -o "$outfile" "$trpth""${inpth[$i]}"  --discard-untrimmed --revcomp -e 0
+            cutadapt -g "$fwdbc"\;required..."$revbcrc"\;required -o "$outfile" "$trpth""${inpth[$i]}"  --discard-untrimmed --revcomp -e 0
 
           else
      
