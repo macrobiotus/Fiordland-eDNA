@@ -64,12 +64,27 @@
       * also check concentration values in `big_table` object   
    * for work beyond this Qiime script templates can be found in `/Users/paul/Documents/OU_pcm_eukaryotes/Github`
    * all processing script now located at `/Users/paul/Documents/OU_eDNA/200901_scripts`
-   * commit ``
-
+   * commit `33bc86967048d00c99ad35db5234b3e979a64d5`
+* **01-Dec-2020** - renaming files - getting metadata for sequence deconvolution
+  * settling on `cutadapt`, version 3.0 with linked adapters for demultiplexing
+    * see `https://cutadapt.readthedocs.io/en/stable/guide.html#linked-adapters-combined-5-and-3-adapter`
+    * see `https://unix.stackexchange.com/questions/260840/read-columns-from-file-into-separate-variables`
+  * get three column file from  `/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R` - **beta**
+    * write to `/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata` - **beta**
+  * parse three column file with cutadapt for deconvolution - **in progress**
+    * wrote `/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/200_cutadapt_barcode_input.txt` - **done**
+      * checked with primer order sheet - all there as in `/Users/paul/Documents/OU_eDNA/191031_primers/200504_idt_template_plate_filled_fjordland.xls`
+    * use cutadapt for deconvolution - **pending**
+      * starting `/Users/paul/Documents/OU_eDNA/200901_scripts/300_conda_cutadapt_demultiplex.sh` - **running**
+      * using cutadapt parameters `--revcomp -e 0` - **running**
+      * if unsuccessful:
+        * trim only by index and keep reads pooled be primer U/E - **check results first**
+        * requires adjustment of ``/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R`  - **check results first**
 
 * **unfinished**
+  * use `/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R` to import file - **pending**
+  * use `/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R` to mapping file - **pending**
   * `/Users/paul/Documents/OU_eDNA/200901_scripts/201028_sample_matadata_managment.R`
-    * use for creation of mapping file - **pending**
-    * read in other sample metadata - **pending**
+    * finish for creation of mapping file - **pending**
   * read in new BRUV observations as alternatives to `/Users/paul/Documents/OU_eDNA/191213_field_work/200520_MH_bruv_data.xlsx`
 
