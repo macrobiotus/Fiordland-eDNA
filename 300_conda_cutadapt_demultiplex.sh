@@ -61,14 +61,13 @@ for ((i=1;i<=1;i++)); do
         # for debugging only
         # echo "$outfile"
         
-        
         # echo "$revbc"
         # echo "$revbcrc"
 
           # call import only if output file isn't already there
           if [ ! -f "$outfile" ]; then
             
-            cutadapt -g "$fwdbc"\;required..."$revbcrc"\;required -o "$outfile" "$trpth""${inpth[$i]}"  --discard-untrimmed --revcomp -e 0
+            cutadapt -a "$fwdbc"\;required..."$revbcrc"\;required -o "$outfile" "$trpth""${inpth[$i]}"  --discard-untrimmed -e 0 --no-indels -m 200
 
           else
      

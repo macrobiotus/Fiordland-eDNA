@@ -1,4 +1,4 @@
-# Fiordland project 01-12-2020
+# Fiordland project 03-12-2020
 #
 # Read cells from 
 #   "/Users/paul/Documents/OU_eDNA/200128_lab_work/200907_plate_layouts.xlsx"
@@ -157,7 +157,7 @@ mdata <- readxl::read_excel(mdpath[1], range = "A1:L91", .name_repair = "univers
 lubridate::date(mdata$sample_time) <- lubridate::date(mdata$sample_date)
 mdata$sample_date <- NULL
 
-save(mdata, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment_mdata.Rdata")
+save(mdata, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__mdata.Rdata")
 
 
 ## Merge data for further formatting
@@ -263,6 +263,10 @@ big_table <- big_table %>% mutate(sample_type = case_when(
                TRUE ~ as.character(sample_type)))
 unique(big_table$sample_type)
 
+
+save(big_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__big_table.Rdata")
+
+
 # Get file for deconvolution using cutadapt >=3.0
 # ===============================================
 
@@ -292,16 +296,6 @@ demux_table <- demux_table %>% mutate(r_primer, strReverse(chartr("acgtACGT", "t
 # write four-column-text file for bash parsing
 write_delim(demux_table, file = "/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/200_cutadapt_barcode_input.txt", delim = " ", append = FALSE, col_names = FALSE, quote_escape = "none", eol = "\n")
 
-# Get manifest file for Qiime 
-# ============================
-
-# ** pending **
-
-
-# Get metadata file for Qiime 
-# ============================
-
-# ** pending **
-# ** pending **
-
+# also save R object in case needed later
+save(demux_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__demux_table.Rdata")
 

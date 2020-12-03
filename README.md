@@ -84,6 +84,20 @@
   * corrected for correct reverse complemneting
     * `/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R`
     * `/Users/paul/Documents/OU_eDNA/200901_scripts/300_conda_cutadapt_demultiplex.sh`
+  * commit `0d17a836ef51aa9c2fa3f0f68f109ffd3696226`
+  * added length filtering - **check files sizes, they are suspiciously similar** - **remove PhiX?** - **do not run multiple instances?**
+* **03-Dec-2020** - creating manifest file for Qiime imports
+  * demultiplexing has finished `/Users/paul/Documents/OU_eDNA/200901_scripts/300_conda_cutadapt_demultiplex.sh` - has finished
+    * files at: `/Users/paul/Documents/OU_eDNA/201126_preprocessing/cutadapt`
+  * updated `/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R`
+    * for manifest file generation exports all data as R objcets, notably also
+      * all metadata combined: `/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__big_table.Rdata`
+      * object used for demultiplexing information `/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__demux_table.Rdata`
+        * which is R object corresponding to `/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/200_cutadapt_barcode_input.txt`
+  * created script to create manifest file for Qiime: `/Users/paul/Documents/OU_eDNA/200901_scripts/400_create_qiime_manifest.R`
+    * manifest at: `/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/400_create_qiime_manifest__manifest.txt`
+  * 
+        
     
     
 
