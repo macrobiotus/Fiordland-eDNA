@@ -37,9 +37,9 @@ manifest <- manifest %>% mutate( `sample-id` = sub('_', '-',  sub('.fastq.gz', '
 # add paths to manifest  
 manifest <- manifest %>% mutate( "absolute-filepath" = paste0("/Users/paul/Documents/OU_eDNA/201126_preprocessing/cutadapt/", `absolute-filepath`))
 
-manifest <- manifest %>% select("sample-id",  "absolute-filepath")
+manifest <- manifest %>% select("sample-id",  "absolute-filepath") %>% mutate( direction = "forward")
 
 # Write manifest file
 # ===================
-write_tsv(manifest, "/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/400_create_qiime_manifest__manifest.txt", eol = "\n")
+write_excel_csv(manifest, "/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/400_create_qiime_manifest__manifest.txt", eol = "\n")
 

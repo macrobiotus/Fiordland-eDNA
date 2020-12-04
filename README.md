@@ -96,7 +96,27 @@
         * which is R object corresponding to `/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/200_cutadapt_barcode_input.txt`
   * created script to create manifest file for Qiime: `/Users/paul/Documents/OU_eDNA/200901_scripts/400_create_qiime_manifest.R`
     * manifest at: `/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/400_create_qiime_manifest__manifest.txt`
-  * 
+  * commit `36b58b2bb250f2ec0a6a8d1816303ba24eba946e`
+  * copied and updated transport scripts for denoising and blasting using Cornell cluster (including commit)
+    * `/Users/paul/Documents/OU_eDNA/201203_cu_transport`
+  * pushing files to Cornell cluster
+* **04-Dec-2020** - denoising finished, continuing processing
+  * exported denoising stats using `qiime tools view /Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-vis.qzv`
+  * adjusting and running `/Users/paul/Documents/OU_eDNA/200901_scripts/650_gnu_plot_denoise.gnu` - **aborted**
+  * coding and running new plotting script `/Users/paul/Documents/OU_eDNA/200901_scripts/650_plot_denoise.R` -  **ok**
+  * after denoising, to save space, erasing superflous `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/500_12S_single_end_import.qza`
+  * exporting denoised sequences for blasting, before renaming them:
+    * `qiime tools export  --input-path /Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.qza --output-path /Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/`
+    * `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.fasta.gz`
+  * expected peak length post primer and adapter trim: ~310 bp - 75 bp (fwd) - 58 bp (rev) = 177
+  * observed length in Geneious import: mode about 255 bp for `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.fasta.gz`
+  * re-trimming primers in Geneious: shift distribution mode to about 240 bp - but wrong trimming
+    * starting but unfinished `/Users/paul/Documents/OU_eDNA/200901_scripts/5550_q2_cutadapt.sh`
+  * rechecking visually - only spurious remnants of barcode and primmer, leaving original file untouched
+  * adjusting blast script for cluster and testing locally: `/Users/paul/Documents/OU_eDNA/200901_scripts/750_bash_fasta_blast.sh`
+  * commit `` and upload to cluster
+  
+    
         
     
     
@@ -107,4 +127,5 @@
   * `/Users/paul/Documents/OU_eDNA/200901_scripts/201028_sample_matadata_managment.R`
     * finish for creation of mapping file - **pending**
   * read in new BRUV observations as alternatives to `/Users/paul/Documents/OU_eDNA/191213_field_work/200520_MH_bruv_data.xlsx`
+  * erase files on Cornell cluster after taxonomy assignmenets
 
