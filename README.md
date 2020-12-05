@@ -114,8 +114,12 @@
     * starting but unfinished `/Users/paul/Documents/OU_eDNA/200901_scripts/5550_q2_cutadapt.sh`
   * rechecking visually - only spurious remnants of barcode and primmer, leaving original file untouched
   * adjusting blast script for cluster and testing locally: `/Users/paul/Documents/OU_eDNA/200901_scripts/750_bash_fasta_blast.sh`
-  * commit `` and upload to cluster
-  
+  * commit `49e02fd2147ca9a671a46e1114b11eef5d97238` and upload to cluster
+* **05-Dec-2020** - redo cutadapt
+  * taxonomy assignment yielded mostly off traget sequences longer then expected 177bp
+  * restarting from `cutadapt`, without length filtering, using no filter at all to as to properly parametrize `dada2`
+  * `cutadapt` and `parallel` combined in new script revisions
+  * commit ``
     
         
     
