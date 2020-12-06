@@ -65,7 +65,7 @@ for ((i=1;i<=1;i++)); do
    
     # call cutadapt     
     parallel --jobs 0 -a "$trpth"/"$barcodes" --colsep ' ' \
-      cutadapt -a {2}'\;required...'{4}'\;required' -o "$namest"__{1}.fastq.gz "$trpth""${inpth[$i]}" --discard-untrimmed -e 0 --no-indels
+      cutadapt -a {2}'\;required...'{4}'\;required' -o "$namest"__{1}.fastq.gz "$trpth""${inpth[$i]}" --discard-untrimmed -e 0 --no-indels -m 1
     
     
 done    

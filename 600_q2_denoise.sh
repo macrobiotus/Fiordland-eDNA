@@ -15,17 +15,21 @@ set -o pipefail
 # Adjust base paths
 # -----------------
 if [[ "$HOSTNAME" != "Pauls-MacBook-Pro.local" ]] && [[ "$HOSTNAME" != "macmini-fastpost-1.staff.uod.otago.ac.nz" ]]; then
+    
     bold=$(tput bold)
     normal=$(tput sgr0)
     printf "${bold}$(date):${normal} Execution on remote...\n"
     trpth="/workdir/pc683/OU_eDNA"
     cores="$(nproc --all)"
+    
 elif [[ "$HOSTNAME" == "Pauls-MacBook-Pro.local" ]]  || [[ "$HOSTNAME" == "macmini-fastpost-1.staff.uod.otago.ac.nz" ]]; then
+    
     bold=$(tput bold)
     normal=$(tput sgr0)
     printf "${bold}$(date):${normal} Execution on local...\n"
     trpth="/Users/paul/Documents/OU_eDNA"
     cores="2"
+
 fi
 
 # define input locations
@@ -62,9 +66,11 @@ for ((i=1;i<=1;i++)); do
       --p-trunc-len "${trnc[$i]}" \
       --p-max-ee "${eerr[$i]}" \
       --p-n-threads "$cores" \
+      --p-chimera-method pooled \
       --o-table "$trpth"/"${otpth_tab[$i]}" \
       --o-representative-sequences "$trpth"/"${otpth_seq[$i]}" \
       --o-denoising-stats "$trpth"/"${otpth_stat[$i]}" \
+      --p-n-reads-learn 10000000 \
       --verbose
 
     # export stats file for manual inspection and gnuplot

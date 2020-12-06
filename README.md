@@ -119,9 +119,20 @@
   * taxonomy assignment yielded mostly off traget sequences longer then expected 177bp
   * restarting from `cutadapt`, without length filtering, using no filter at all to as to properly parametrize `dada2`
   * `cutadapt` and `parallel` combined in new script revisions
+  * commit `d251d90228afe9bd2dc7c793fa95741114a01a75`
+  * pulling data from cluster
+  * forgot to remove 0 length sequences in cutadapt - call need to be corrected for import
+  * redo on cluster - adjusted all path names
+  * commit before cluster and push
+* **06-Dec-2020**
+  * length distribution post denoise finally ok
+  * checked on cluster via `cat file.fa | awk '$0 ~ ">" {print c; c=0;printf substr($0,2,10) "\t"; } $0 !~ ">" {c+=length($0);} END { print c; }' | sed '/^$/d' | awk '{print $2}' | sort | uniq -c | awk '{print $1,$2}'`
+  * starting Blast before copying out files
+  * erasing qiime import files (13 GB) and cutadapt output (18 GB)
+  * pulling to local
+  * checked files and corrected filenames
   * commit ``
-    
-        
+      
     
     
 

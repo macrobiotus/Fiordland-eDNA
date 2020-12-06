@@ -16,12 +16,11 @@ set -o pipefail
 # -----------------
 if [[ "$HOSTNAME" != "Pauls-MacBook-Pro.local" ]] && [[ "$HOSTNAME" != "macmini-fastpost-1.staff.uod.otago.ac.nz" ]]; then
     
-    # adjust terminal colours
     bold=$(tput bold)
     normal=$(tput sgr0)
-
-    # location message 
-    printf "${bold}$(date):${normal} Execution on remote is not implemented...\n"
+    printf "${bold}$(date):${normal} Execution on remote...\n"
+    trpth="/workdir/pc683/OU_eDNA"
+    cores="2"
 
 elif [[ "$HOSTNAME" == "Pauls-MacBook-Pro.local" ]]  || [[ "$HOSTNAME" == "macmini-fastpost-1.staff.uod.otago.ac.nz" ]]; then
     bold=$(tput bold)

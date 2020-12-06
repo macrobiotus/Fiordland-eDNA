@@ -95,7 +95,7 @@ for fasta in "${inpth_seq[@]}";do
         -out "$trpth"/201126_preprocessing/blast/"$tgt_file" \
         -num_threads "$cores" \
         -qcov_hsp_perc 95 \
-        -perc_identity 50 \
+        -perc_identity 75 \
         -negative_gilist "$trpth"/201126_preprocessing/blast/190718_gi_list_environmental.txt && \
       printf "...on $(date) Blast finished writing to \"$trpth/201126_preprocessing/blast/$tgt_file\".\n" || \
       { printf "Blastn failed at $(date +"%T") on \"$fasta\". \n" ; exit 1; }
