@@ -1,7 +1,7 @@
 # *********************************************************
 # * Combine and correct sample descriptors and predictors *
 # ********************************************************* 
-# 12-Aug-2020
+# 07-Dec-2020
 
 # load packages
 # =============
@@ -11,6 +11,34 @@ gc()
 library("tidyverse")  # work using tibbles
 library("readxl")     # read excel sheets
 library("stringr")    # rename column names using dplyr
+
+
+# load manifest file 
+# ==================
+
+# if only to learn sample id format
+qmanif <- read_csv("/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/400_create_qiime_manifest__manifest.txt")
+print(qmanif)
+
+# load big_table to format as metadata file
+# =========================================
+load("/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__big_table.Rdata")
+print(big_table)
+
+# generate a sample id table matching qiime sample id's in 
+#     "/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/400_create_qiime_manifest__manifest.txt"
+#   by checking 
+#     "/Users/paul/Documents/OU_eDNA/200901_scripts/200_r_metadata_management.R"
+#   so that values in column "qsamplid" match Qiime-internal sample names of file:
+#     "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-tab.qza"
+
+big_table_trimmed <- big_table %>% filter(sample_name != "empty")  %>% mutate("qsamplid" = paste0( sub('_', '-', sample_name), "_", gsub("\\.", "-", key))) 
+
+# ** not done yet** 
+#   check if "big_table_trimmed$qsamplid" is the same as qmanif$`sample-id`, as it must become
+
+
+# ** old code below **
 
 # load sample descriptions
 # =========================
