@@ -131,7 +131,13 @@
   * erasing qiime import files (13 GB) and cutadapt output (18 GB)
   * pulling to local
   * checked files and corrected filenames
-  * commit ``
+  * commit `cdd78aa2c32f31b04d258ef1ba4977eca53b81e`
+* **07-Dec-2020**
+  * adjusted and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/800_r_get_q2_tax-tab.r`
+    * wrote file `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.tsv`
+  * next get a suitable metadata file
+    * implement in `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`
+    * read in file `/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__big_table.Rdata`
       
     
     
