@@ -1,32 +1,32 @@
 #!/usr/bin/env bash
 
-# 12.08.2020 - Paul Czechowski - paul.czechowski@gmail.com 
+# 08.12.2020 - Paul Czechowski - paul.czechowski@gmail.com 
 # ========================================================
 
 # set -x
-set -e
-set -u
+set -eu
+set -o pipefail
 
 # Adjust base paths
 # -----------------
-if [[ "$HOSTNAME" != "Pauls-MacBook-Pro.local" ]] && [[ "$HOSTNAME" != "macmini-fastpost.staff.uod.otago.ac.nz" ]]; then
+if [[ "$HOSTNAME" != "Pauls-MacBook-Pro.local" ]] && [[ "$HOSTNAME" != "macmini-fastpost-1.staff.uod.otago.ac.nz" ]]; then
     bold=$(tput bold)
     normal=$(tput sgr0)
     printf "${bold}$(date):${normal} Execution on remote...\n"
-    trpth="/workdir/pc683/OU_pcm_eukaryotes"
+    trpth="/workdir/pc683/OU_eDNA"
     cores="$(nproc --all)"
-elif [[ "$HOSTNAME" == "Pauls-MacBook-Pro.local" ]]  || [[ "$HOSTNAME" == "macmini-fastpost.staff.uod.otago.ac.nz" ]]; then
+elif [[ "$HOSTNAME" == "Pauls-MacBook-Pro.local" ]]  || [[ "$HOSTNAME" == "macmini-fastpost-1.staff.uod.otago.ac.nz" ]]; then
     bold=$(tput bold)
     normal=$(tput sgr0)
     printf "${bold}$(date):${normal} Execution on local...\n"
-    trpth="/Users/paul/Documents/OU_pcm_eukaryotes"
+    trpth="/Users/paul/Documents/OU_eDNA"
     cores="2"
 fi
 
 # define relative input locations - Qiime files
 # --------------------------------------------------------
-inpth_map='Zenodo/Manifest/200810_18S_MF_merged_q2_import.txt'
-inpth_tax='Zenodo/Blast/150_18S_merged-seq_q2taxtable.qza'
+inpth_map='201126_preprocessing/metadata/850_prep_q2_predictor-tab__metadata.tsv'
+inpth_tax='201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.qza'
 
 # define relative input locations - sequence files
 # -----------------------------------------------------------
@@ -37,7 +37,7 @@ inpth_tax='Zenodo/Blast/150_18S_merged-seq_q2taxtable.qza'
 inpth_seq_unsorted=()
 while IFS=  read -r -d $'\0'; do
     inpth_seq_unsorted+=("$REPLY")
-done < <(find "$trpth/Zenodo/Processing" \( -name '120_18S_merged-seq.qza' \) -print0)
+done < <(find "$trpth/201126_preprocessing/qiime" \( -name '600_12S_single_end_ee3-seq.qza' \) -print0)
 
 # for debugging - print unsorted sequences
 # printf '%s\n'
@@ -58,7 +58,7 @@ unset IFS
 inpth_tab_unsorted=()
 while IFS=  read -r -d $'\0'; do
     inpth_tab_unsorted+=("$REPLY")
-done < <(find "$trpth/Zenodo/Processing" \( -name '120_18S_merged-tab.qza' \) -print0)
+done < <(find "$trpth/201126_preprocessing/qiime" \( -name '600_12S_single_end_ee3-tab.qza' \) -print0)
 
 # for debugging -  print unsorted tables
 # printf '%s\n'
@@ -116,9 +116,9 @@ for i in "${!inpth_seq[@]}"; do
     # echo "$tab_file_name"
     # echo "$plot_file_name"
     
-    seq_file_vis_path="$directory/170_$seq_file_name""$extension"
-    tab_file_vis_path="$directory/170_$tab_file_name""$extension"
-    plot_file_vis_path="$directory/170_$plot_file_name"_barplot"$extension"
+    seq_file_vis_path="$directory/900_$seq_file_name""$extension"
+    tab_file_vis_path="$directory/900_$tab_file_name""$extension"
+    plot_file_vis_path="$directory/900_$plot_file_name"_barplot"$extension"
     
     # check string construction - for debugging
     # echo "$seq_file_vis_path"

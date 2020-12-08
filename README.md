@@ -142,8 +142,25 @@
 * **08-Dec-2020**  
   * finished first version of `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`
   * exported `/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/850_prep_q2_predictor-tab__metadata.tsv`
-  * commit ``
-    
+  * commit `9cbef38cc355336abb8e2c4cddfb1f88e3fe8c19`
+  * importing taxonomy file:
+        `qiime tools import \
+           --input-path  "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.tsv" \
+           --output-path "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.qza" \
+           --type 'FeatureData[Taxonomy]' \
+           --input-format HeaderlessTSVTaxonomyFormat || { echo 'Taxonomy import failed' ; exit 1; }`
+  * Qiime taxonomy file with Blast taxonomy available at `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.qza`    
+  * adjusted and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/900_q2_summary.sh`
+    * see for length statistics of raw data `qiime tools view /Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/900_12S_single_end_ee3-seq.qzv`
+    * see for metadata-wise statistics of raw data `qiime tools view /Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/900_12S_single_end_ee3-tab.qzv`
+  * to export objects, adjusted and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/980_q2_export_objects.sh`
+    * exported to `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/980_12S_single_end_ee3-tab_q2_export`
+    * correct duplicate column names in `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/980_12S_single_end_ee3-tab_q2_export/taxonomy.tsv`
+      * to `Feature ID	Taxon	Confidence`
+
+  * **next:** 
+    * get Phyloseq object of eDNA data and melt - adjust `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r
+    * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
     
 
 * **unfinished**
@@ -153,4 +170,7 @@
     * finish for creation of mapping file - **pending**
   * read in new BRUV observations as alternatives to `/Users/paul/Documents/OU_eDNA/191213_field_work/200520_MH_bruv_data.xlsx`
   * erase files on Cornell cluster after taxonomy assignmenets
+
+* **later or never**
+  * modify `850_r_prep_q2_predictor-tab.r` to get per-sample-stats independent of primer
 

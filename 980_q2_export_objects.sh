@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
 
-# 12.08.2020 - Paul Czechowski - paul.czechowski@gmail.com 
+# 08.12.2020 - Paul Czechowski - paul.czechowski@gmail.com 
 # ========================================================
 
 # For debugging only
 # ------------------ 
 # set -x
-set -e
-set -u
+set -eu
+set -o pipefail
 
 # Paths need to be adjusted for remote execution
 # ==============================================
-if [[ "$HOSTNAME" != "Pauls-MacBook-Pro.local" ]] && [[ "$HOSTNAME" != "macmini-fastpost.staff.uod.otago.ac.nz" ]]; then
+if [[ "$HOSTNAME" != "Pauls-MacBook-Pro.local" ]] && [[ "$HOSTNAME" != "macmini-fastpost-1.staff.uod.otago.ac.nz" ]]; then
     bold=$(tput bold)
     normal=$(tput sgr0)
     printf "${bold}$(date):${normal} Execution on remote...\n"
-    trpth="/workdir/pc683/OU_pcm_eukaryotes"
+    trpth="/workdir/pc683/OU_eDNA"
     cores="$(nproc --all)"
-elif [[ "$HOSTNAME" == "Pauls-MacBook-Pro.local" ]]  || [[ "$HOSTNAME" = "macmini-fastpost.staff.uod.otago.ac.nz" ]]; then
+elif [[ "$HOSTNAME" == "Pauls-MacBook-Pro.local" ]]  || [[ "$HOSTNAME" = "macmini-fastpost-1.staff.uod.otago.ac.nz" ]]; then
     bold=$(tput bold)
     normal=$(tput sgr0)
     printf "${bold}$(date):${normal} Execution on local...\n"
-    trpth="/Users/paul/Documents/OU_pcm_eukaryotes"
+    trpth="/Users/paul/Documents/OU_eDNA"
     cores='2'
 fi
 
@@ -32,16 +32,18 @@ fi
 # -----------
 
 # MD5 (/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/Blast/150_18S_merged-seq_q2taxtable.qza) = b5e1e51cb160982300b9c1794b3044c4
-tax_assignemnts='Zenodo/Blast/150_18S_merged-seq_q2taxtable.qza'
+tax_assignemnts='201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.qza'
 # MD5 (/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/Manifest/200810_18S_MF_merged_q2_import.txt) = 62f8ced6d6c8ceb682c53e446c568df8
-inpth_map='Zenodo/Manifest/200810_18S_MF_merged_q2_import.txt'
+inpth_map='201126_preprocessing/metadata/850_prep_q2_predictor-tab__metadata.tsv'
+
+
 
 # Find all feature tables and put into array
 # ------------------------------------------
 inpth_features_unsorted=()
 while IFS=  read -r -d $'\0'; do
     inpth_features_unsorted+=("$REPLY")
-done < <(find "$trpth/Zenodo/Processing" -name '120_18S_merged-tab.qza' -print0)
+done < <(find "$trpth/201126_preprocessing/qiime" -name '600_12S_single_end_ee3-tab.qza' -print0)
 
 # Sort array 
 IFS=$'\n' inpth_features=($(sort <<<"${inpth_features_unsorted[*]}"))
@@ -52,7 +54,7 @@ unset IFS
 inpth_sequences_unsorted=()
 while IFS=  read -r -d $'\0'; do
     inpth_sequences_unsorted+=("$REPLY")
-done < <(find "$trpth/Zenodo/Processing" -name '120_18S_merged-seq.qza' -print0)
+done < <(find "$trpth/201126_preprocessing/qiime" -name '600_12S_single_end_ee3-seq.qza' -print0)
 
 # Sort array 
 IFS=$'\n' inpth_sequences=($(sort <<<"${inpth_sequences_unsorted[*]}"))
@@ -85,7 +87,7 @@ for i in "${!inpth_features[@]}"; do
     # create path for output directory
     results_tmp=$(basename "${inpth_features[$i]}".qza)
     results_tmp=${results_tmp:4:-8}
-    results_dir="$trpth/Zenodo/Processing/190_"$results_tmp"_q2_export"
+    results_dir="$trpth/201126_preprocessing/qiime/980_"$results_tmp"_q2_export"
     # echo "$results_dir"
     # exit
     
@@ -116,14 +118,17 @@ for i in "${!inpth_features[@]}"; do
         --sc-separated taxonomy || { echo 'taxonomy addition failed' ; exit 1; }
    
       # Adding metadata to .biom file
+      #   observation-headers as per `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.tsv`
+      #   sample headers as per `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`
+      
       printf "${bold}$(date):${normal} Adding metadata to .biom file...\n"
       biom add-metadata \
         -i "$results_dir"/features-tax.biom \
         -o "$results_dir"/features-tax-meta.biom \
         -m "$trpth"/"$inpth_map" \
         --observation-header OTUID,taxonomy,confidence \
-        --sample-header SampleID,BarcodeSequence,LinkerPrimerSequence,TmplHash,LibContent,SardiID,XtrOri,XtrContent,Location,LongDEC,LatDEC,Loci,RibLibConcAvg,RibPoolConcAvg,Description,COLR,GRAVL,TEXT,AMMN,NITR,PHOS,POTA,SULPH,CARB,COND,PH_CACL,PH_H2O,RLU,QUARTZ,FELDSPAR,TITANITE,GARNETS,MICAS,DOLOMITE,KAOLCHLOR,CALCITE,CHLORITE,ELEVATION,SLOPE,ASPECT,AGE_KA || { echo 'Metadata addition failed' ; exit 1; }
-  
+        --sample-header sampleid,pool-content,key,primer-direction,primer-label,adapter-fwd,flupad,index-fwd,template-primer-fwd,complete-primer-fwd,loc-name,sample-time,sample-type,inside-reserve,sample-name,vol-l,lat-dd,long-dd,depth-m,notes,xtr-date,row,plate,col,ng-ul,primer-direction_rev,primer-label-rev,adapter-rev,index-rev,template-primer-rev,complete-primer-rev || { echo 'Metadata addition failed' ; exit 1; }
+    
       # Exporting .biom file to .tsv
       printf "${bold}$(date):${normal} Exporting to .tsv file...\n"
       biom convert \
