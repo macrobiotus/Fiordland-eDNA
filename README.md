@@ -138,7 +138,11 @@
   * **next** - get a suitable metadata file
     * read in file `/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__big_table.Rdata` - **ok**
     * by adjusting `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r` - **pending**
-    * commit ``  
+    * commit `68f58558ca4b3f5100ea9e2814f10175b0860fc`
+* **08-Dec-2020**  
+  * finished first version of `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`
+  * exported `/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/850_prep_q2_predictor-tab__metadata.tsv`
+  * commit ``
     
     
 
