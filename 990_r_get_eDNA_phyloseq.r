@@ -10,6 +10,10 @@ gc()
 
 library("tidyverse")   # work using tibbles
 library("phyloseq")    # handle Qiime 2 data in R - best used to generate long dataframe
+
+library("data.table")   # faster handling of large tables - such as molten Phyloseq objects
+library("future.apply") # faster handling of large tables - such as molten Phyloseq objects
+
 library("decontam")    # decontamination - check `https://benjjneb.github.io/decontam/vignettes/decontam_intro.html`
 library("openxlsx")    # write Excel tables
 
@@ -18,6 +22,35 @@ library("openxlsx")    # write Excel tables
 
 # Define new operator "not in"
 '%!in%' <- function(x,y)!('%in%'(x,y))
+
+## unfinished  below ----------------
+
+# reorder variables in molten Phyloseq object
+correct_col_names <- function (phsq_ob_molten){
+
+  require(dplyr)
+
+  column_labels <- c(
+  "asv", "sample.id", "asv.count",
+  
+  
+  "sampleid", "pool-content", "key", "primer-direction", "primer-label", "adapter-fwd",
+  "flupad", "index-fwd", "template-primer-fwd", "complete-primer-fwd", "loc-name", "sample-time",
+  "sample-type", "inside-reserve", "sample-name", "vol-l", "lat-dd", "long-dd", "depth-m", "notes",
+  "xtr-date", "row", "plate", "col",  "ng-ul", "primer-direction_rev", "primer-label-rev", "adapter-rev", "index-rev", "template-primer-rev", "complete-primer-rev"
+  
+  )
+  
+  molten_phyloseq_object <- molten_phyloseq_object %>% select(all_of(var_order)) 
+
+  return(molten_phyloseq_object)
+
+} 
+
+
+## unfinished  above ----------------
+
+
 
 # Create phyloseq object.
 # -----------------------
@@ -38,85 +71,6 @@ get_phsq_ob <- function(biom_path, sequ_path, tree_path){
 }
 
 
-# Remove empty data
-# -----------------
-
-# This function removes "0" count phylotypes from samples and samples with "0"
-# phylotypes.
-remove_empty <- function(phsq_ob){
-
-  # filter Phylotypes
-  phsq_ob <- phyloseq::prune_taxa (taxa_sums (phsq_ob) > 0, phsq_ob)
-  
-  # filter samples
-  phsq_ob <- phyloseq::prune_samples (sample_sums (phsq_ob) > 0, phsq_ob)
-  
-  # return object
-  return (phsq_ob)
-}
-
-
-# Order variables in molten_phyloseq_object
-# -----------------------------------------
-
-reorder_vars <- function (molten_phyloseq_object){
-
-  require(dplyr)
-
-  var_order <- c(
-    "OTU", "Abundance", 
-    "Sample", "Location", "Description",
-    "COLR", "GRAVL", "TEXT", "AMMN", "NITR", "PHOS", "POTA", "SULPH", "CARB", "COND", "PH_CACL", "PH_H2O",
-    "RLU", 
-    "QUARTZ", "FELDSPAR", "TITANITE", "GARNETS", "MICAS", "DOLOMITE", "KAOLCHLOR", "CALCITE", "CHLORITE", 
-    "ELEVATION", "SLOPE", "ASPECT",  "LongDEC", "LatDEC", "Loci", "AGE_KA",
-    "superkingdom", "phylum", "class", "order", "family", "genus", "species",
-    "BarcodeSequence", "LinkerPrimerSequence", "TmplHash", "LibContent", "SardiID", "XtrOri", "XtrContent", "RibLibConcAvg","RibPoolConcAvg")
-  
-  molten_phyloseq_object <- molten_phyloseq_object %>% select(all_of(var_order)) 
-
-  return(molten_phyloseq_object)
-
-} 
-
-
-# Clean taxonomy strings
-# ----------------------
-
-clean_molten_tax_strings <- function(molten_phyloseq_object){
-
-  require(dplyr)
-  
-  molten_phyloseq_object <- molten_phyloseq_object %>% 
-    mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "__", replacement = " "))
-
-  molten_phyloseq_object <- molten_phyloseq_object %>% 
-    mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "_", replacement = " "))
-
-  molten_phyloseq_object <- molten_phyloseq_object %>% 
-    mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "  ", replacement = " "))
-
-  molten_phyloseq_object <- molten_phyloseq_object %>% arrange(superkingdom, phylum, class, order, family, genus, species)
-  
-  return(molten_phyloseq_object)
-
-}
-
-
-# Retain only samples used in this study (no controls, no other locations)
-# ------------------------------------------------------------------------
-
-retain_pcm_sample_for_inspection <- function(molten_phyloseq_object){
-  
-  require(dplyr)
-  
-  molten_phyloseq_object <- molten_phyloseq_object %>% filter(Location %in% c("Mount Menzies", "Mawson Escarpment", "Lake Terrasovoje"))
-  
-  return(molten_phyloseq_object)
-
-}
-
-
 # I. Import Phyloseq object
 # =========================
 
@@ -125,100 +79,56 @@ retain_pcm_sample_for_inspection <- function(molten_phyloseq_object){
 
 # https://rdrr.io/github/jbisanz/qiime2R/f/vignettes/vignette.Rmd
 #  error message stems from "#"  in taxonomy table
-psob_raw <- get_phsq_ob (biom_path = "/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/Processing/190_18S_merged-tab_q2_export/features-tax-meta.biom", 
-                         sequ_path = "/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/Processing/190_18S_merged-tab_q2_export/dna-sequences.fasta",
-                         tree_path = NULL)
+psob <- get_phsq_ob (biom_path = "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/980_12S_single_end_ee3-tab_q2_export/features-tax-meta.biom", 
+                     sequ_path = "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/980_12S_single_end_ee3-tab_q2_export/dna-sequences.fasta",
+                     tree_path = NULL)
 
 # Rewrite rank names, as they seem to have been lost
 # --------------------------------------------------
 #   rank names from `/Users/paul/Documents/OU_pcm_eukaryotes/Github/150_r_get_q2_tax-tab.r`
-colnames(tax_table(psob_raw)) <- c("superkingdom", "phylum", "class", "order",
+colnames(tax_table(psob)) <- c("superkingdom", "phylum", "class", "order",
   "family", "genus", "species")
 
-# Re-label categories
-# -------------------
-# unique(sample_data(psob_raw)$Description)
-# unique(sample_data(psob_raw)$Location)
-
-sample_data(psob_raw)$Description[which(sample_data(psob_raw)$Description ==  "PCM")] <- "PCMNT"
-sample_data(psob_raw)$Description[which(sample_data(psob_raw)$Description =="soilcntrl")] <- "SCNTRL"
-sample_data(psob_raw)$Description[which(sample_data(psob_raw)$Description =="PCRneg")] <- "ACNTRL"
-sample_data(psob_raw)$Description[which(sample_data(psob_raw)$Description =="XTRneg")] <- "XCNTRL"
-sample_data(psob_raw)$Description[which(sample_data(psob_raw)$Description =="AAcntrl")]  <-"COAST"
-sample_data(psob_raw)$Description[which(sample_data(psob_raw)$Description =="Inscntrl")] <- "ICNTRL"
-
-sample_data(psob_raw)$Location[which(sample_data(psob_raw)$Location ==  "Reinbolt_Hills")] <- "Reinbolt Hills"
-sample_data(psob_raw)$Location[which(sample_data(psob_raw)$Location =="Mount_Menzies")] <- "Mount Menzies"
-sample_data(psob_raw)$Location[which(sample_data(psob_raw)$Location =="Mawson_Escarpment")] <- "Mawson Escarpment"
-sample_data(psob_raw)$Location[which(sample_data(psob_raw)$Location =="Lake_Terrasovoe")] <- "Lake Terrasovoje"
-sample_data(psob_raw)$Location[which(sample_data(psob_raw)$Location =="SARDI_lab")]  <- "SARDI"
-sample_data(psob_raw)$Location[which(sample_data(psob_raw)$Location =="EBU_lab")] <- "EBU"
-sample_data(psob_raw)$Location[which(sample_data(psob_raw)$Location =="E_Ant_coast")] <- "East Antarctic Coast"
-
-# unique(sample_data(psob_raw)$Description)
-# unique(sample_data(psob_raw)$Location)
-
-# Remove truly unneeded samples
-# -----------------------------
-psob_raw <- subset_samples(psob_raw, Location %!in%  c("East Antarctic Coast", "Reinbolt Hills") )
-  
-# Remove empty samples and sequence variants
-# ------------------------------------------
-psob_raw <- remove_empty(psob_raw)
+# Check sample metadata
+# ---------------------
+str(sample_data(psob))
+sample_data(psob)@names
 
 # Save or load initial state after import
 # ---------------------------------------
-save(psob_raw, file = "/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/R/200_all_data_psob_import.Rdata")
-save.image(file = "/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/R/200_all_data_psob_import-image.Rdata")
+save(psob, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201212_990_r_get_eDNA_phyloseq__import.Rdata")
+save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201212_990_r_get_eDNA_phyloseq__import_workspace.Rdata")
 
-# load("/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/R/200_all_data_psob_import.Rdata")
-# load("/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/R/200_all_data_psob_import-image.Rdata")
+
+
+
+
 
 
 # II. Inspect a molten Phyloseq object copy
 # =========================================
 
-# create molten Phyloseq object copy
-psob_raw_molten <- psmelt(psob_raw)
+# melting Phyloseq object to data table for merging and speed
+psob_molten <- psmelt(psob) %>% data.table()
 
-# Tidy object 
-# -----------
+# understand data structures by counting unique elements among varibels and their products
+future_apply(psob_molten, 2, function(x) length(unique(x)))
 
-# reorder variables
-psob_raw_molten <- reorder_vars(psob_raw_molten)
-
-# clean taxonomy strings
-psob_raw_molten <- clean_molten_tax_strings(psob_raw_molten)
-
-# retain PCM samples for inspection
-psob_raw_molten <- retain_pcm_sample_for_inspection(psob_raw_molten)
-
-# re-label available data categories for plotting
-psob_raw_molten$phylum[which(psob_raw_molten$phylum %in% c("nomatch", "undefined"))] <- "no hit, reference, or complete taxonomy string"
-
-# get a tibble
-psob_raw_molten <- psob_raw_molten %>% as_tibble(.)
-
-# remove empty data - hope this works
-psob_raw_molten <- psob_raw_molten %>% filter(Abundance > 0) 
-
-
-# Describe object (as below) 
-# --------------------------
+head(psob_molten)
 
 # create and save plot
-ggplot(psob_raw_molten, aes_string(x = "phylum", y = "Abundance", fill = "phylum")) +
+ggplot(psob_molten, aes_string(x = "phylum", y = "Abundance", fill = "phylum")) +
   geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
-  facet_grid(Location ~ ., shrink = TRUE, scales = "free_y") +
+  facet_grid(plate ~ ., shrink = TRUE, scales = "free_y") +
   theme_bw() +
   theme(legend.position = "none") +
   theme(strip.text.y = element_text(angle=0)) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
         axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
         axis.ticks.y = element_blank()) +
-  labs( title = "Phyla across all locations before filtering") + 
-  xlab("phyla at all locations") + 
-  ylab("read counts at each location (y scales variable)")
+  labs( title = "foo") + 
+  xlab("bar") + 
+  ylab("baz")
 
 ggsave("200814_all_unfiltered_phyla_at_all_locations.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_pcm_eukaryotes/Manuscript/200622_display_item_development",

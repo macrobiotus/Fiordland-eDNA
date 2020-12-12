@@ -139,7 +139,7 @@
     * read in file `/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__big_table.Rdata` - **ok**
     * by adjusting `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r` - **pending**
     * commit `68f58558ca4b3f5100ea9e2814f10175b0860fc`
-* **08-Dec-2020**  
+* **08-Dec-2020**
   * finished first version of `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`
   * exported `/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/850_prep_q2_predictor-tab__metadata.tsv`
   * commit `9cbef38cc355336abb8e2c4cddfb1f88e3fe8c19`
@@ -157,11 +157,17 @@
     * exported to `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/980_12S_single_end_ee3-tab_q2_export`
     * correct duplicate column names in `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/980_12S_single_end_ee3-tab_q2_export/taxonomy.tsv`
       * to `Feature ID	Taxon	Confidence`
+  * commit `bd8978a72804f8c03dc4c5420f9492d2af0efc6f`
+* **12-Dec-2020**
+  * started to work on `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+    * **next**:
+      * sort columns of imported data to match columns
+      * possibly chase why columns are not properly sorted
 
-  * **next:** 
-    * get Phyloseq object of eDNA data and melt - adjust `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r
-    * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
-    
+* **next:** 
+  * get Phyloseq object of eDNA data and melt - adjust `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r
+  * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
+  
 
 * **unfinished**
   * use `/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R` to import file - **pending**
