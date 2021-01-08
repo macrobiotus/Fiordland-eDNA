@@ -175,7 +175,11 @@
     * erasing contents of `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/980_12S_single_end_ee3-tab_q2_export`  
     * re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/980_q2_export_objects.sh` - **ok**
   * re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
-    * understood, commit `` 
+    * understood, commit `64f61205e54334e9282616b0fa221c5362aa338c`
+  * import completed - next adjust Phyloseq object processing
+    * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+    * akin to `/Users/paul/Documents/OU_pcm_eukaryotes/Github/200_r_get_phyloseq.r`
+    * commit ``
     
 
 
