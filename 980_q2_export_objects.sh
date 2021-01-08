@@ -37,7 +37,6 @@ tax_assignemnts='201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtabl
 inpth_map='201126_preprocessing/metadata/850_prep_q2_predictor-tab__metadata.tsv'
 
 
-
 # Find all feature tables and put into array
 # ------------------------------------------
 inpth_features_unsorted=()
@@ -81,7 +80,7 @@ for i in "${!inpth_features[@]}"; do
   if [ "$seqstump" == "$tabstump" ]; then
   
     # diagnostic only 
-    printf "${bold}$(date):${normal} Sequence-, and featurefiles have been matched, continuing...\n"
+    printf "${bold}$(date):${normal} Sequence-, and feature files have been matched, continuing...\n"
     
     
     # create path for output directory
@@ -120,14 +119,14 @@ for i in "${!inpth_features[@]}"; do
       # Adding metadata to .biom file
       #   observation-headers as per `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.tsv`
       #   sample headers as per `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`
-      
+      #                         `/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/850_prep_q2_predictor-tab__metadata.tsv`
       printf "${bold}$(date):${normal} Adding metadata to .biom file...\n"
       biom add-metadata \
         -i "$results_dir"/features-tax.biom \
         -o "$results_dir"/features-tax-meta.biom \
         -m "$trpth"/"$inpth_map" \
         --observation-header OTUID,taxonomy,confidence \
-        --sample-header sampleid,pool-content,key,primer-direction,primer-label,adapter-fwd,flupad,index-fwd,template-primer-fwd,complete-primer-fwd,loc-name,sample-time,sample-type,inside-reserve,sample-name,vol-l,lat-dd,long-dd,depth-m,notes,xtr-date,row,plate,col,ng-ul,primer-direction_rev,primer-label-rev,adapter-rev,index-rev,template-primer-rev,complete-primer-rev || { echo 'Metadata addition failed' ; exit 1; }
+        --sample-header sampleid,key,ng-ul,lat-dd,long-dd,pool-content,primer-direction,primer-label,adapter-fwd,flupad,index-fwd,template-primer-fwd,complete-primer-fwd,loc-name,sample-time,sample-type,inside-reserve,sample-name,vol-l,depth-m,notes,xtr-date,row,plate,col,primer-direction_rev,primer-label-rev,adapter-rev,index-rev,template-primer-rev,complete-primer-rev || { echo 'Metadata addition failed' ; exit 1; }
     
       # Exporting .biom file to .tsv
       printf "${bold}$(date):${normal} Exporting to .tsv file...\n"
