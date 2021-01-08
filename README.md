@@ -179,12 +179,13 @@
   * import completed - next adjust Phyloseq object processing
     * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
     * akin to `/Users/paul/Documents/OU_pcm_eukaryotes/Github/200_r_get_phyloseq.r`
-    * commit ``
+    * commit `91f947c9878c81582b6f4da3e41c318d6426412b`
+    * initial plot done, keep on stepping through later ...
     
 
 
 * **next:** 
-  * get Phyloseq object of eDNA data and melt - adjust `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+  * get Phyloseq object of eDNA data and melt - continue `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
   * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
   
 
