@@ -1,7 +1,7 @@
 # **********************************************
 # * Create, filter, and write Physloseq object *
 # **********************************************
-# 12-Dec-2020, 08-Jan-2020
+# 12-Dec-2020, 08-Jan-2020, 11-Jan-2020
 
 # load packages
 # =============
@@ -80,6 +80,78 @@ clean_molten_tax_strings <- function(molten_phyloseq_object){
   return(molten_phyloseq_object)
 
 }
+
+# Get an easily digestible summary of a molten Phyloseq object (e.g. before, during, after filtering)
+# ----------------------
+
+get_molten_ps_description <- function(ps, rank_level, rank_name){
+   
+  require("tidyverse")
+
+  # total sequencing effort
+  f_count <- sum(ps$Abundance)
+
+  # total sample count 
+  s_count <- length(unique(ps$Sample))
+
+  # total ASV count
+  a_count <- length(unique(ps$OTU))
+
+  # ASV count - matching search criterium 
+  ss_count <- ps %>% filter( get(rank_level) %in% c(rank_name)) %>% distinct(OTU) %>% nrow()
+  ss_string <- ps %>% filter( get(rank_level) %in% c(rank_name)) %>% distinct(get(rank_level)) %>% pull() %>% paste0(collapse = " ")
+
+  # ASV count - not matching search criterium 
+  nss_count <- ps %>% filter( get(rank_level) %!in% c(rank_name)) %>% distinct(OTU) %>% nrow()
+  nss_string  <- ps %>% filter( get(rank_level) %!in% c(rank_name)) %>% distinct(get(rank_level)) %>% pull() %>% paste0(collapse = ",  ")
+
+  # get sample coverages
+  coverage_per_sample <- aggregate(ps$Abundance, by=list(Sample=ps$Sample), FUN=sum)
+  summary(coverage_per_sample)
+  cov_s_min  <- summary(coverage_per_sample)[c(1) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
+  cov_s_med  <- summary(coverage_per_sample)[c(3) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
+  cov_s_mean <- summary(coverage_per_sample)[c(4) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
+  cov_s_max <- summary(coverage_per_sample)[c(6) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
+
+  # get ASV coverages
+  coverage_per_asv <- aggregate(ps$Abundance, by=list(ASV=ps$OTU), FUN=sum)
+  summary(coverage_per_asv)
+  cov_a_min  <- summary(coverage_per_asv)[c(1) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
+  cov_a_med  <- summary(coverage_per_asv)[c(3) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
+  cov_a_mean <- summary(coverage_per_asv)[c(4) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
+  cov_a_max <- summary(coverage_per_asv)[c(6) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
+
+  # print summary text
+  message(paste0("\nThe current data set contains ", f_count, " sequences across ", s_count, " samples and ",   
+                 a_count, " ASV's (", ss_count," ", ss_string,
+                 ", as well as ", nss_count, " non-", ss_string, ", i.e. ", nss_string,
+                 "). Sample mean (min., med., max.) coverage is ", cov_s_mean, 
+                 " reads (", cov_s_min, ", ", cov_s_med, ", ", cov_s_max, 
+                 "), and ASV mean (min, median, max) coverage is ", cov_a_mean, 
+                 " reads (", cov_a_min, ", ", cov_a_med, ", ", cov_a_max, ").\n"
+                 ))
+
+  # summarize distinct values across the long data frame
+  message("\nIn the following summary variable names shown are hard-coded in function \"get_molten_ps_stats\": ") 
+  show_vars <- c("OTU", "Abundance", "Sample", "loc.name", "superkingdom", "phylum", "class", "order", "family", "genus", "species")
+  ps %>% select(any_of(show_vars)) %>% summarize_all(n_distinct, na.rm = TRUE) %>% print()
+  
+  # get most ASV's (not species) ordered by frequency
+  message("\nGetting and returning highest-covered ASV's (not: species) ordered by frequency:")
+  ps_asv_list <- left_join(coverage_per_asv , ps, by = c("ASV" = "OTU")) %>%
+    distinct_at(vars("ASV", "x", "superkingdom", "phylum", "class", "order", "family", "genus", "species"))
+    
+  ps_asv_list %>% arrange(desc(x)) %>% head(., n = 10) %>% print()
+
+
+  # get most spcies's (not ASV's) ordered by frequency
+  message("\nGetting and returning highest-covered species (not: ASV's) ordered by frequency:")
+  
+  ps_species_list <- aggregate(ps$Abundance, by=list(phylum=ps$phylum, class=ps$class, order=ps$order, family=ps$family, genus=ps$genus, species=ps$species), FUN=sum) 
+  ps_species_list %>% arrange(desc(x)) %>% head(., n = 10) %>% print()
+
+}
+
 
 
 # I. Import Phyloseq object
@@ -176,8 +248,18 @@ ggsave("210108_990_r_get_eDNA_phyloseq__psob-unfiltered-phylum-overview.pdf", pl
          scale = 3, width = 75, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-############## continue here after 8-01-2020 ##############
+get_molten_ps_description(psob_raw_molten, rank_level = "superkingdom", rank_name = "Eukaryota")
 
+
+
+
+
+
+
+
+
+
+# --- after 12-01-2021 --- 
 
 # Numerical summaries
 # -------------------
@@ -190,10 +272,6 @@ sum(26 + 70 + 58) # 154 - ok
 # get total seqencing effort
 sum(psob_raw_molten$Abundance) #  16 524 031 sequences total - after import filtering
 
-# summarize distinct values across the long data frame
-show_vars <- c("OTU", "Abundance", "Sample", "BarcodeSequence", "Location", "Description",
-  "superkingdom", "phylum", "class", "order", "family", "genus", "species")
-psob_raw_molten %>% select(any_of(show_vars)) %>% summarize_all(n_distinct, na.rm = TRUE)
 
 # A tibble: 1 x 13
 #     OTU Abundance Sample BarcodeSequence Location Description superkingdom phylum class order family genus species

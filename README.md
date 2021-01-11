@@ -181,7 +181,10 @@
     * akin to `/Users/paul/Documents/OU_pcm_eukaryotes/Github/200_r_get_phyloseq.r`
     * commit `91f947c9878c81582b6f4da3e41c318d6426412b`
     * initial plot done, keep on stepping through later ...
-    
+    * commit `d674b4a5027346f69233362f6cb9957f63034a51`
+* **11-Jan-2021** - continued work on `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+  * started coding text summary
+  * commit ``  
 
 
 * **next:** 
