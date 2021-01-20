@@ -346,11 +346,13 @@ sample_data(psob)$libconc <- as.numeric(sample_data(psob)$`ng-ul`)
 sample_data(psob)$is.neg <- sample_data(psob)$`sample-type` %in% c("ncntrl-pcr", "ncntrol-xtr")
 
 # accomodating package decontam - negative controls can't have 0 concentration
+as_tibble(sample_data(psob)) %>% filter(is.neg == TRUE) %>% select(is.neg, libconc) %>% print(n = Inf)
+
 sum(sample_data(psob)$is.neg)
 sample_data(psob)$is.neg [which(sample_data(psob)$is.neg == TRUE & sample_data(psob)$libconc == 0)] <- FALSE
 sum(sample_data(psob)$is.neg)
 
-as_tibble(sample_data(psob)) %>% filter(is.neg == TRUE) 
+as_tibble(sample_data(psob)) %>% filter(is.neg == TRUE) %>% select(is.neg, libconc) %>% print(n = Inf)
 
 # frequency and prevalence based contamination identification
 contamdf.freq <- isContaminant(psob, method="combined", conc="libconc", neg="is.neg", threshold=0.6)

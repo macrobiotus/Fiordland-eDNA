@@ -188,7 +188,7 @@
 * **20-Jan-2021** - continued work on `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
   * can't get package decontam to work
     * can't work around error `conc must be positive numeric`, stays in despite `conc` being positive numeric
-    * commit before not using package
+    * commit before not using package `80809b62df36cd8d8cb93aba9ecfab791339c5ed`
 
 
 * **next:** 
