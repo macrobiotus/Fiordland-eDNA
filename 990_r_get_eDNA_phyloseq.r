@@ -314,108 +314,20 @@ get_molten_ps_description(lab_cntrl, rank_level = "SUPERKINGDOM", rank_name = "E
 get_molten_ps_description(pos_cntrl, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
 
 
-# Removal of contamination with package `decontam`
-# ------------------------------------------------
-# following:
-#   "https://benjjneb.github.io/decontam/vignettes/decontam_intro.html"
+# Removal of contamination and cross-contamination by subtraction
+# ----------------------------------------------------------------
+asvs_in_cntrl <- unique(all_cntrl$ASV)
 
-# plot initial library sizes
-psob_df <- as.data.frame(sample_data(psob)) # Put sample_data into a ggplot-friendly data.frame
-psob_df$LibrarySize <- sample_sums(psob)
-psob_df <- psob_df[order(psob_df$LibrarySize),]
-psob_df$Index <- seq(nrow(psob_df))
+psob_molten_filtered <- psob_molten %>% filter(!ASV %in% asvs_in_cntrl)
 
-ggplot(data = psob_df, aes(x=Index, y=LibrarySize, color=sample.type)) + 
-  geom_point() +
-  theme_bw()
-
-ggsave("210108_990_r_get_eDNA_phyloseq__decontam_library_coverages.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
-         scale = 3, width = 50, height = 50, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
+get_default_plot (psob_molten_filtered, taxlev = "PHYLUM", ptitl = "All samples across all locations after filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_molten_ps_description(psob_molten_filtered, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
 
 
-# set type for subsequent code -define new variable for sanity reasons 
-sample_data(psob)$libconc <- as.numeric(sample_data(psob)$`ng-ul`)
+psob_molten_filtered <- psob_molten_filtered %>% filter(PHYLUM == "Chordata") %>% filter(ORDER != "Primates")
 
-
-# -- continue here after 20-01-2021 - untested code below-- 
-
-
-# get combined factor identifying negative controls
-sample_data(psob)$is.neg <- sample_data(psob)$`sample-type` %in% c("ncntrl-pcr", "ncntrol-xtr")
-
-# accomodating package decontam - negative controls can't have 0 concentration
-as_tibble(sample_data(psob)) %>% filter(is.neg == TRUE) %>% select(is.neg, libconc) %>% print(n = Inf)
-
-sum(sample_data(psob)$is.neg)
-sample_data(psob)$is.neg [which(sample_data(psob)$is.neg == TRUE & sample_data(psob)$libconc == 0)] <- FALSE
-sum(sample_data(psob)$is.neg)
-
-as_tibble(sample_data(psob)) %>% filter(is.neg == TRUE) %>% select(is.neg, libconc) %>% print(n = Inf)
-
-# frequency and prevalence based contamination identification
-contamdf.freq <- isContaminant(psob, method="combined", conc="libconc", neg="is.neg", threshold=0.6)
-table(contamdf.freq$contaminant) # FALSE 8917  TRUE 1635 
-head(which(contamdf.freq$contaminant))
-
-# randomwly inspecting 81 ASV
-set.seed(100)
-plot_frequency(psob, taxa_names(psob)[sample(which(contamdf.freq$contaminant),81)], conc="RibLibConcAvg") +
-    xlab("DNA Concentration (PicoGreen fluorescent intensity)")
-
-ggsave("200814_decontam_81_likely-contaminats.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_pcm_eukaryotes/Manuscript/200622_display_item_development",
-         scale = 3, width = 200, height = 200, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-ggsave("200814_decontam_81_likely-contaminats.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/ProcessingPlots",
-         scale = 3, width = 200, height = 200, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-# "In this plot the dashed black line shows the model of a noncontaminant
-# sequence feature for which frequency is expected to be independent of the input
-# DNA concentration. The red line shows the model of a contaminant sequence
-# feature, for which frequency is expected to be inversely proportional to input
-# DNA concentration, as contaminating DNA will make up a larger fraction of the
-# total DNA in samples with very little total DNA. Clearly Seq3 fits the red
-# contaminant model very well, while Seq1 does not."
-
-# Make phyloseq object of presence-absence in negative controls and true samples
-psob.pa <- transform_sample_counts(psob, function(abund) 1*(abund>0))
-psob.pa.neg <- prune_samples(sample_data(psob.pa)$Description %in% c("ACNTRL", "XCNTRL"), psob.pa)
-psob.pa.pos <- prune_samples(sample_data(psob.pa)$Description == "PCMNT", psob.pa)
-
-# Make data.frame of prevalence in positive and negative samples
-df.pa <- data.frame(pa.pos = taxa_sums(psob.pa.pos), pa.neg = taxa_sums(psob.pa.neg),
-                      contaminant=contamdf.freq$contaminant)
-
-# look at the incidences of taxa observations in negative controls and positive samples.
-ggplot(data=df.pa, aes(x=pa.neg, y=pa.pos, color=contaminant)) + 
-  geom_point() +
-  xlab("prevalence (PCR and Extraction Controls)") +
-  ylab("prevalence (PCM Samples)") +
-  theme_bw()
-
-ggsave("200814_decontam_contaminant_detection_check.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_pcm_eukaryotes/Manuscript/200622_display_item_development",
-         scale = 3, width = 50, height = 50, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-ggsave("200814_decontam_contaminant_detection_check.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/ProcessingPlots",
-         scale = 3, width = 50, height = 50, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-# contamination filtering
-psob_decontam <- prune_taxa(!contamdf.freq$contaminant, psob)
-
-
-# -- continue here after 20-01-2021 - untested code above -- 
-
-
-
+get_default_plot (psob_molten_filtered, taxlev = "ORDER", ptitl = "All samples across all locations after filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_molten_ps_description(psob_molten_filtered, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
 
 
 
@@ -426,8 +338,6 @@ rm(psob_molten)
 
 
 
-# IV. Retain Chordates only - and summarise 
-# =========================================
 
 
 
