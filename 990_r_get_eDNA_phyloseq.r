@@ -1,7 +1,7 @@
 # **********************************************
 # * Create, filter, and write Physloseq object *
 # **********************************************
-# 12-Dec-2020, 08-Jan-2020, 11-Jan-2020
+# 12-Dec-2020, 08-Jan-2020, 11-Jan-2020, 20-Jan-2020
 
 # load packages
 # =============
@@ -81,32 +81,84 @@ clean_molten_tax_strings <- function(molten_phyloseq_object){
 
 }
 
+# Melt and tidy Phyloseq object
+# -----------------------------
+
+get_tidy_molten_ps = function(psob){
+
+  require("tidyverse")
+  library("phyloseq")
+  
+  psob_molten <- psmelt(psob)
+  
+  # get a tibble
+  psob_molten <- psob_molten %>% as_tibble(.)
+
+  # remove empty data 
+  psob_molten <- psob_molten %>% filter(Abundance > 0) 
+
+  # clean taxonomy strings
+  psob_molten <- clean_molten_tax_strings(psob_molten)
+
+  # re-label available data categories for plotting
+  psob_molten$phylum[which(psob_molten$phylum %in% c("nomatch"))]  <- "no Blast hit"
+  psob_molten$phylum[which(psob_molten$phylum %in% c("undefined"))] <-  "missing taxonomy"
+  
+  # create uniform column names
+  psob_molten <- psob_molten %>% rename(ASV = OTU) %>% rename_with(toupper)
+
+  return(psob_molten)
+  
+}
+
+
+# Get an easily digestible plot of a molten Phyloseq object (e.g. before, during, after filtering)
+# ----------------------------------------------------------------------------------------------------
+
+get_default_plot = function (psob_molten,taxlev, ptitl, pxlab, pylab ){
+
+  require(ggplot2)
+  
+  ggplot(psob_molten, aes_string(x = taxlev, y = "ABUNDANCE", fill = taxlev)) +
+    geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
+    facet_grid(LOC.NAME ~ ., shrink = TRUE, scales = "fixed") +
+    theme_bw() +
+    theme(legend.position = "none") +
+    theme(strip.text.y = element_text(angle=0)) + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
+          axis.ticks.y = element_blank()) +
+    labs( title = ptitl) + xlab(pxlab) + ylab(pylab)
+
+}
+
+
 # Get an easily digestible summary of a molten Phyloseq object (e.g. before, during, after filtering)
-# ----------------------
+# ----------------------------------------------------------------------------------------------------
 
 get_molten_ps_description <- function(ps, rank_level, rank_name){
    
   require("tidyverse")
 
   # total sequencing effort
-  f_count <- sum(ps$Abundance)
+  f_count <- sum(ps$ABUNDANCE)
 
   # total sample count 
-  s_count <- length(unique(ps$Sample))
+  s_count <- length(unique(ps$SAMPLE))
 
   # total ASV count
-  a_count <- length(unique(ps$OTU))
+  a_count <- length(unique(ps$ASV))
 
   # ASV count - matching search criterium 
-  ss_count <- ps %>% filter( get(rank_level) %in% c(rank_name)) %>% distinct(OTU) %>% nrow()
+  ss_count <- ps %>% filter( get(rank_level) %in% c(rank_name)) %>% distinct(ASV) %>% nrow()
   ss_string <- ps %>% filter( get(rank_level) %in% c(rank_name)) %>% distinct(get(rank_level)) %>% pull() %>% paste0(collapse = " ")
 
   # ASV count - not matching search criterium 
-  nss_count <- ps %>% filter( get(rank_level) %!in% c(rank_name)) %>% distinct(OTU) %>% nrow()
+  nss_count <- ps %>% filter( get(rank_level) %!in% c(rank_name)) %>% distinct(ASV) %>% nrow()
   nss_string  <- ps %>% filter( get(rank_level) %!in% c(rank_name)) %>% distinct(get(rank_level)) %>% pull() %>% paste0(collapse = ",  ")
 
   # get sample coverages
-  coverage_per_sample <- aggregate(ps$Abundance, by=list(Sample=ps$Sample), FUN=sum)
+  coverage_per_sample <- aggregate(ps$ABUNDANCE, by=list(Sample=ps$SAMPLE), FUN=sum)
   summary(coverage_per_sample)
   cov_s_min  <- summary(coverage_per_sample)[c(1) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
   cov_s_med  <- summary(coverage_per_sample)[c(3) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
@@ -114,7 +166,8 @@ get_molten_ps_description <- function(ps, rank_level, rank_name){
   cov_s_max <- summary(coverage_per_sample)[c(6) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
 
   # get ASV coverages
-  coverage_per_asv <- aggregate(ps$Abundance, by=list(ASV=ps$OTU), FUN=sum)
+  coverage_per_asv <- aggregate(ps$ABUNDANCE, by=list(ASV=ps$ASV), FUN=sum)
+  # print(head(coverage_per_asv))
   summary(coverage_per_asv)
   cov_a_min  <- summary(coverage_per_asv)[c(1) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
   cov_a_med  <- summary(coverage_per_asv)[c(3) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
@@ -133,13 +186,13 @@ get_molten_ps_description <- function(ps, rank_level, rank_name){
 
   # summarize distinct values across the long data frame
   message("\nIn the following summary variable names shown are hard-coded in function \"get_molten_ps_stats\": ") 
-  show_vars <- c("OTU", "Abundance", "Sample", "loc.name", "superkingdom", "phylum", "class", "order", "family", "genus", "species")
+  show_vars <- c("ASV", "ABUNDANCE", "SAMPLE", "LOC.NAME", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES")
   ps %>% select(any_of(show_vars)) %>% summarize_all(n_distinct, na.rm = TRUE) %>% print()
   
   # get most ASV's (not species) ordered by frequency
   message("\nGetting and returning highest-covered ASV's (not: species) ordered by frequency:")
-  ps_asv_list <- left_join(coverage_per_asv , ps, by = c("ASV" = "OTU")) %>%
-    distinct_at(vars("ASV", "x", "superkingdom", "phylum", "class", "order", "family", "genus", "species"))
+  ps_asv_list <- left_join(coverage_per_asv , ps, by = c("ASV" = "ASV")) %>%
+    distinct_at(vars("ASV", "x", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"))
     
   ps_asv_list %>% arrange(desc(x)) %>% head(., n = 10) %>% print()
 
@@ -147,11 +200,10 @@ get_molten_ps_description <- function(ps, rank_level, rank_name){
   # get most spcies's (not ASV's) ordered by frequency
   message("\nGetting and returning highest-covered species (not: ASV's) ordered by frequency:")
   
-  ps_species_list <- aggregate(ps$Abundance, by=list(phylum=ps$phylum, class=ps$class, order=ps$order, family=ps$family, genus=ps$genus, species=ps$species), FUN=sum) 
+  ps_species_list <- aggregate(ps$ABUNDANCE, by=list(PHYLUM=ps$PHYLUM, CLASS=ps$CLASS, ORDER=ps$ORDER, FAMILY=ps$FAMILY, GENUS=ps$GENUS, SPECIES=ps$SPECIES), FUN=sum) 
   ps_species_list %>% arrange(desc(x)) %>% head(., n = 10) %>% print()
 
 }
-
 
 
 # I. Import Phyloseq object
@@ -199,61 +251,186 @@ save(psob, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210108_990_r_ge
 save(psob, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/zenodo/210108_990_r_get_eDNA_phyloseq__imported-psob.Rds")
 
 
-# II. Inspect a molten Phyloseq object copy
-# =========================================
+# II. Inspect and summarize raw data
+# ==================================
 
-# Create molten Phyloseq object copy
-# ----------------------------------
-
-psob_raw_molten <- psmelt(psob)
-
-
-# Tidy object 
-# -----------
-
-# get a tibble
-psob_raw_molten <- psob_raw_molten %>% as_tibble(.)
-
-# remove empty data 
-psob_raw_molten <- psob_raw_molten %>% filter(Abundance > 0) 
-
-# clean taxonomy strings
-psob_raw_molten <- clean_molten_tax_strings(psob_raw_molten)
-
-# re-label available data categories for plotting
-psob_raw_molten$phylum[which(psob_raw_molten$phylum %in% c("nomatch"))]  <- "no Blast hit"
-psob_raw_molten$phylum[which(psob_raw_molten$phylum %in% c("undefined"))] <-  "missing taxonomy"
-
-
-
-# Describe object (as below) 
-# --------------------------
+# melt and tidy Phyloseq object 
+(psob_molten <- get_tidy_molten_ps(psob))
 
 # create and save plot
-ggplot(psob_raw_molten, aes_string(x = "phylum", y = "Abundance", fill = "phylum")) +
-  geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
-  facet_grid(loc.name ~ ., shrink = TRUE, scales = "fixed") +
-  theme_bw() +
-  theme(legend.position = "none") +
-  theme(strip.text.y = element_text(angle=0)) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-        axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
-        axis.ticks.y = element_blank()) +
-  labs( title = "Phyla across all locations before filtering") + 
-  xlab("phyla at all locations") + 
-  ylab("read counts at each location (y scales fixed)")
+
+
+get_default_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
 ggsave("210108_990_r_get_eDNA_phyloseq__psob-unfiltered-phylum-overview.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
          scale = 3, width = 75, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-get_molten_ps_description(psob_raw_molten, rank_level = "superkingdom", rank_name = "Eukaryota")
+# get summary 
+get_molten_ps_description(psob_molten, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
+
+# remove temporary object
+rm(psob_molten)
+
+
+# III. Clean data using blank information - and summarise  
+# =======================================================
+
+# melt and tidy Phyloseq object 
+(psob_molten <- get_tidy_molten_ps(psob))
+
+# Describe controls
+# -----------------
+
+# split controls - what sample type are available? 
+unique(psob_molten$SAMPLE.TYPE) # "eDNA": eDNA sample
+                                # "blank": eDNA collection blank - bottel with mol grade water
+                                # "pcntrol-blnd" positive controls (fish blend)
+                                # "pcntrol-zebra": positive controls (Danio rerio)
+                                # "ncntrl-pcr": amplification blank
+                                # "ncntrol-xtr"
+                                # "empty": unassigned wells  
+
+# split controls -  how many of each sample type are available? 
+psob_molten %>% group_by(KEY) %>% summarise(KEY = KEY, CNTROL = SAMPLE.TYPE ) %>% distinct() %>% pull("CNTROL") %>% table()
+
+# split controls
+all_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c( "pcntrol-zebra", "pcntrol-blnd", "ncntrl-pcr", "ncntrol-xtr", "blank"))
+shp_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c( "blank"))
+lab_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c( "ncntrl-pcr", "ncntrol-xtr"))
+pos_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c( "pcntrol-zebra", "pcntrol-blnd")) 
+
+# plot all controls 
+get_default_plot (all_cntrl, taxlev = "PHYLUM", ptitl = "All controls across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_plot (shp_cntrl, taxlev = "PHYLUM", ptitl = "eDNA controls across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_plot (lab_cntrl, taxlev = "PHYLUM", ptitl = "PCR and Extraction controls controls all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_plot (pos_cntrl, taxlev = "PHYLUM", ptitl = "Fish positve controls all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+
+# describe all controls 
+get_molten_ps_description(all_cntrl, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
+get_molten_ps_description(shp_cntrl, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
+get_molten_ps_description(lab_cntrl, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
+get_molten_ps_description(pos_cntrl, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
+
+
+# Removal of contamination with package `decontam`
+# ------------------------------------------------
+# following:
+#   "https://benjjneb.github.io/decontam/vignettes/decontam_intro.html"
+
+# plot initial library sizes
+psob_df <- as.data.frame(sample_data(psob)) # Put sample_data into a ggplot-friendly data.frame
+psob_df$LibrarySize <- sample_sums(psob)
+psob_df <- psob_df[order(psob_df$LibrarySize),]
+psob_df$Index <- seq(nrow(psob_df))
+
+ggplot(data = psob_df, aes(x=Index, y=LibrarySize, color=sample.type)) + 
+  geom_point() +
+  theme_bw()
+
+ggsave("210108_990_r_get_eDNA_phyloseq__decontam_library_coverages.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
+         scale = 3, width = 50, height = 50, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
+# set type for subsequent code -define new variable for sanity reasons 
+sample_data(psob)$libconc <- as.numeric(sample_data(psob)$`ng-ul`)
+
+
+# -- continue here after 20-01-2021 - untested code below-- 
+
+
+# get combined factor identifying negative controls
+sample_data(psob)$is.neg <- sample_data(psob)$`sample-type` %in% c("ncntrl-pcr", "ncntrol-xtr")
+
+# accomodating package decontam - negative controls can't have 0 concentration
+sum(sample_data(psob)$is.neg)
+sample_data(psob)$is.neg [which(sample_data(psob)$is.neg == TRUE & sample_data(psob)$libconc == 0)] <- FALSE
+sum(sample_data(psob)$is.neg)
+
+as_tibble(sample_data(psob)) %>% filter(is.neg == TRUE) 
+
+# frequency and prevalence based contamination identification
+contamdf.freq <- isContaminant(psob, method="combined", conc="libconc", neg="is.neg", threshold=0.6)
+table(contamdf.freq$contaminant) # FALSE 8917  TRUE 1635 
+head(which(contamdf.freq$contaminant))
+
+# randomwly inspecting 81 ASV
+set.seed(100)
+plot_frequency(psob, taxa_names(psob)[sample(which(contamdf.freq$contaminant),81)], conc="RibLibConcAvg") +
+    xlab("DNA Concentration (PicoGreen fluorescent intensity)")
+
+ggsave("200814_decontam_81_likely-contaminats.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_pcm_eukaryotes/Manuscript/200622_display_item_development",
+         scale = 3, width = 200, height = 200, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+ggsave("200814_decontam_81_likely-contaminats.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/ProcessingPlots",
+         scale = 3, width = 200, height = 200, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+# "In this plot the dashed black line shows the model of a noncontaminant
+# sequence feature for which frequency is expected to be independent of the input
+# DNA concentration. The red line shows the model of a contaminant sequence
+# feature, for which frequency is expected to be inversely proportional to input
+# DNA concentration, as contaminating DNA will make up a larger fraction of the
+# total DNA in samples with very little total DNA. Clearly Seq3 fits the red
+# contaminant model very well, while Seq1 does not."
+
+# Make phyloseq object of presence-absence in negative controls and true samples
+psob.pa <- transform_sample_counts(psob, function(abund) 1*(abund>0))
+psob.pa.neg <- prune_samples(sample_data(psob.pa)$Description %in% c("ACNTRL", "XCNTRL"), psob.pa)
+psob.pa.pos <- prune_samples(sample_data(psob.pa)$Description == "PCMNT", psob.pa)
+
+# Make data.frame of prevalence in positive and negative samples
+df.pa <- data.frame(pa.pos = taxa_sums(psob.pa.pos), pa.neg = taxa_sums(psob.pa.neg),
+                      contaminant=contamdf.freq$contaminant)
+
+# look at the incidences of taxa observations in negative controls and positive samples.
+ggplot(data=df.pa, aes(x=pa.neg, y=pa.pos, color=contaminant)) + 
+  geom_point() +
+  xlab("prevalence (PCR and Extraction Controls)") +
+  ylab("prevalence (PCM Samples)") +
+  theme_bw()
+
+ggsave("200814_decontam_contaminant_detection_check.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_pcm_eukaryotes/Manuscript/200622_display_item_development",
+         scale = 3, width = 50, height = 50, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+ggsave("200814_decontam_contaminant_detection_check.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/ProcessingPlots",
+         scale = 3, width = 50, height = 50, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+# contamination filtering
+psob_decontam <- prune_taxa(!contamdf.freq$contaminant, psob)
+
+
+# -- continue here after 20-01-2021 - untested code above -- 
 
 
 
 
 
+
+
+# remove temporary object
+rm(psob_molten)
+
+
+
+
+# IV. Retain Chordates only - and summarise 
+# =========================================
+
+
+
+# V. Retain fish only - and summarise 
+# =====================================
 
 
 
@@ -281,8 +458,8 @@ sum(psob_raw_molten$Abundance) #  16 524 031 sequences total - after import filt
 # ASV counts unfiltered data
 length(unique(psob_raw_molten$OTU)) # 8097
 # count eukaryotes and non-eukaryotes 
-psob_raw_molten %>% filter(superkingdom %in% c("Eukaryota")) %>% distinct(OTU)  # 2,656 Eukaryota ASV
-psob_raw_molten %>% filter(superkingdom %!in% c("Eukaryota")) %>% distinct(OTU) # 5,441 non-Eukaryota ASV
+psob_raw_molten %>% filter(SUPERKINGDOM %in% c("Eukaryota")) %>% distinct(OTU)  # 2,656 Eukaryota ASV
+psob_raw_molten %>% filter(SUPERKINGDOM %!in% c("Eukaryota")) %>% distinct(OTU) # 5,441 non-Eukaryota ASV
 
 # Analyze coverages per samples
 coverage_per_sample <- aggregate(psob_raw_molten$Abundance, by=list(Sample=psob_raw_molten$Sample), FUN=sum)
@@ -299,7 +476,7 @@ summary(coverage_per_asv)
 
 # get most species ordered by frequency
 psob_asv_list <- left_join(coverage_per_asv , psob_raw_molten, by = c("ASV" = "OTU")) %>%
-    distinct_at(vars("ASV", "x", "superkingdom", "phylum", "class", "order", "family", "genus", "species")) 
+    distinct_at(vars("ASV", "X", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES")) 
 
 psob_asv_list %>% head(., n = 12)
 
