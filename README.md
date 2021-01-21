@@ -189,11 +189,14 @@
   * can't get package decontam to work
     * can't work around error `conc must be positive numeric`, stays in despite `conc` being positive numeric
     * commit before not using package `c5f23c1a8b14fc4a703b3a40f2834adcee2fddd5`
-    * commit with purely subtractive filetring draft ``
+    * commit with purely subtractive filetring draft `cfe0e80d9592dc03fc872f6691f8f0f89993460b`
+* **21-Jan-2021** - continued work on `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+  * restored `990_r_get_eDNA_phyloseq.r` from commit `c5f23c1a8b14fc4a703b3a40f2834adcee2fddd5`
+  * implemented new filtering strategy - filtering is ok, script may need to be structured again for better readability
+  * commit ``
 
 
 * **next:** 
-  * get Phyloseq object of eDNA data and melt - continue `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
   * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
   
 
