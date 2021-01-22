@@ -193,6 +193,9 @@
 * **21-Jan-2021** - continued work on `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
   * restored `990_r_get_eDNA_phyloseq.r` from commit `c5f23c1a8b14fc4a703b3a40f2834adcee2fddd5`
   * implemented new filtering strategy - filtering is ok, script may need to be structured again for better readability
+  * commit `d935013849472b7cc72761648819a64cb86625e`
+* **22-Jan-2021** - continued work on `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+  * below line `531` subtracting all controls instead of only positive controls, not subtracting blanks
   * commit ``
 
 

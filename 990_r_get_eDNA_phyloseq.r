@@ -3,8 +3,8 @@
 # **********************************************
 # 12-Dec-2020, 08-Jan-2020, 11-Jan-2020, 20-Jan-2020, 21-Jan-2020
 
-# load packages
-# =============
+# Packages loading 
+# ==================
 rm(list = ls(all.names = TRUE))
 gc()
 
@@ -17,13 +17,13 @@ library("future.apply") # faster handling of large tables - such as molten Phylo
 library("decontam") # decontamination - check `https://benjjneb.github.io/decontam/vignettes/decontam_intro.html`
 library("openxlsx") # write Excel tables
 
-# functions
+# Functions
 # =========
 
 # Define new operator "not in"
 "%!in%" <- function(x, y) !(x %in% y)
 
-# Create phyloseq object.
+# Create Phyloseq object.
 # -----------------------
 
 # Creates `phyloseq` objects from Qiime` compatible data.
@@ -136,8 +136,8 @@ get_default_plot = function (psob_molten, taxlev, taxlev_fill = taxlev, ptitl, p
 # Get an easily digestible summary of a molten Phyloseq object (e.g. before, during, after filtering)
 # ----------------------------------------------------------------------------------------------------
 
-get_molten_ps_description <- function(ps, rank_level, rank_name, prnt_n = 10){
-   
+get_molten_ps_description = function(ps, rank_level, rank_name, prnt_n = 10){
+
   require("tidyverse")
 
   # total sequencing effort
@@ -167,6 +167,7 @@ get_molten_ps_description <- function(ps, rank_level, rank_name, prnt_n = 10){
 
   # get ASV coverages
   coverage_per_asv <- aggregate(ps$ABUNDANCE, by=list(ASV=ps$ASV), FUN=sum)
+  
   # print(head(coverage_per_asv))
   summary(coverage_per_asv)
   cov_a_min  <- summary(coverage_per_asv)[c(1) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
@@ -195,7 +196,6 @@ get_molten_ps_description <- function(ps, rank_level, rank_name, prnt_n = 10){
     distinct_at(vars("ASV", "x", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"))
     
   ps_asv_list %>% arrange(desc(x)) %>% head(., n = prnt_n) %>% print()
-
 
   # get most spcies's (not ASV's) ordered by frequency
   message("\nGetting and returning highest-covered species (not: ASV's) ordered by frequency:")
@@ -488,7 +488,7 @@ rm(psob_molten)
 
 
 # V. Retain eDNA samples with fish only - and summarise 
-# =========================================
+# ======================================================
 
 # melt cleaned phyloseq object
 (psob_molten <- get_tidy_molten_ps(psob_decontam))
@@ -527,26 +527,45 @@ psob_molten_fish <- psob_molten_chordat %>% filter(CLASS %in% c("Chondrichthyes"
 get_default_plot(psob_molten_fish, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across all locations after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_molten_ps_description(psob_molten_fish, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
 
+# The current data set contains 18588722 sequences across 157 samples and 123 ASV's (123 Chordata, as well as 0 non-Chordata, i.e. ).
+#  Sample mean (min., med., max.) coverage is 118400 reads (17, 51474, 831439), and ASV mean (min, median, max) coverage is 151128 reads
+#  (5, 3580, 4173587).
+#  A tibble: 1 x 11
+#    ASV ABUNDANCE SAMPLE LOC.NAME SUPERKINGDOM PHYLUM CLASS ORDER FAMILY GENUS SPECIES
+#   <int>     <int>  <int>    <int>        <int>  <int> <int> <int>  <int> <int>   <int>
+#    123      1661    157       12            1      1     2    29     48    58      65
 
-# remove ASVs of positive controls from eDNA data
+# remove ASVs of  controls from eDNA data
 
 # A tibble: 124 x 41
-psob_molten_fish_positive_controls <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("pcntrol-blnd", "pcntrol-zebra")) %>% filter(ABUNDANCE != 0)
-asvs_molten_fish_positive_controls <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("pcntrol-blnd", "pcntrol-zebra")) %>% filter(ABUNDANCE != 0) %>% pull(ASV)
+psob_molten_fish_controls <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("pcntrol-blnd", "pcntrol-zebra", "ncntrl-pcr", "ncntrol-xtr", "blank")) %>% filter(ABUNDANCE != 0)
+asvs_molten_fish_controls <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("pcntrol-blnd", "pcntrol-zebra", "ncntrl-pcr", "ncntrol-xtr", "blank")) %>% filter(ABUNDANCE != 0) %>% pull(ASV) %>% unique(.)
+length(asvs_molten_fish_controls)
 
-get_default_plot(psob_molten_fish_positive_controls, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across in positive controls after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_molten_ps_description(psob_molten_fish_positive_controls, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
+get_default_plot(psob_molten_fish_controls, facet_var = "SAMPLE.TYPE", taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across controls after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_molten_ps_description(psob_molten_fish_controls, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
+
+# The current data set contains 2830326 sequences across 32 samples and 84 ASV's (84 Chordata, as well as 0 non-Chordata, i.e. ). 
+# Sample mean (min., med., max.) coverage is 88448 reads (17, 5668, 568752), and ASV mean (min, median, max) coverage is 336944 
+# reads (40, 7725, 10203800).
+# 
+# In the following summary variable names shown are hard-coded in function "get_molten_ps_stats": 
+# # A tibble: 1 x 11
+#     ASV ABUNDANCE SAMPLE LOC.NAME SUPERKINGDOM PHYLUM CLASS ORDER FAMILY GENUS SPECIES
+#   <int>     <int>  <int>    <int>        <int>  <int> <int> <int>  <int> <int>   <int>
+# 1    84       331     32        1            1      1     2    26     40    48      53
+
 
 # A tibble: 1,782 x 41
 psob_molten_fish_eDNA_samples <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("eDNA")) %>% filter(ABUNDANCE != 0)
 
-get_default_plot(psob_molten_fish_eDNA_samples, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families in eDNA samples before positive control removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_plot(psob_molten_fish_eDNA_samples, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families in eDNA samples before control removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_molten_ps_description(psob_molten_fish_eDNA_samples, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
 
 # A tibble: 550 x 41
-psob_molten_fish_eDNA_samples <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("eDNA")) %>% filter(!ASV %in% asvs_molten_fish_positive_controls)
+psob_molten_fish_eDNA_samples <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("eDNA")) %>% filter(!ASV %in% asvs_molten_fish_controls)
 
-get_default_plot(psob_molten_fish_eDNA_samples, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families in eDNA samples before positive control removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_plot(psob_molten_fish_eDNA_samples, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families in eDNA samples after control removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_molten_ps_description(psob_molten_fish_eDNA_samples, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
 
 
