@@ -44,8 +44,7 @@ get_phsq_ob <- function(biom_path, sequ_path, tree_path) {
 # Remove empty data
 # -----------------
 
-# This function removes "0" count phylotypes from samples and samples with "0"
-# phylotypes.
+# This function removes "0" count phylotypes from samples and samples with "0" phylotypes.
 remove_empty <- function(phsq_ob){
 
   # filter Phylotypes
@@ -66,14 +65,11 @@ clean_molten_tax_strings <- function(molten_phyloseq_object){
 
   require(dplyr)
   
-  molten_phyloseq_object <- molten_phyloseq_object %>% 
-    mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "__", replacement = " "))
+  molten_phyloseq_object <- molten_phyloseq_object %>% mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "__", replacement = " "))
 
-  molten_phyloseq_object <- molten_phyloseq_object %>% 
-    mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "_", replacement = " "))
+  molten_phyloseq_object <- molten_phyloseq_object %>% mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "_", replacement = " "))
 
-  molten_phyloseq_object <- molten_phyloseq_object %>% 
-    mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "  ", replacement = " "))
+  molten_phyloseq_object <- molten_phyloseq_object %>% mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "  ", replacement = " "))
 
   molten_phyloseq_object <- molten_phyloseq_object %>% arrange(superkingdom, phylum, class, order, family, genus, species)
   
@@ -112,13 +108,38 @@ get_tidy_molten_ps = function(psob){
 }
 
 
-# Get an easily digestible plot of a molten Phyloseq object (e.g. before, during, after filtering)
+# Get an easily digestible coverage plot of a molten Phyloseq object (e.g. before, during, after filtering)
 # ----------------------------------------------------------------------------------------------------
 
-get_default_plot = function (psob_molten, taxlev, taxlev_fill = taxlev, ptitl, pxlab, pylab, facet_var = "LOC.NAME" ){
+get_default_coverage_plot = function (psob_molten, taxlev, taxlev_fill = taxlev, ptitl, pxlab, pylab, facet_var = "LOC.NAME" ){
 
   require(ggplot2)
+  require(data.table)
+
+  # melting Phyloseq object to data table for merging and speed
+  psob_molten <- data.table(psob_molten)
+ 
+  # set sorting key properly
+  setkey(psob_molten,ASV)
+ 
   
+  # aggregate on chosen level
+  #   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+  psob_molten <- psob_molten[, lapply(.SD, sum, na.rm=TRUE), by=c(facet_var, "ASV", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS",  "SPECIES"), .SDcols=c("ABUNDANCE") ]
+
+  #  resort for clarity
+  keycol <-c("ASV",facet_var)
+  setorderv(psob_molten, keycol)
+  
+  # debugging
+  print(head(psob_molten))
+
+  # add presence-absence abundance column
+  psob_molten <- psob_molten[ , ASVPRESENT :=  fifelse(ABUNDANCE == 0 , 0, 1, na=NA)]
+  
+   # debugging
+  print(head(psob_molten))
+    
   ggplot(psob_molten, aes_string(x = taxlev, y = "ABUNDANCE", fill = taxlev_fill)) +
     geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
     facet_grid(get(facet_var) ~ ., shrink = TRUE, scales = "fixed") +
@@ -128,9 +149,56 @@ get_default_plot = function (psob_molten, taxlev, taxlev_fill = taxlev, ptitl, p
     theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
           axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
           axis.ticks.y = element_blank()) +
-    labs( title = ptitl) + xlab(pxlab) + ylab(pylab)
+    labs( title = ptitl) + xlab(pxlab) + ylab(pylab) %>% quartz()
 
 }
+
+
+# Get an easily digestible occurence plot of a molten Phyloseq object (e.g. before, during, after filtering)
+# ----------------------------------------------------------------------------------------------------
+
+get_default_ocurrence_plot = function (psob_molten, taxlev, taxlev_fill = taxlev, ptitl, pxlab, pylab, facet_var = "LOC.NAME" ){
+  
+  require(ggplot2)
+  require(data.table)
+
+  # melting Phyloseq object to data table for merging and speed
+  psob_molten <- data.table(psob_molten)
+ 
+  # set sorting key properly
+  setkey(psob_molten,ASV)
+ 
+  
+  # aggregate on chosen level
+  #   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+  psob_molten <- psob_molten[, lapply(.SD, sum, na.rm=TRUE), by=c(facet_var, "ASV", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS",  "SPECIES"), .SDcols=c("ABUNDANCE") ]
+
+  #  resort for clarity
+  keycol <-c("ASV",facet_var)
+  setorderv(psob_molten, keycol)
+  
+  # debugging
+  # print(head(psob_molten))
+
+  # add presence-absence abundance column
+  psob_molten <- psob_molten[ , ASVPRESENT :=  fifelse(ABUNDANCE == 0 , 0, 1, na=NA)]
+  
+  # debugging
+  # print(head(psob_molten))
+
+  ggplot(psob_molten, aes_string(x = taxlev, y = "ASVPRESENT", fill = taxlev_fill)) +
+    geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
+    facet_grid(get(facet_var) ~ ., shrink = TRUE, scales = "fixed") +
+    theme_bw() +
+    theme(legend.position = "none") +
+    theme(strip.text.y = element_text(angle=0)) + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
+          axis.ticks.y = element_blank()) +
+    labs( title = ptitl) + xlab(pxlab) + ylab(pylab) %>% quartz()
+  
+}
+
 
 
 # Get an easily digestible summary of a molten Phyloseq object (e.g. before, during, after filtering)
@@ -257,11 +325,16 @@ save(psob, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/zenodo/210108
 # melt and tidy Phyloseq object 
 (psob_molten <- get_tidy_molten_ps(psob))
 
+# Check composition and ASV count of entire data
+# ----------------------------------------------
+
 # plot composition per sample type
-get_default_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_ocurrence_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
 # plot composition per location
-get_default_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla ASV coverage across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_ocurrence_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla ASV occurrence across all locations before filtering", pxlab = "phyla at all locations", pylab =  "ASV counts at each location (y scales fixed)")
 
 # check sample types - what sample type are available? 
 unique(psob_molten$SAMPLE.TYPE) # "eDNA": eDNA sample
@@ -276,24 +349,108 @@ unique(psob_molten$SAMPLE.TYPE) # "eDNA": eDNA sample
 psob_molten %>% group_by(KEY) %>% summarise(KEY = KEY, CNTROL = SAMPLE.TYPE ) %>% distinct() %>% pull("CNTROL") %>% table()
 
 # split data types
-neg_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("ncntrl-pcr", "ncntrol-xtr", "blank"))
+neg_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("ncntrl-pcr", "ncntrol-xtr"))
+dna_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("blank"))
+
 pos_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("pcntrol-zebra", "pcntrol-blnd"))
 dna_smpls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("eDNA"))
 zro_smpls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("empty")) # can be disregarded see below
 
-# check data types
+
+# ###############################################################################################
+# -=- CONSTRUCTION SITE BELOW -=- -=- CONSTRUCTION SITE BELOW -=- -=- CONSTRUCTION SITE BELOW -=- 
+
+# get any variable in plate format 
+# ---------------------------------
+
+# melting Phyloseq object to data table for merging and speed
+psob_dt <- data.table(psob_molten)
+ 
+# set sorting key properly
+setkey(psob_dt,KEY)
+ 
+# aggregate selected variables
+#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+#   for plate position (KEY) get
+#   ASV, each summed ABUNDANCE
+#   ASV, TAXONOMY
+#   SAMPLE.NAME
+#   SAMPLE.TYPE
+
+psob_dt <- psob_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("KEY", "PLATE", "ROW", "COL", "SAMPLE.NAME", "SAMPLE.TYPE", "ASV", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS",  "SPECIES"), .SDcols=c("ABUNDANCE") ]
+
+#  resort for clarity
+keycol <-c("KEY")
+setorderv(psob_dt, keycol)
+  
+# add presence-absence abundance column
+psob_dt <- psob_dt[ , ASVPRESENT :=  fifelse(ABUNDANCE == 0 , 0, 1, na=NA)]
+
+
+unique(psob_dt$ROW)
+unique(psob_dt$COL)
+# check data
+print(psob_dt)
+
+unique(psob_dt$PHYLUM)
+
+
+# keep only chordates
+psob_dt <- psob_dt[PHYLUM %in% c("Chordata")]
+  
+# work around ggplot2 bug
+setnames(psob_dt, "COL", "CL")
+setnames(psob_dt, "ROW", "RW")
+
+psob_dt$CL <- factor(psob_dt$CL, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
+psob_dt$PLATE <- factor(psob_dt$PLATE, levels = c("U.1", "U.2", "E.1", "E.2"))
+
+
+  ggplot(psob_dt, aes_string(x = "PHYLUM", y = "ABUNDANCE", fill = "PHYLUM")) +
+    geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
+    facet_grid(RW ~ PLATE + CL , shrink = TRUE, scales = "fixed") +
+    geom_text(x = 1, y = 3, aes(label = SAMPLE.TYPE), data = psob_dt) +
+    theme_bw() +
+    theme(legend.position = "none") +
+    theme(strip.text.y = element_text(angle=0)) + 
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
+          axis.ticks.y = element_blank()) +
+    labs( title = "Plate overview") + xlab("plate column") + ylab("plate row") 
+
+#     theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+#           axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
+
+
+# -=- CONSTRUCTION SITE ABOVE -=- -=- CONSTRUCTION SITE ABOVE -=- -=- CONSTRUCTION SITE ABOVE -=-
+# ###############################################################################################
+
+# Check composition and ASV count of data types
+# ----------------------------------------------
+
 # - most Chordates in negatove controls
-get_default_plot (neg_cntrl, taxlev = "PHYLUM", ptitl = "Negative controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (neg_cntrl, taxlev = "PHYLUM", ptitl = "Negative controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_ocurrence_plot (neg_cntrl, taxlev = "PHYLUM", ptitl = "Negative controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+
+# - most Chordates in negatove controls
+get_default_coverage_plot (dna_cntrl, taxlev = "PHYLUM", ptitl = "Field water controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_ocurrence_plot (dna_cntrl, taxlev = "PHYLUM", ptitl = "Field water controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+
 # - as expected only one location with positive controls
-get_default_plot (pos_cntrl, taxlev = "PHYLUM", ptitl = "Positive controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (pos_cntrl, taxlev = "PHYLUM", ptitl = "Positive controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_ocurrence_plot (pos_cntrl, taxlev = "PHYLUM", ptitl = "Positive controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+
 # - as expected
-get_default_plot (dna_smpls, taxlev = "PHYLUM", ptitl = "eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (dna_smpls, taxlev = "PHYLUM", ptitl = "eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_ocurrence_plot (dna_smpls, taxlev = "PHYLUM", ptitl = "eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+
 # - unpolled samples shouldn't have any data in them - barcode jumping 
-get_default_plot (zro_smpls, taxlev = "PHYLUM", ptitl = "unpooled samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (zro_smpls, taxlev = "PHYLUM", ptitl = "unpooled samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_ocurrence_plot (zro_smpls, taxlev = "PHYLUM", ptitl = "unpooled samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
 
-# III. Check empty data
-# =====================
+# Check empty data
+# ----------------
 
 # KEY positions were used for quantification with stadards solutions - CONC is not 0 despite no library being present 
 zro_smpls %>% group_by(KEY) %>% summarise(KEY = KEY, CNTROL = SAMPLE.TYPE, CONC = NG.UL ) %>% distinct() %>% print(n = Inf)
@@ -307,7 +464,7 @@ dna_smpls_unpooled <- dna_smpls %>% filter(NG.UL == 0)
 dna_smpls_unpooled %>% group_by(KEY) %>% summarise(KEY = KEY, CNTROL = SAMPLE.TYPE, CONC = NG.UL, LOC = LOC.NAME ) %>% distinct() %>% print(n = Inf)
 
 # un-pooled samples can be found across all locations
-get_default_plot (dna_smpls_unpooled, taxlev = "PHYLUM", ptitl = "unpooled eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (dna_smpls_unpooled, taxlev = "PHYLUM", ptitl = "unpooled eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_molten_ps_description(dna_smpls_unpooled, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
 
 # discarding un-pooled samples as primer cross contamination or tag jumping
@@ -315,7 +472,7 @@ get_molten_ps_description(dna_smpls_unpooled, rank_level = "SUPERKINGDOM", rank_
 dna_smpls <- dna_smpls %>% filter(NG.UL != 0) 
 
 # luckily more reads in the actual samples then in the unpooled samples:
-get_default_plot (dna_smpls, taxlev = "PHYLUM", ptitl = "pooled eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (dna_smpls, taxlev = "PHYLUM", ptitl = "pooled eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_molten_ps_description(dna_smpls, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
 
 # describe all controls 
@@ -327,7 +484,7 @@ get_molten_ps_description(pos_cntrl, rank_level = "SUPERKINGDOM", rank_name = "E
 rm(psob_molten)
 
 
-# IV. Remove empty data and contamination
+# III. Remove empty data and contamination
 # =======================================
 
 # Remove empty data from Phyloseq object as determined above
@@ -337,14 +494,14 @@ psob_input <- psob %>% subset_samples(., sample.type != "empty" ) %>% subset_sam
 
 # Summary after data trimming
 (psob_molten <- get_tidy_molten_ps(psob_input))
-get_default_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
 ggsave("210121_990_r_get_eDNA_phyloseq__psob-unfiltered-sample-type-overview.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
          scale = 3, width = 75, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-get_default_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
 ggsave("210121_990_r_get_eDNA_phyloseq__psob-unfiltered-location-overview.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
@@ -414,14 +571,14 @@ ggsave("210121_990_r_get_eDNA_phyloseq__decontam-likely-contaminats.pdf", plot =
 psob_contaminants <- prune_taxa(contamdf.freq$contaminant, psob_input)
 
 (psob_molten <- get_tidy_molten_ps(psob_contaminants))
-get_default_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Contaminant phyla across all sample types before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Contaminant phyla across all sample types before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
 ggsave("210121_990_r_get_eDNA_phyloseq__psob-contaminants-sample-type-overview.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
          scale = 3, width = 75, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-get_default_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Contaminant phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Contaminant phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
 ggsave("210121_990_r_get_eDNA_phyloseq__psob-unfiltered-location-overview.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
@@ -466,14 +623,14 @@ psob_decontam <- prune_taxa(!contamdf.freq$contaminant, psob_input)
 
 # Summary after contaminant filtering
 (psob_molten <- get_tidy_molten_ps(psob_decontam))
-get_default_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all sample types after contaminant removal", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all sample types after contaminant removal", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
 ggsave("210121_990_r_get_eDNA_phyloseq__psob-filtered-sample-type-overview.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
          scale = 3, width = 75, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-get_default_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations after contaminant removal", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations after contaminant removal", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
 ggsave("210121_990_r_get_eDNA_phyloseq__psob-filtered-location-overview.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
@@ -486,8 +643,7 @@ get_molten_ps_description(psob_molten, rank_level = "SUPERKINGDOM", rank_name = 
 rm(psob_molten)
 
 
-
-# V. Retain eDNA samples with fish only - and summarise 
+# IV. Retain eDNA samples with fish only - and summarise 
 # ======================================================
 
 # melt cleaned phyloseq object
@@ -524,7 +680,7 @@ get_molten_ps_description(psob_molten_chordat, rank_level = "PHYLUM", rank_name 
 # keep and check classes Chondrichthyes Actinopteri across entire data
 psob_molten_fish <- psob_molten_chordat %>% filter(CLASS %in% c("Chondrichthyes", "Actinopteri")) 
 
-get_default_plot(psob_molten_fish, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across all locations after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot(psob_molten_fish, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across all locations after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_molten_ps_description(psob_molten_fish, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
 
 # The current data set contains 18588722 sequences across 157 samples and 123 ASV's (123 Chordata, as well as 0 non-Chordata, i.e. ).
@@ -542,7 +698,7 @@ psob_molten_fish_controls <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("pcn
 asvs_molten_fish_controls <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("pcntrol-blnd", "pcntrol-zebra", "ncntrl-pcr", "ncntrol-xtr", "blank")) %>% filter(ABUNDANCE != 0) %>% pull(ASV) %>% unique(.)
 length(asvs_molten_fish_controls)
 
-get_default_plot(psob_molten_fish_controls, facet_var = "SAMPLE.TYPE", taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across controls after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot(psob_molten_fish_controls, facet_var = "SAMPLE.TYPE", taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across controls after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_molten_ps_description(psob_molten_fish_controls, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
 
 # The current data set contains 2830326 sequences across 32 samples and 84 ASV's (84 Chordata, as well as 0 non-Chordata, i.e. ). 
@@ -559,17 +715,17 @@ get_molten_ps_description(psob_molten_fish_controls, rank_level = "PHYLUM", rank
 # A tibble: 1,782 x 41
 psob_molten_fish_eDNA_samples <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("eDNA")) %>% filter(ABUNDANCE != 0)
 
-get_default_plot(psob_molten_fish_eDNA_samples, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families in eDNA samples before control removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot(psob_molten_fish_eDNA_samples, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families in eDNA samples before control removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_molten_ps_description(psob_molten_fish_eDNA_samples, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
 
 # A tibble: 550 x 41
 psob_molten_fish_eDNA_samples <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("eDNA")) %>% filter(!ASV %in% asvs_molten_fish_controls)
 
-get_default_plot(psob_molten_fish_eDNA_samples, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families in eDNA samples after control removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot(psob_molten_fish_eDNA_samples, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families in eDNA samples after control removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_molten_ps_description(psob_molten_fish_eDNA_samples, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
 
 
-# VI. Save eDNA object for further analysis
+# V. Save eDNA object for further analysis
 # ==========================================
 
 # save or load molten state

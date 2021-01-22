@@ -196,10 +196,16 @@
   * commit `d935013849472b7cc72761648819a64cb86625e`
 * **22-Jan-2021** - continued work on `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
   * below line `531` subtracting all controls instead of only positive controls, not subtracting blanks
-  * commit ``
-
+  * commit `90e090a85eae12f05eb68acaedfaeff38e57b806`
+  * added ASV number plotting function - improved plotting speed by aggregation in both plotting functions
+  * cleaned structure
+  * started to add function to display vars in plate format
+  * commmit ``
 
 * **next:** 
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+    * add function to display vars in plate format
+    * subtract blanks from prepending samples
   * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
   
 
