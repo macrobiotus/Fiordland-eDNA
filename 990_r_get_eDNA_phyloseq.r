@@ -199,8 +199,6 @@ get_default_ocurrence_plot = function (psob_molten, taxlev, taxlev_fill = taxlev
   
 }
 
-
-
 # Get an easily digestible summary of a molten Phyloseq object (e.g. before, during, after filtering)
 # ----------------------------------------------------------------------------------------------------
 
@@ -273,6 +271,66 @@ get_molten_ps_description = function(ps, rank_level, rank_name, prnt_n = 10){
 
 }
 
+# get any variable in plate format 
+# ---------------------------------
+
+show_plate_loading = function(psob_molten, level = "PHYLUM", tax_vector = c("Chordata"), ggplx = "PHYLUM", ggply = "ABUNDANCE", ggfill = "PHYLUM", ggpltxt = "SAMPLE.TYPE"){
+  
+  require("data.table")
+  
+  message(paste("\"level\"=", level))
+  message(paste("\"tax_vector\"=", tax_vector))
+  
+  # melting Phyloseq object to data table for merging and speed
+  psob_dt <- data.table(psob_molten)
+ 
+  # set sorting key properly
+  setkey(psob_dt,KEY)
+ 
+  # aggregate selected variables
+  #   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+  #   for plate position (KEY) get
+  #   ASV, each summed ABUNDANCE
+  #   ASV, TAXONOMY
+  #   SAMPLE.NAME
+  #   SAMPLE.TYPE
+  psob_dt <- psob_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("KEY", "PLATE", "ROW", "COL", "SAMPLE.NAME", "SAMPLE.TYPE", "ASV", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS",  "SPECIES"), .SDcols=c("ABUNDANCE") ]
+
+  #  resort for clarity
+  keycol <-c("KEY")
+  setorderv(psob_dt, keycol)
+  
+  # add presence-absence abundance column
+  psob_dt <- psob_dt[ , ASVPRESENT :=  fifelse(ABUNDANCE == 0 , 0, 1, na=NA)]
+
+  # keep only chordates
+  psob_dt <- psob_dt[get(level) %in% tax_vector ]
+  
+  # work around ggplot2 idiosyncrasies
+  setnames(psob_dt, "COL", "CL")
+  setnames(psob_dt, "ROW", "RW")
+
+  psob_dt$CL <- factor(psob_dt$CL, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
+  psob_dt$PLATE <- factor(psob_dt$PLATE, levels = c("U.1", "U.2", "E.1", "E.2"))
+  
+  # show available vars
+  message("The following variables can be plotted:")
+  print(head(psob_dt))
+
+  # plot out 
+  ggplot(psob_dt, aes_string(x = ggplx, y = ggply, fill = ggfill)) +
+    geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
+    facet_grid(RW ~ PLATE + CL , shrink = TRUE, scales = "fixed") +
+    geom_text(x = 1, y = 3, aes(label = get(ggpltxt)), data = psob_dt, size = 8) +
+    theme_linedraw() +
+    theme(legend.position = "none") +
+    theme(strip.text.y = element_text(angle=0)) + 
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
+          axis.ticks.y = element_blank()) +
+    labs( title = "Plate overview") + xlab("plate column") + ylab("plate row") %>% quartz()
+}
+
 
 # I. Import Phyloseq object
 # =========================
@@ -336,6 +394,14 @@ get_default_ocurrence_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PH
 get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla ASV coverage across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_default_ocurrence_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla ASV occurrence across all locations before filtering", pxlab = "phyla at all locations", pylab =  "ASV counts at each location (y scales fixed)")
 
+# check plate loading - takes very long 15 minutes - omit if possible check saved plot 
+show_plate_loading(psob_molten, 
+                    ggply = "ABUNDANCE", 
+                    level = "SUPERKINGDOM", 
+                    tax_vector = c("Eukaryota", "Bacteria"), 
+                    ggplx = "SUPERKINGDOM")
+
+
 # check sample types - what sample type are available? 
 unique(psob_molten$SAMPLE.TYPE) # "eDNA": eDNA sample
                                 # "blank": eDNA collection blank - bottel with mol grade water
@@ -357,73 +423,7 @@ dna_smpls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("eDNA"))
 zro_smpls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("empty")) # can be disregarded see below
 
 
-# ###############################################################################################
-# -=- CONSTRUCTION SITE BELOW -=- -=- CONSTRUCTION SITE BELOW -=- -=- CONSTRUCTION SITE BELOW -=- 
 
-# get any variable in plate format 
-# ---------------------------------
-
-# melting Phyloseq object to data table for merging and speed
-psob_dt <- data.table(psob_molten)
- 
-# set sorting key properly
-setkey(psob_dt,KEY)
- 
-# aggregate selected variables
-#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
-#   for plate position (KEY) get
-#   ASV, each summed ABUNDANCE
-#   ASV, TAXONOMY
-#   SAMPLE.NAME
-#   SAMPLE.TYPE
-
-psob_dt <- psob_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("KEY", "PLATE", "ROW", "COL", "SAMPLE.NAME", "SAMPLE.TYPE", "ASV", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS",  "SPECIES"), .SDcols=c("ABUNDANCE") ]
-
-#  resort for clarity
-keycol <-c("KEY")
-setorderv(psob_dt, keycol)
-  
-# add presence-absence abundance column
-psob_dt <- psob_dt[ , ASVPRESENT :=  fifelse(ABUNDANCE == 0 , 0, 1, na=NA)]
-
-
-unique(psob_dt$ROW)
-unique(psob_dt$COL)
-# check data
-print(psob_dt)
-
-unique(psob_dt$PHYLUM)
-
-
-# keep only chordates
-psob_dt <- psob_dt[PHYLUM %in% c("Chordata")]
-  
-# work around ggplot2 bug
-setnames(psob_dt, "COL", "CL")
-setnames(psob_dt, "ROW", "RW")
-
-psob_dt$CL <- factor(psob_dt$CL, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
-psob_dt$PLATE <- factor(psob_dt$PLATE, levels = c("U.1", "U.2", "E.1", "E.2"))
-
-
-  ggplot(psob_dt, aes_string(x = "PHYLUM", y = "ABUNDANCE", fill = "PHYLUM")) +
-    geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
-    facet_grid(RW ~ PLATE + CL , shrink = TRUE, scales = "fixed") +
-    geom_text(x = 1, y = 3, aes(label = SAMPLE.TYPE), data = psob_dt) +
-    theme_bw() +
-    theme(legend.position = "none") +
-    theme(strip.text.y = element_text(angle=0)) + 
-    theme(axis.text.x = element_blank(),
-          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
-          axis.ticks.y = element_blank()) +
-    labs( title = "Plate overview") + xlab("plate column") + ylab("plate row") 
-
-#     theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-#           axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
-
-
-# -=- CONSTRUCTION SITE ABOVE -=- -=- CONSTRUCTION SITE ABOVE -=- -=- CONSTRUCTION SITE ABOVE -=-
-# ###############################################################################################
 
 # Check composition and ASV count of data types
 # ----------------------------------------------

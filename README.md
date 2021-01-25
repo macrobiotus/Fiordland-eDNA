@@ -200,7 +200,10 @@
   * added ASV number plotting function - improved plotting speed by aggregation in both plotting functions
   * cleaned structure
   * started to add function to display vars in plate format
-  * commmit ``
+  * commit ` 0b7c76e3fddab69d644c90ec7af3cdda29dc4792`
+* **22-Jan-2021** - continued work on `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+  * finished to add function to display vars in plate format - still slow for unsubset data could be sped up by aggregation
+  * commit ``
 
 * **next:** 
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
