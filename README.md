@@ -206,11 +206,15 @@
   * commit `faa88147a078e1c2e3738a573d605a83fcbb3275`
 * **26-Jan-2021** - continued work on `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
   * isolated barcodes in which positive controls amples were found
-  * commit ``
-  * **next: continue checking barcode labels**
+  * commit ` 31a87cc92cef16b6793b89684f8d496e2ead2816`
+* **26-Jan-2021** - continued work on checking primer assignments
+  * checked barcode labels
     * using: `/Users/paul/Documents/OU_eDNA/191031_primers/200504_idt_template_plate.xls`
     * using: `210126__primers_to_spot_check__200_r_get_phyloseq.xlsx`
-  * **thereafter: check well assignments using lab book**
+  * checked well assignments using lab book
+    * using  `200616_idt_plate_filled_fjordland_primers`
+  * assuming logically erroneous demultiplexing or primer contamination
+    * commit before new demultiplexing
     
 
 
