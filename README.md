@@ -203,7 +203,16 @@
   * commit ` 0b7c76e3fddab69d644c90ec7af3cdda29dc4792`
 * **22-Jan-2021** - continued work on `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
   * finished to add function to display vars in plate format - still slow for unsubset data could be sped up by aggregation
+  * commit `faa88147a078e1c2e3738a573d605a83fcbb3275`
+* **26-Jan-2021** - continued work on `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+  * isolated barcodes in which positive controls amples were found
   * commit ``
+  * **next: continue checking barcode labels**
+    * using: `/Users/paul/Documents/OU_eDNA/191031_primers/200504_idt_template_plate.xls`
+    * using: `210126__primers_to_spot_check__200_r_get_phyloseq.xlsx`
+  * **thereafter: check well assignments using lab book**
+    
+
 
 * **next:** 
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`

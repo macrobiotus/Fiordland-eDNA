@@ -321,8 +321,8 @@ show_plate_loading = function(psob_molten, level = "PHYLUM", tax_vector = c("Cho
   ggplot(psob_dt, aes_string(x = ggplx, y = ggply, fill = ggfill)) +
     geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
     facet_grid(RW ~ PLATE + CL , shrink = TRUE, scales = "fixed") +
-    geom_text(x = 1, y = 3, aes(label = get(ggpltxt)), data = psob_dt, size = 8) +
-    theme_linedraw() +
+    geom_text(x = 1, y = 3, aes(label = get(ggpltxt)), data = psob_dt, size = 3) +
+    theme_bw() +
     theme(legend.position = "none") +
     theme(strip.text.y = element_text(angle=0)) + 
     theme(axis.text.x = element_blank(),
@@ -395,11 +395,11 @@ get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla ASV co
 get_default_ocurrence_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla ASV occurrence across all locations before filtering", pxlab = "phyla at all locations", pylab =  "ASV counts at each location (y scales fixed)")
 
 # check plate loading - takes very long 15 minutes - omit if possible check saved plot 
-show_plate_loading(psob_molten, 
-                    ggply = "ABUNDANCE", 
-                    level = "SUPERKINGDOM", 
-                    tax_vector = c("Eukaryota", "Bacteria"), 
-                    ggplx = "SUPERKINGDOM")
+# show_plate_loading(psob_molten, 
+#                    ggply = "ABUNDANCE", 
+#                    level = "SUPERKINGDOM", 
+#                    tax_vector = c("Eukaryota", "Bacteria"), 
+#                    ggplx = "SUPERKINGDOM")
 
 
 # check sample types - what sample type are available? 
@@ -422,13 +422,90 @@ pos_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("pcntrol-zebra", "pcntrol
 dna_smpls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("eDNA"))
 zro_smpls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("empty")) # can be disregarded see below
 
+# Check distribution of postive control taxa
+# ----------------------------------------------
+
+# (not yet done, started 26-01-2021)
+
+### Construction site below ###
+
+# melt cleaned phyloseq object
+(psob_molten <- get_tidy_molten_ps(psob))
+
+# get info on filtering criteria
+unique(psob_molten$PHYLUM)
+
+# isolate and summarize interesting Chordates
+psob_molten_chordat <- psob_molten %>% filter(PHYLUM == "Chordata")
+get_molten_ps_description(psob_molten_chordat, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
+
+# keep and check classes Chondrichthyes Actinopteri across entire data
+psob_molten_fish <- psob_molten_chordat %>% filter(CLASS %in% c("Chondrichthyes", "Actinopteri")) 
+
+get_default_coverage_plot(psob_molten_fish, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish family coverage across all locations before contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_ocurrence_plot(psob_molten_fish, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish family ASV count across all locations before contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+
+get_molten_ps_description(psob_molten_fish, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
+
+# Species likley from controls
+# in controls: Corydoras sterbai, Chromobotia macracanthus, Poecilia reticulata, Poecilia sphenops, and Danio rerio
+# in data :    Crydoras aeneus,   Chromobotia macracanthus, Poecilia reticulata, Poecilia formosa,
+
+psob_molten_fish_controls <- psob_molten_fish %>% filter(GENUS %in% c("Crydoras", "Chromobotia","Poecilia")) 
+
+get_default_coverage_plot(psob_molten_fish_controls, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish family coverage across all locations before contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_ocurrence_plot(psob_molten_fish_controls, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish family ASV countdacross all locations before contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+
+show_plate_loading(psob_molten_fish_controls,  ggply = "ASVPRESENT")
+show_plate_loading(psob_molten_fish_controls,  ggply = "ABUNDANCE")
 
 
+# Check barcodes of empty data 
+# -----------------------------
+# (not yet done, started 26-01-2021)
+
+
+# ===== construction site below =====
+
+
+# use data.table for speed reasons
+dt_molten_fish_controls <- data.table(psob_molten_fish_controls)
+ 
+# set sorting key properly
+setkey(dt_molten_fish_controls,KEY)
+ 
+# aggregate selected variables
+#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+
+dt_molten_fish_controls <- dt_molten_fish_controls[, lapply(.SD, sum, na.rm=TRUE), by=c("KEY", "PLATE", "ROW", "COL", 
+  "PRIMER.LABEL",     "ADAPTER.FWD", "FLUPAD", "INDEX.FWD", "TEMPLATE.PRIMER.FWD",
+  "PRIMER.LABEL.REV", "ADAPTER.REV",           "INDEX.REV", "TEMPLATE.PRIMER.REV",
+  "COMPLETE.PRIMER.FWD", "COMPLETE.PRIMER.REV", "SAMPLE.NAME", "SAMPLE.TYPE", "ASV", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS",  "SPECIES"), .SDcols=c("ABUNDANCE") ]
+
+# add presence-absence abundance column
+dt_molten_fish_controls <- dt_molten_fish_controls[ , ASVPRESENT :=  fifelse(ABUNDANCE == 0 , 0, 1, na=NA)]
+ 
+# as per picture of positive control loading (see above) to check for similarities isolate U.1 / U.2 1,2,3 / B, D, F
+#   can't finf any - check primer assignments with input sheet
+dt_molten_fish_controls <- dt_molten_fish_controls[PLATE %in% c("U.1", "U.2")] %>% .[COL %in% c("1", "2", "3", "5")] %>%
+  .[ROW %in% c("B", "D", "F")] %>% print(n = Inf)
+
+dt_molten_fish_controls <- dt_molten_fish_controls[, lapply(.SD, sum, na.rm=TRUE), by=c("KEY", "PLATE", "ROW", "COL", 
+  "PRIMER.LABEL",     "ADAPTER.FWD", "FLUPAD", "INDEX.FWD", "TEMPLATE.PRIMER.FWD",
+  "PRIMER.LABEL.REV", "ADAPTER.REV",           "INDEX.REV", "TEMPLATE.PRIMER.REV",
+  "COMPLETE.PRIMER.FWD", "COMPLETE.PRIMER.REV", "SAMPLE.NAME", "SAMPLE.TYPE"), .SDcols=c("ABUNDANCE") ] %>% print(n = Inf)
+
+write.xlsx(dt_molten_fish_controls,"/Users/paul/Desktop/210126__primers_to_spot_check__200_r_get_phyloseq.xlsx", overwrite = TRUE)
+
+rm(dt_molten_fish_controls)
+rm(psob_molten_fish_controls)
+
+# ===== construction site above =====
 
 # Check composition and ASV count of data types
 # ----------------------------------------------
 
-# - most Chordates in negatove controls
+# - most Chordates in negative controls
 get_default_coverage_plot (neg_cntrl, taxlev = "PHYLUM", ptitl = "Negative controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_default_ocurrence_plot (neg_cntrl, taxlev = "PHYLUM", ptitl = "Negative controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
@@ -444,7 +521,7 @@ get_default_ocurrence_plot (pos_cntrl, taxlev = "PHYLUM", ptitl = "Positive cont
 get_default_coverage_plot (dna_smpls, taxlev = "PHYLUM", ptitl = "eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_default_ocurrence_plot (dna_smpls, taxlev = "PHYLUM", ptitl = "eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
-# - unpolled samples shouldn't have any data in them - barcode jumping 
+# - unpoled samples shouldn't have any data in them - barcode jumping 
 get_default_coverage_plot (zro_smpls, taxlev = "PHYLUM", ptitl = "unpooled samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 get_default_ocurrence_plot (zro_smpls, taxlev = "PHYLUM", ptitl = "unpooled samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
