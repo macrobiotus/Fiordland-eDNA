@@ -11,7 +11,8 @@
 
 # Environment
 # ===========
-library(tidyverse)
+library("tidyverse")
+library("openxlsx") # write Excel tables
 
 rm(list = ls())
 
@@ -88,13 +89,16 @@ amplicon_positions <- amplicon_positions %>%
   mutate(sample_name = case_when(grepl("PC", sample_name) ~ sample_name, grepl("AK", sample_name) ~ sample_name)) %>%
   print(n = Inf)
  
-save(amplicon_positions, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__amplicon_positions.Rdata")
+save(amplicon_positions, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210127_200_r_metadata_management__amplicon_positions.Rdata")
+write.xlsx(amplicon_positions,"/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/210127_200_r_metadata_management__amplicon_positions.xlsx", overwrite = TRUE)
+
 
 primer_positions <- bind_rows(u1pf, u1pr, u2pf, u2pr, e1pf, e1pr, e2pf, e2pr) %>% 
   mutate(col = str_remove(col, "...")) %>% 
   mutate(col, col = as.integer(col)) %>% 
   mutate(key = paste0(plate,".",row,".",col))
-save(primer_positions, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__primer_positions.Rdata")
+save(primer_positions, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210127_200_r_metadata_management__primer_positions.Rdata")
+write.xlsx(primer_positions,"/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/210127_200_r_metadata_management__primer_positions.xlsx", overwrite = TRUE)
 
 
 # Read in primer data
@@ -110,8 +114,8 @@ ep7 <- readxl::read_excel(path[2], range = "E52:J68", .name_repair = "universal"
 # ---------------------------------------------
 
 primer_sequences <- bind_rows(up5, up7, ep5, ep7)
-save(primer_sequences, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__primers.Rdata")
-
+save(primer_positions, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210127_200_r_metadata_management__primer_positions.Rdata")
+write.xlsx(primer_positions,"/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/210127_200_r_metadata_management__primer_positions.xlsx", overwrite = TRUE)
 
 # Read amplicon concentration data prior to pooling 
 # =================================================
@@ -143,7 +147,8 @@ list_concs_long <- do.call("rbind", list_concs_long)
 list_concs_long <- list_concs_long %>% mutate(key = paste0(plate,".",row,".",col)) %>% print(n = Inf)
 
 # save for redundancy 
-save(list_concs_long, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__pooling_concs.Rdata")
+save(list_concs_long, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210127_200_r_metadata_management__pooling_concs.Rdata")
+write.xlsx(primer_positions,"/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/210127_200_r_metadata_management__pooling_concs.xlsx", overwrite = TRUE)
 
 
 ## Read sample metadata
@@ -157,7 +162,8 @@ mdata <- readxl::read_excel(mdpath[1], range = "A1:L91", .name_repair = "univers
 lubridate::date(mdata$sample_time) <- lubridate::date(mdata$sample_date)
 mdata$sample_date <- NULL
 
-save(mdata, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__mdata.Rdata")
+save(mdata, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210127_200_r_metadata_management__mdata.Rdata")
+write.xlsx(mdata,"/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/210127_200_r_metadata_management__mdata.xlsx", overwrite = TRUE)
 
 
 ## Merge data for further formatting
@@ -264,7 +270,8 @@ big_table <- big_table %>% mutate(sample_type = case_when(
 unique(big_table$sample_type)
 
 
-save(big_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__big_table.Rdata")
+save(big_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210127_200_r_metadata_management__big_table.Rdata")
+write.xlsx(big_table,"/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/210127_200_r_metadata_management__big_table.xlsx", overwrite = TRUE)
 
 
 # Get file for deconvolution using cutadapt >=3.0
@@ -297,5 +304,5 @@ demux_table <- demux_table %>% mutate(r_primer, strReverse(chartr("acgtACGT", "t
 write_delim(demux_table, file = "/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/200_cutadapt_barcode_input.txt", delim = " ", append = FALSE, col_names = FALSE, quote_escape = "none", eol = "\n")
 
 # also save R object in case needed later
-save(demux_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__demux_table.Rdata")
+save(demux_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210127_200_r_metadata_management__demux_table.Rdata")
 
