@@ -44,13 +44,11 @@ barcodes="/201126_preprocessing/metadata/200_cutadapt_barcode_input.txt"
 inpth[1]="$trpth/201120_sequence_data/OG6304-211308098/FASTQ_Generation_2020-11-19_01_33_21Z-343990651/6304-P1-0-1_L001-ds.21f7e23247f540d4b3dfe0004841c2b5/6304-P1-0-1_S1_L001_R1_001.fastq.gz"
 
 
-
 # Run import script - adjust `i` starting number! 
 # -----------------------------------------------
 
 
 for ((i=1;i<=1;i++)); do
-
     
   # creating_partial_output file name
   outdir="$trpth"/201126_preprocessing/cutadapt
@@ -65,18 +63,15 @@ for ((i=1;i<=1;i++)); do
   # echo "$revbc"
   # echo "$revbcrc"
     
-  # create read temporary file 
-  printf "${bold}$(date):${normal} Copying \"$(basename "$trpth"/"${inpth[$i]}")\" to temporary file...\n"
-
-  cp "${inpth[$i]}" "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_untrimmed.fastq.gz
-  # gzip -d "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_untrimmed.fastq.gz
-  
   # diagnostic message
   printf "${bold}$(date):${normal} Demultiplexing \"$(basename "${inpth[$i]}")\"...\n"
 
   # step through barcode file
   while IFS=" " read -r smpl_nm fwd_bc rev_bc rev_bc_rc
     do
+  
+      touch "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_input.fastq.gz
+      touch "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_ouput.fastq.gz
   
       # generate output file name
       outfile="$namest"__"$smpl_nm".fastq.gz
@@ -90,14 +85,18 @@ for ((i=1;i<=1;i++)); do
         FILESIZE=$(wc -c  "${inpth[$i]}" | awk '{print $1}')
         
         # diagnostic message
-        printf "${bold}$(date):${normal} Starting demultiplexing \"$(basename "${inpth[$i]}")\" with $FILESIZE bytes...\n"
+        printf "${bold}$(date):${normal} ... demultiplexing \"$(basename "${inpth[$i]}")\" with $FILESIZE bytes...\n"
         
-        cutadapt -a "$fwd_bc"';required...'"$rev_bc_rc"';required' -o "$namest"__"$smpl_nm".fastq.gz "${inpth[$i]}" --untrimmed-output "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_untrimmed.fastq.gz  -e 0 --no-indels -m 1 \
+        cutadapt -a "$fwd_bc"';required...'"$rev_bc_rc"';required' -o "$namest"__"$smpl_nm".fastq.gz "${inpth[$i]}" --untrimmed-output "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_ouput.fastq.gz  -e 0 --no-indels -m 85 -M 250 --revcomp \
         2>&1 | tee "$trpth"/201126_preprocessing/cutadapt/"$smpl_nm"_cutlog.txt
         
-        # redefine input path so that left over sequences in temp file are used instead of input files
-        inpth[1]="$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_untrimmed.fastq.gz
-
+        # move output file to input file so as to not to read and write from the same file at once 
+        mv "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_ouput.fastq.gz "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_input.fastq.gz
+        
+        # WILL BREAK IF [1] CHNAGES: redefine input path so that left over sequences in temp file are used instead of input files
+        # to fix copy inpth[1] at loop begin into new variable and use that ne variable throughout script
+        inpth[1]="$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_input.fastq.gz
+        
       else
      
         # diagnostic message

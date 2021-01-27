@@ -222,8 +222,10 @@
   * re-writing `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh` 
     * demultiplexing via temp file, subtracting reads from file, rather then using raw data several times
     * running draft version on local
-    * commit ``
-
+    * commit `3abf0ace62d3d77d6da90265131616f2785dc934`
+* **28-Jan-2021** - re-running pipeline
+  * got working version of, and running: `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh`
+  * commit: 
 
 * **next:** 
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
