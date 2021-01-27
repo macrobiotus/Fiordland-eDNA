@@ -218,7 +218,11 @@
   * created backup copy in `/Users/paul/Documents/OU_eDNA_backup`
   * restarting from script `/Users/paul/Documents/OU_eDNA/200901_scripts/200_r_metadata_management.R`
     * finished re-run and increased saving of intermediary objects to `/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata`
-    
+    * commit `be9756b77616c8024a777ceb4266260b6de41157`
+  * re-writing `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh` 
+    * demultiplexing via temp file, subtracting reads from file, rather then using raw data several times
+    * running draft version on local
+    * commit ``
 
 
 * **next:** 
