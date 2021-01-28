@@ -47,7 +47,6 @@ inpth[1]="$trpth/201120_sequence_data/OG6304-211308098/FASTQ_Generation_2020-11-
 # Run import script - adjust `i` starting number! 
 # -----------------------------------------------
 
-
 for ((i=1;i<=1;i++)); do
     
   # creating_partial_output file name
@@ -65,6 +64,8 @@ for ((i=1;i<=1;i++)); do
     
   # diagnostic message
   printf "${bold}$(date):${normal} Demultiplexing \"$(basename "${inpth[$i]}")\"...\n"
+  
+  in_file="${inpth[$i]}"
 
   # step through barcode file
   while IFS=" " read -r smpl_nm fwd_bc rev_bc rev_bc_rc
@@ -82,25 +83,28 @@ for ((i=1;i<=1;i++)); do
       # call import only if output file isn't already there
       if [ ! -f "$outfile" ]; then
 
-        FILESIZE=$(wc -c  "${inpth[$i]}" | awk '{print $1}')
+        FILESIZE=$(wc -c  "$in_file" | awk '{print $1}')
         
         # diagnostic message
-        printf "${bold}$(date):${normal} ... demultiplexing \"$(basename "${inpth[$i]}")\" with $FILESIZE bytes...\n"
+        printf "${bold}$(date):${normal} ... demultiplexing \"$(basename "$in_file")\" with $FILESIZE bytes...\n"
         
-        cutadapt -a "$fwd_bc"';required...'"$rev_bc_rc"';required' -o "$namest"__"$smpl_nm".fastq.gz "${inpth[$i]}" --untrimmed-output "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_ouput.fastq.gz  -e 0 --no-indels -m 85 -M 250 --revcomp \
-        2>&1 | tee "$trpth"/201126_preprocessing/cutadapt/"$smpl_nm"_cutlog.txt
+        cutadapt -a "$fwd_bc"';required...'"$rev_bc_rc"';required' -o "$namest"__"$smpl_nm".fastq.gz "$in_file" --untrimmed-output "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_ouput.fastq.gz  -e 0 --no-indels -m 85 --revcomp \
+        2>&1 | tee "$namest"__"$smpl_nm".log
+        
+        # slowly giving read length distribution in bash
+        printf "${bold}$(date):${normal} ... getting length of distribution sample data...\n"
+        gunzip -c "$namest"__"$smpl_nm".fastq.gz | awk 'NR%4 == 2 {lengths[length($0)]++} END {for (l in lengths) {print l, lengths[l]}}' 
         
         # move output file to input file so as to not to read and write from the same file at once 
         mv "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_ouput.fastq.gz "$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_input.fastq.gz
         
-        # WILL BREAK IF [1] CHNAGES: redefine input path so that left over sequences in temp file are used instead of input files
-        # to fix copy inpth[1] at loop begin into new variable and use that ne variable throughout script
-        inpth[1]="$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_input.fastq.gz
+        # redefine input path so that left over sequences in temp file are used instead of input files
+        in_file="$trpth"/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_input.fastq.gz
         
       else
      
         # diagnostic message
-        printf "${bold}$(date):${normal} Import available for \"$(basename "${inpth[$i]}")\", skipping.\n"
+        printf "${bold}$(date):${normal} Import available for \"$(basename "$namest"__"$smpl_nm")\", skipping.\n"
    
       fi
     
@@ -108,7 +112,7 @@ for ((i=1;i<=1;i++)); do
 
 done
 
-#     # call cutadapt with parallel    
-#     parallel --jobs 0 -a "$trpth"/"$barcodes" --colsep ' ' \
-#       cutadapt -a {2}'\;required...'{4}'\;required' -o "$namest"__{1}.fastq.gz "$trpth""${inpth[$i]}" --discard-untrimmed -e 0 --no-indels -m 1
+# # call cutadapt with parallel    
+#   parallel --jobs 0 -a "$trpth"/"$barcodes" --colsep ' ' \
+#   cutadapt -a {2}'\;required...'{4}'\;required' -o "$namest"__{1}.fastq.gz "$trpth""${inpth[$i]}" --discard-untrimmed -e 0 --no-indels -m 1
   

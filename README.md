@@ -225,6 +225,9 @@
     * commit `3abf0ace62d3d77d6da90265131616f2785dc934`
 * **28-Jan-2021** - re-running pipeline
   * got working version of, and running: `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh`
+  * commit `dc9e4a3ebc2dd0662202c512e8e711e26916258d`
+  * needed to re-test several length filtering options
+  * running latest version again after several tries, script was edited extensivly
   * commit: 
 
 * **next:** 
