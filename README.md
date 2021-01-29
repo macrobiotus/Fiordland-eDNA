@@ -227,8 +227,8 @@
   * got working version of, and running: `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh`
   * commit `dc9e4a3ebc2dd0662202c512e8e711e26916258d`
   * needed to re-test several length filtering options
-  * running latest version again after several tries, script was edited extensivly
-  * commit: 
+  * running latest version again after several tries, script was edited extensively
+  * commit: `1bfe5018350cc09308cbe2d192188f8476003a82`
 
 * **next:** 
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
