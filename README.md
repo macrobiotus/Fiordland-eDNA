@@ -229,6 +229,12 @@
   * needed to re-test several length filtering options
   * running latest version again after several tries, script was edited extensively
   * commit: `1bfe5018350cc09308cbe2d192188f8476003a82`
+* **01-Jan-2021** - re-run finished of `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh`
+  * used only about half the data at high quality filtering
+  * the rest is left here (1.68 of originally 3.8 GB): `/Users/paul/Documents/OU_eDNA/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_input.fastq.gz `
+  * commit ``
+
+
 
 * **next:** 
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
