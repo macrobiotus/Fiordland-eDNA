@@ -30,7 +30,7 @@ elif [[ "$HOSTNAME" == "Pauls-MacBook-Pro.local" ]]  || [[ "$HOSTNAME" == "macmi
     cores="2"
 fi
 
-manifest='201126_preprocessing/metadata/400_create_qiime_manifest__manifest.txt'
+manifest='201126_preprocessing/metadata/400_create_qiime_manifest__manifest_v2.txt'
 otpth='201126_preprocessing/qiime/500_12S_single_end_import.qza'
 
 

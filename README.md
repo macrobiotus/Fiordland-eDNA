@@ -234,6 +234,9 @@
   * the rest is left here (1.68 of originally 3.8 GB): `/Users/paul/Documents/OU_eDNA/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_input.fastq.gz `
   * commit `cb50223b82534652a0f38d312640d6c94c3228b2`
   * created and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/350_bash_count_reads_and_mv_empty_fastqs.sh`
+  * commit `af41faf4482f8f863e2ba300ac060ffc5684601a`
+  * adjusted and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/400_r_qiime_manifest.R`
+  * uploading files to Cornell cluster
 
 * **next:** 
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
