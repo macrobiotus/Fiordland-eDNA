@@ -232,9 +232,8 @@
 * **01-Jan-2021** - re-run finished of `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh`
   * used only about half the data at high quality filtering
   * the rest is left here (1.68 of originally 3.8 GB): `/Users/paul/Documents/OU_eDNA/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_input.fastq.gz `
-  * commit ``
-
-
+  * commit `cb50223b82534652a0f38d312640d6c94c3228b2`
+  * created and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/350_bash_count_reads_and_mv_empty_fastqs.sh`
 
 * **next:** 
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
