@@ -255,15 +255,12 @@
   * started running `/Users/paul/Documents/OU_eDNA/200901_scripts/800_r_get_q2_tax-tab.r` - **pending**
     * creating `blast_results_list` - **pending**
     * after import erase `/Users/paul/Documents/OU_eDNA/201126_preprocessing/blast/750_2S_single_end_ee3-seq_blast-noenv.xml` - **pending**
-    * committing ``
-   
-  
-                                                                                                                      
+    * committing ` 64a63bd8f7564eddad24ea14155323dd35135d19`
+  * done running `/Users/paul/Documents/OU_eDNA/200901_scripts/800_r_get_q2_tax-tab.r`
 
 * **next:** 
-  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
-    * add function to display vars in plate format
-    * subtract blanks from prepending samples
+  * run `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`
+  * step through all scripts
   * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
   
 

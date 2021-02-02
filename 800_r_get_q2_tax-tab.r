@@ -34,16 +34,10 @@ plan(multicore)
 # takes 7-10 hours on four cores - avoid by reloading full object from disk 
 blast_results_list <- furrr::future_map(blast_results_files, blastxml_dump, form = "tibble", .progress = TRUE) 
 
-save(blast_results_list, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast_results_list.Rdata")
-load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast_results_list.Rdata", verbose = TRUE)
-
-
 names(blast_results_list) <- blast_results_files # works
 
-# save object and some time by reloading it - comment in if necessary
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# save(blast_results_list, file="/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/Blast/150_18S_merged-seq_blast-noenv.Rdata")
-# load(file="/Users/paul/Documents/OU_pcm_eukaryotes/Zenodo/Blast/150_18S_merged-seq_blast-noenv.Rdata", verbose = TRUE)
+# save(blast_results_list, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast_results_list.Rdata")
+load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast_results_list.Rdata", verbose = TRUE)
 
 # create one large item from many few, while keeping source file info fo grouping or subsetting
 blast_results_list %>% bind_rows(, .id = "src" ) %>%        # add source file names as column elements
@@ -53,9 +47,7 @@ blast_results_list %>% bind_rows(, .id = "src" ) %>%        # add source file na
 
 # save object and some time by reloading it - comment in if necessary
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# save(blast_results, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/201207_get_q2_tax-tab__blast-noenv_sliced.Rdata")
-load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/201207_get_q2_tax-tab__blast-noenv_sliced.Rdata", verbose = TRUE)
-nrow(blast_results) # 11675 - 10302, better
+nrow(blast_results) # 1914 now, was 2171 after denoising
 
 # Part II: Re-annotate Blast results
 # ----------------------------------
@@ -78,8 +70,8 @@ get_strng <- function(x) {getTaxonomy(x,"/Volumes/HGST1TB/Users/paul/Sequences/R
 blast_results_appended <- blast_results %>% mutate(tax_id = get_taxid(hit_accession)) # takes some time... 
 length(blast_results_appended$tax_id) 
 
-# save(blast_results_appended, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/201207_get_q2_tax-tab__blast-noenv_sliced_taxonomy.Rdata")
-load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/201207_get_q2_tax-tab__blast-noenv_sliced_taxonomy.Rdata", verbose=TRUE)
+# save(blast_results_appended, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_sliced_taxonomy.Rdata")
+load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_sliced_taxonomy.Rdata", verbose=TRUE)
 
 # look up taxonomy table - takes a long time, needs external database.
 tax_table <- as_tibble(get_strng(blast_results_appended$tax_id), rownames = "tax_id") %>% mutate(tax_id= as.numeric(tax_id))
@@ -124,8 +116,8 @@ ggplot(blast_results_final, aes(x = src, y = phylum, fill = phylum)) +
 
 # save object and some time by reloading it
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# save(blast_results_final, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/201207_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
-load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/201207_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
+# save(blast_results_final, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
+load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
 
 # Part II: Format taxonomy table for export and export  
 # -----------------------------------------------------
@@ -150,10 +142,10 @@ names(q2taxtable) <- c("#OTUID", "taxonomy", "confidence")
 # read fasta used for Blasting
 fnapth <- "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.fasta"
 fna = readDNAStringSet(fnapth)
-length(names(fna)) # was 12399 as expected, now 12437
+length(names(fna)) # back to 2171
 
 # get length of main table without missing hash values
-length(q2taxtable$taxonomy) # 10302 as expected
+length(q2taxtable$taxonomy) # 1914 as expected
 
 # add missing hash values from fasta to main table to get complete table  
 q2taxtable <- left_join(enframe(names(fna), value = '#OTUID'), q2taxtable, by = c('#OTUID'))
