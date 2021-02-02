@@ -229,14 +229,36 @@
   * needed to re-test several length filtering options
   * running latest version again after several tries, script was edited extensively
   * commit: `1bfe5018350cc09308cbe2d192188f8476003a82`
-* **01-Jan-2021** - re-run finished of `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh`
+* **01-Feb-2021** - re-run finished of `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh`
   * used only about half the data at high quality filtering
   * the rest is left here (1.68 of originally 3.8 GB): `/Users/paul/Documents/OU_eDNA/201126_preprocessing/cutadapt/300_bash_cutadapt_demultiplex_input.fastq.gz `
   * commit `cb50223b82534652a0f38d312640d6c94c3228b2`
   * created and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/350_bash_count_reads_and_mv_empty_fastqs.sh`
   * commit `af41faf4482f8f863e2ba300ac060ffc5684601a`
   * adjusted and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/400_r_qiime_manifest.R`
+  * commit `d278de85b9180bc19c6b6f0b2b5690a0ba265c8b`
   * uploading files to Cornell cluster
+* **02-Feb-2021** - on cluster using `qiime2-2020.6`
+  * running `./500_q2_import.sh` - **ok**
+  * running `./600_q2_denoise.sh` - **ok**
+    * `The filter removed all reads: /tmp/tmpdr8mtydj/U-1-H-1-empty_139_L001_R1_001.fastq.gz not written.`
+    * `The filter removed all reads: /tmp/tmpdr8mtydj/U-2-E-5-ncntrl-pcr_160_L001_R1_001.fastq.gz written.`
+    * `766815368 total bases in 4196353 reads from 162 samples will be used for learning the error rates`
+  * manually exporting ASV set for blasting: contains 2171 sequences as per `grep ">" 600_12S_single_end_ee3-seq.fasta | wc -l`
+  * starting Blasting of ASV set with script `750_bash_fasta_blast.sh` - **ok**
+  * afterwards compressed environmental GI list again - arrived on local- **ok**
+  * in MEGAN check texonomy see `/Users/paul/Documents/OU_eDNA/201126_preprocessing/megan/750_12S_single_end_ee3-seq_blast-noenv.xml.rma6`
+    * `/Users/paul/Documents/OU_eDNA/201126_preprocessing/blast/750_12S_single_end_ee3-seq_blast-noenv.xml.gz`
+    * `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.fasta.gz`
+  * run `/Users/paul/Documents/OU_eDNA/200901_scripts/650_r_plot_denoise.R`- **ok**
+    * saved `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files/210202_650_denoised_libraries.pdf`
+  * started running `/Users/paul/Documents/OU_eDNA/200901_scripts/800_r_get_q2_tax-tab.r` - **pending**
+    * creating `blast_results_list` - **pending**
+    * after import erase `/Users/paul/Documents/OU_eDNA/201126_preprocessing/blast/750_2S_single_end_ee3-seq_blast-noenv.xml` - **pending**
+    * committing ``
+   
+  
+                                                                                                                      
 
 * **next:** 
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`

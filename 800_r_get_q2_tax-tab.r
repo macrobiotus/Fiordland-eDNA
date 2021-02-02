@@ -1,7 +1,7 @@
 # Import Blast results, format, get new taxonomy strings, and write out compatible with Qiime 2 
 # ==============================================================================================
 
-# last run 7-Dec-2020
+# last run 7-Dec-2020, then 2-Feb-2021 
 # see https://ropensci.org/tutorials/taxize_tutorial/
 #  for handling blast data and getting correct taxonomy strings from the net
 
@@ -34,8 +34,8 @@ plan(multicore)
 # takes 7-10 hours on four cores - avoid by reloading full object from disk 
 blast_results_list <- furrr::future_map(blast_results_files, blastxml_dump, form = "tibble", .progress = TRUE) 
 
-# save(blast_results_list, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/201207_get_q2_tax-tab__blast_results_list.Rdata")
-load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/201207_get_q2_tax-tab__blast_results_list.Rdata", verbose = TRUE)
+save(blast_results_list, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast_results_list.Rdata")
+load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast_results_list.Rdata", verbose = TRUE)
 
 
 names(blast_results_list) <- blast_results_files # works
