@@ -257,6 +257,22 @@
     * after import erase `/Users/paul/Documents/OU_eDNA/201126_preprocessing/blast/750_2S_single_end_ee3-seq_blast-noenv.xml` - **pending**
     * committing ` 64a63bd8f7564eddad24ea14155323dd35135d19`
   * done running `/Users/paul/Documents/OU_eDNA/200901_scripts/800_r_get_q2_tax-tab.r`
+    * commit `32d01ef1f47ca0711c90dd0dcf7f6a18156d5b99`
+* **03-Feb-2021** - continuing second processing iteration
+  * stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`
+  * running  `/Users/paul/Documents/OU_eDNA/200901_scripts/900_q2_summary.sh`
+    * using `qiime2-2020.8` - **ok**
+    * importing taxonomy file:
+      `qiime tools import \
+         --input-path  "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.tsv" \
+         --output-path "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.qza" \
+         --type 'FeatureData[Taxonomy]' \
+         --input-format HeaderlessTSVTaxonomyFormat || { echo 'Taxonomy import failed' ; exit 1; }`
+  * running `/Users/paul/Documents/OU_eDNA/200901_scripts/980_q2_export_objects.sh`  - **ok**
+  * stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+    * looking much better now - work on publishable version next
+    * commit ``
+    
 
 * **next:** 
   * run `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`

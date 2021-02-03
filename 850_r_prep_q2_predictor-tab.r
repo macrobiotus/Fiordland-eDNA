@@ -1,7 +1,7 @@
 # *********************************************************
 # * Combine and correct sample descriptors and predictors *
 # ********************************************************* 
-# 08-Dec-2020
+# 08-Dec-2020; 03-Feb-2021
 
 # load packages
 # =============
@@ -18,14 +18,14 @@ gc()
 # ==================
 
 # if only to learn sample id format
-qmanif <- read_csv("/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/400_create_qiime_manifest__manifest.txt") %>%
+qmanif <- read_csv("/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/400_create_qiime_manifest__manifest_v2.txt") %>%
   arrange(desc(`sample-id`))
 print(qmanif)
 
 # load big_table to format as metadata file
 # =========================================
 
-load("/Users/paul/Documents/OU_eDNA/201028_Robjects/201028_sample_managment__big_table.Rdata")
+load("/Users/paul/Documents/OU_eDNA/201028_Robjects/210127_200_r_metadata_management__big_table.Rdata")
 print(big_table)
 
 # generate a sample id table matching qiime sample id's in 
@@ -60,7 +60,7 @@ metadata <- left_join(
                       )
   
 # Get metadata file: 
-#   Trim to samples contained in maifest
+#   Trim to samples contained in manifest
 
 metadata <- metadata[which(metadata$qsamplid %in% qmanif$`sample-id`), ]
 
@@ -76,7 +76,7 @@ colnames(metadata) <- c("sampleid", "pool-content", "key", "primer-direction", "
   "sample-type", "inside-reserve", "sample-name", "vol-l", "lat-dd", "long-dd", "depth-m", "notes",
   "xtr-date", "row", "plate", "col",  "ng-ul", "primer-direction_rev", "primer-label-rev", "adapter-rev", "index-rev", "template-primer-rev", "complete-primer-rev")
 
-# .... more of the same and set library pooling amounts correctly for potential use of package "decontam()"" downstream 
+# .... more of the same and set library pooling amounts correctly for potential use of package "decontam()" downstream 
 metadata <- metadata %>% relocate(c("sampleid", "key", "ng-ul", "lat-dd", "long-dd")) %>% replace_na(list("ng-ul" = 0 ))
 
 metadata$`lat-dd` <- enc2utf8(metadata$`lat-dd`)

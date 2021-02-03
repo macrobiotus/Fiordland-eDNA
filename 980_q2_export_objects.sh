@@ -11,13 +11,13 @@ set -o pipefail
 
 # Paths need to be adjusted for remote execution
 # ==============================================
-if [[ "$HOSTNAME" != "Pauls-MacBook-Pro.local" ]] && [[ "$HOSTNAME" != "macmini-fastpost-1.staff.uod.otago.ac.nz" ]]; then
+if [[ "$HOSTNAME" != "Pauls-MacBook-Pro.local" ]] && [[ "$HOSTNAME" != "Mac-mini-3" ]]; then
     bold=$(tput bold)
     normal=$(tput sgr0)
     printf "${bold}$(date):${normal} Execution on remote...\n"
     trpth="/workdir/pc683/OU_eDNA"
     cores="$(nproc --all)"
-elif [[ "$HOSTNAME" == "Pauls-MacBook-Pro.local" ]]  || [[ "$HOSTNAME" = "macmini-fastpost-1.staff.uod.otago.ac.nz" ]]; then
+elif [[ "$HOSTNAME" == "Pauls-MacBook-Pro.local" ]]  || [[ "$HOSTNAME" = "Mac-mini-3" ]]; then
     bold=$(tput bold)
     normal=$(tput sgr0)
     printf "${bold}$(date):${normal} Execution on local...\n"

@@ -202,7 +202,7 @@ get_default_ocurrence_plot = function (psob_molten, taxlev, taxlev_fill = taxlev
 # Get an easily digestible summary of a molten Phyloseq object (e.g. before, during, after filtering)
 # ----------------------------------------------------------------------------------------------------
 
-get_molten_ps_description = function(ps, rank_level, rank_name, prnt_n = 10){
+get_molten_ps_description = function(ps, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota", prnt_n = 25){
 
   require("tidyverse")
 
@@ -372,9 +372,9 @@ sample_data(psob)[which(sample_data(psob)$`loc-name` == "Undaria Zone"), ]$loc.n
 
 # Save or load initial state after import
 # ---------------------------------------
-save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210108_990_r_get_eDNA_phyloseq__import_workspace.Rdata")
-save(psob, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210108_990_r_get_eDNA_phyloseq__imported-psob.Rdata")
-save(psob, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/zenodo/210108_990_r_get_eDNA_phyloseq__imported-psob.Rds")
+save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210203_990_r_get_eDNA_phyloseq__import_workspace.Rdata")
+save(psob, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210203_990_r_get_eDNA_phyloseq__imported-psob.Rdata")
+save(psob, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/zenodo/210203_990_r_get_eDNA_phyloseq__imported-psob.Rds")
 
 
 # II. Inspect and summarize raw data
@@ -425,9 +425,6 @@ zro_smpls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("empty")) # can be disreg
 # Check distribution of postive control taxa
 # ----------------------------------------------
 
-# (not yet done, started 26-01-2021)
-
-### Construction site below ###
 
 # melt cleaned phyloseq object
 (psob_molten <- get_tidy_molten_ps(psob))
@@ -465,8 +462,6 @@ show_plate_loading(psob_molten_fish_controls,  ggply = "ABUNDANCE")
 # (not yet done, started 26-01-2021)
 
 
-# ===== construction site below =====
-
 
 # use data.table for speed reasons
 dt_molten_fish_controls <- data.table(psob_molten_fish_controls)
@@ -500,7 +495,6 @@ write.xlsx(dt_molten_fish_controls,"/Users/paul/Desktop/210126__primers_to_spot_
 rm(dt_molten_fish_controls)
 rm(psob_molten_fish_controls)
 
-# ===== construction site above =====
 
 # Check composition and ASV count of data types
 # ----------------------------------------------
@@ -572,6 +566,7 @@ psob_input <- psob %>% subset_samples(., sample.type != "empty" ) %>% subset_sam
 # Summary after data trimming
 (psob_molten <- get_tidy_molten_ps(psob_input))
 get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+show_plate_loading(psob_molten)
 
 ggsave("210121_990_r_get_eDNA_phyloseq__psob-unfiltered-sample-type-overview.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
@@ -649,7 +644,10 @@ psob_contaminants <- prune_taxa(contamdf.freq$contaminant, psob_input)
 
 (psob_molten <- get_tidy_molten_ps(psob_contaminants))
 get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Contaminant phyla across all sample types before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_ocurrence_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Contaminant phyla across all sample types before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_molten_ps_description(psob_molten)
 
+show_plate_loading(psob_molten)
 ggsave("210121_990_r_get_eDNA_phyloseq__psob-contaminants-sample-type-overview.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
          scale = 3, width = 75, height = 60, units = c("mm"),
@@ -662,7 +660,7 @@ ggsave("210121_990_r_get_eDNA_phyloseq__psob-unfiltered-location-overview.pdf", 
          scale = 3, width = 75, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-get_molten_ps_description(psob_molten, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
+get_molten_ps_description(psob_molten)
 
 rm(psob_molten)
 
@@ -755,9 +753,11 @@ get_molten_ps_description(psob_molten_chordat, rank_level = "PHYLUM", rank_name 
 # Gallus gallus - chicken
 
 # keep and check classes Chondrichthyes Actinopteri across entire data
-psob_molten_fish <- psob_molten_chordat %>% filter(CLASS %in% c("Chondrichthyes", "Actinopteri")) 
+psob_molten_fish <- psob_molten_chordat %>% filter(CLASS %in% c("Chondrichthyes", "Actinopteri"))
 
 get_default_coverage_plot(psob_molten_fish, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across all locations after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_ocurrence_plot(psob_molten_fish, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across all locations after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
+
 get_molten_ps_description(psob_molten_fish, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
 
 # The current data set contains 18588722 sequences across 157 samples and 123 ASV's (123 Chordata, as well as 0 non-Chordata, i.e. ).
