@@ -271,6 +271,9 @@
   * running `/Users/paul/Documents/OU_eDNA/200901_scripts/980_q2_export_objects.sh`  - **ok**
   * stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
     * looking much better now - work on publishable version next
+    * commit `d6e15bd6e25c18e91f56540bf8a0d43bcee7b7f2`
+  * re-working processing script `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+    * got to line 505 - prior to contamination removal
     * commit ``
     
 

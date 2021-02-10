@@ -1,7 +1,8 @@
 # **********************************************
 # * Create, filter, and write Physloseq object *
 # **********************************************
-# 12-Dec-2020, 08-Jan-2020, 11-Jan-2020, 20-Jan-2020, 21-Jan-2020
+# 12-Dec-2020, 08-Jan-2020, 11-Jan-2020, 20-Jan-2020, 21-Jan-2020,  10-Feb-2020 
+
 
 # Packages loading 
 # ==================
@@ -16,6 +17,7 @@ library("future.apply") # faster handling of large tables - such as molten Phylo
 
 library("decontam") # decontamination - check `https://benjjneb.github.io/decontam/vignettes/decontam_intro.html`
 library("openxlsx") # write Excel tables
+
 
 # Functions
 # =========
@@ -149,10 +151,9 @@ get_default_coverage_plot = function (psob_molten, taxlev, taxlev_fill = taxlev,
     theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
           axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
           axis.ticks.y = element_blank()) +
-    labs( title = ptitl) + xlab(pxlab) + ylab(pylab) %>% quartz()
+    labs( title = ptitl) + xlab(pxlab) + ylab(pylab)
 
 }
-
 
 # Get an easily digestible occurence plot of a molten Phyloseq object (e.g. before, during, after filtering)
 # ----------------------------------------------------------------------------------------------------
@@ -195,14 +196,14 @@ get_default_ocurrence_plot = function (psob_molten, taxlev, taxlev_fill = taxlev
     theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
           axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
           axis.ticks.y = element_blank()) +
-    labs( title = ptitl) + xlab(pxlab) + ylab(pylab) %>% quartz()
+    labs( title = ptitl) + xlab(pxlab) + ylab(pylab)
   
 }
 
 # Get an easily digestible summary of a molten Phyloseq object (e.g. before, during, after filtering)
 # ----------------------------------------------------------------------------------------------------
 
-get_molten_ps_description = function(ps, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota", prnt_n = 25){
+get_molten_ps_description = function(ps, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota", prnt_n = Inf){
 
   require("tidyverse")
 
@@ -230,7 +231,8 @@ get_molten_ps_description = function(ps, rank_level = "SUPERKINGDOM", rank_name 
   cov_s_med  <- summary(coverage_per_sample)[c(3) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
   cov_s_mean <- summary(coverage_per_sample)[c(4) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
   cov_s_max <- summary(coverage_per_sample)[c(6) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
-
+  cov_s_sd <- sd(coverage_per_sample$x)
+  
   # get ASV coverages
   coverage_per_asv <- aggregate(ps$ABUNDANCE, by=list(ASV=ps$ASV), FUN=sum)
   
@@ -240,31 +242,34 @@ get_molten_ps_description = function(ps, rank_level = "SUPERKINGDOM", rank_name 
   cov_a_med  <- summary(coverage_per_asv)[c(3) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
   cov_a_mean <- summary(coverage_per_asv)[c(4) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
   cov_a_max <- summary(coverage_per_asv)[c(6) ,2] %>% str_squish() %>% gsub("[^0-9]", "", .)
-
+  cov_a_sd <- sd(coverage_per_asv$x)
+  
   # print summary text
-  message(paste0("\nThe current data set contains ", f_count, " sequences across ", s_count, " samples and ",   
+  print(paste0("The current data set contains ", f_count, " sequences across ", s_count, " samples and ",   
                  a_count, " ASV's (", ss_count," ", ss_string,
                  ", as well as ", nss_count, " non-", ss_string, ", i.e. ", nss_string,
                  "). Sample mean (min., med., max.) coverage is ", cov_s_mean, 
                  " reads (", cov_s_min, ", ", cov_s_med, ", ", cov_s_max, 
                  "), and ASV mean (min, median, max) coverage is ", cov_a_mean, 
-                 " reads (", cov_a_min, ", ", cov_a_med, ", ", cov_a_max, ").\n"
+                 " reads (", cov_a_min, ", ", cov_a_med, ", ", cov_a_max, ")."
                  ))
+  print(paste0("Sample coverage sd is: ", cov_s_sd))
+  print(paste0("ASV coverage sd is:", cov_a_sd))
 
   # summarize distinct values across the long data frame
-  message("\nIn the following summary variable names shown are hard-coded in function \"get_molten_ps_stats\": ") 
+  print("In the following summary variable names shown are hard-coded in function \"get_molten_ps_stats\": ") 
   show_vars <- c("ASV", "ABUNDANCE", "SAMPLE", "LOC.NAME", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES")
   ps %>% select(any_of(show_vars)) %>% summarize_all(n_distinct, na.rm = TRUE) %>% print()
   
   # get most ASV's (not species) ordered by frequency
-  message("\nGetting and returning highest-covered ASV's (not: species) ordered by frequency:")
+  print("Getting and returning highest-covered ASV's (not: species) ordered by frequency:")
   ps_asv_list <- left_join(coverage_per_asv , ps, by = c("ASV" = "ASV")) %>%
     distinct_at(vars("ASV", "x", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"))
     
   ps_asv_list %>% arrange(desc(x)) %>% head(., n = prnt_n) %>% print()
 
   # get most spcies's (not ASV's) ordered by frequency
-  message("\nGetting and returning highest-covered species (not: ASV's) ordered by frequency:")
+  print("Getting and returning highest-covered species (not: ASV's) ordered by frequency:")
   
   ps_species_list <- aggregate(ps$ABUNDANCE, by=list(PHYLUM=ps$PHYLUM, CLASS=ps$CLASS, ORDER=ps$ORDER, FAMILY=ps$FAMILY, GENUS=ps$GENUS, SPECIES=ps$SPECIES), FUN=sum) 
   ps_species_list %>% arrange(desc(x)) %>% head(., n = prnt_n) %>% print()
@@ -370,11 +375,18 @@ sample_data(psob)[which(sample_data(psob)$`loc-name` == "Five Fingers MR"), ]$lo
 sample_data(psob)[which(sample_data(psob)$`loc-name` == "NA"), ]$loc.name <- "Otago University"
 sample_data(psob)[which(sample_data(psob)$`loc-name` == "Undaria Zone"), ]$loc.name <- "\"Undaria Zone\""
 
+sample_data(psob)$`sample-type`
+
+# more filtering determined as ok previously
+#   remove zebra fish control - appears to have been forgotten to be pipetted in
+#   Package decontam works only with defined data, remove undefined data from PHYLOSEQ object
+psob <- psob %>% subset_samples(., sample.type != "empty" ) %>% subset_samples(., ng.ul != "0" ) %>% subset_samples(., sample.type != "pcntrol-zebra")
+
 # Save or load initial state after import
 # ---------------------------------------
 save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210203_990_r_get_eDNA_phyloseq__import_workspace.Rdata")
 save(psob, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210203_990_r_get_eDNA_phyloseq__imported-psob.Rdata")
-save(psob, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/zenodo/210203_990_r_get_eDNA_phyloseq__imported-psob.Rds")
+save(psob, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210210_990_r_get_eDNA_phyloseq__imported-psob.Rds")
 
 
 # II. Inspect and summarize raw data
@@ -383,213 +395,134 @@ save(psob, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/zenodo/210203
 # melt and tidy Phyloseq object 
 (psob_molten <- get_tidy_molten_ps(psob))
 
-# Check composition and ASV count of entire data
-# ----------------------------------------------
+# Check composition and ASV count of entire data prior to cleanup
+# ---------------------------------------------------------------
 
 # plot composition per sample type
-get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_default_ocurrence_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
+get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all sample types before filtering", pxlab = "phyla (NCBI taxonomy) ", pylab =  "read counts in sample category (y scales fixed)")
+ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-sample-type-read-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 75, height = 60, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+get_default_ocurrence_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all sample types before filtering", pxlab = "phyla (NCBI taxonomy) ", pylab =  "ASV counts in sample category (y scales fixed)")
+ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-sample-type-asv-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 75, height = 60, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
 
 # plot composition per location
-get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla ASV coverage across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_default_ocurrence_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla ASV occurrence across all locations before filtering", pxlab = "phyla at all locations", pylab =  "ASV counts at each location (y scales fixed)")
+get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "read counts at each location (y scales fixed)")
+ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-location-read-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 75, height = 60, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
 
-# check plate loading - takes very long 15 minutes - omit if possible check saved plot 
-# show_plate_loading(psob_molten, 
-#                    ggply = "ABUNDANCE", 
-#                    level = "SUPERKINGDOM", 
-#                    tax_vector = c("Eukaryota", "Bacteria"), 
-#                    ggplx = "SUPERKINGDOM")
+get_default_ocurrence_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "ASV counts at each location (y scales fixed)")
+ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-location-asv-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 75, height = 60, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
 
+# written summaries
+capture.output(get_molten_ps_description(psob_molten) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/211002_990_r_get_eDNA_phyloseq__psob-unfiltered_summary.txt")
+
+# plate loadings - chordates only otherwise plotter crashes
+# - asvs
+
+show_plate_loading(psob_molten,  ggply = "ASVPRESENT")
+ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-plate-loading-asv-counts_chordates_only.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 125, height = 50, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+# - read counts
+show_plate_loading(psob_molten,  ggply = "ABUNDANCE")
+ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-plate-loading-read-counts_chordates_only.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 125, height = 50, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
+# III. Inspect and summarize control data
+# =======================================
+
+# melt and tidy Phyloseq object 
+(psob_molten <- get_tidy_molten_ps(psob))
 
 # check sample types - what sample type are available? 
 unique(psob_molten$SAMPLE.TYPE) # "eDNA": eDNA sample
                                 # "blank": eDNA collection blank - bottel with mol grade water
                                 # "pcntrol-blnd" positive controls (fish blend)
-                                # "pcntrol-zebra": positive controls (Danio rerio)
                                 # "ncntrl-pcr": amplification blank
                                 # "ncntrol-xtr"
                                 # "empty": unassigned wells  
 
 # split controls -  how many of each sample type are available? 
 psob_molten %>% group_by(KEY) %>% summarise(KEY = KEY, CNTROL = SAMPLE.TYPE ) %>% distinct() %>% pull("CNTROL") %>% table()
+#  blank         eDNA        empty   ncntrl-pcr  ncntrol-xtr pcntrol-blnd 
+#    33          101            3           12            9            2 
 
-# split data types
-neg_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("ncntrl-pcr", "ncntrol-xtr"))
+# split data types and print text summaries
+# ------------------------------------------
 dna_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("blank"))
-
-pos_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("pcntrol-zebra", "pcntrol-blnd"))
+pos_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("pcntrol-blnd"))
+neg_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("ncntrl-pcr", "ncntrol-xtr"))
 dna_smpls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("eDNA"))
-zro_smpls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("empty")) # can be disregarded see below
 
-# Check distribution of postive control taxa
-# ----------------------------------------------
+# some cross contamination - but really low, should affect results if removed check summaries
+capture.output(get_molten_ps_description(dna_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/211002_990_r_get_eDNA_phyloseq__psob-dna_cntrl_summary.txt")
+capture.output(get_molten_ps_description(pos_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/211002_990_r_get_eDNA_phyloseq__psob-pos_cntrl_summary.txt")
+capture.output(get_molten_ps_description(neg_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/211002_990_r_get_eDNA_phyloseq__psob-neg_cntrl_summary.txt")
+capture.output(get_molten_ps_description(dna_smpls) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/211002_990_r_get_eDNA_phyloseq__psob-dna_smpls_summary.txt")
 
+# Check cross contamination - visualize positive control data
+# ----------------------------------------------------------
 
-# melt cleaned phyloseq object
-(psob_molten <- get_tidy_molten_ps(psob))
-
-# get info on filtering criteria
-unique(psob_molten$PHYLUM)
-
-# isolate and summarize interesting Chordates
-psob_molten_chordat <- psob_molten %>% filter(PHYLUM == "Chordata")
-get_molten_ps_description(psob_molten_chordat, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
-
-# keep and check classes Chondrichthyes Actinopteri across entire data
-psob_molten_fish <- psob_molten_chordat %>% filter(CLASS %in% c("Chondrichthyes", "Actinopteri")) 
-
-get_default_coverage_plot(psob_molten_fish, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish family coverage across all locations before contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_default_ocurrence_plot(psob_molten_fish, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish family ASV count across all locations before contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
-
-get_molten_ps_description(psob_molten_fish, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
-
+# keep read counts from  positive controls
 # Species likley from controls
-# in controls: Corydoras sterbai, Chromobotia macracanthus, Poecilia reticulata, Poecilia sphenops, and Danio rerio
-# in data :    Crydoras aeneus,   Chromobotia macracanthus, Poecilia reticulata, Poecilia formosa,
+#   in controls: Corydoras sterbai, Chromobotia macracanthus, Poecilia reticulata, Poecilia sphenops, and Danio rerio
+#   in data :    Crydoras aeneus,   Chromobotia macracanthus, Poecilia reticulata, Poecilia formosa
+psob_molten_fish_controls <- get_tidy_molten_ps(psob) %>% mutate(ABUNDANCE = ifelse(GENUS %in% c("Crydoras", "Chromobotia","Poecilia"), ABUNDANCE, 0))
 
-psob_molten_fish_controls <- psob_molten_fish %>% filter(GENUS %in% c("Crydoras", "Chromobotia","Poecilia")) 
-
-get_default_coverage_plot(psob_molten_fish_controls, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish family coverage across all locations before contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_default_ocurrence_plot(psob_molten_fish_controls, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish family ASV countdacross all locations before contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
-
+# show distribution of positive controls across plates
 show_plate_loading(psob_molten_fish_controls,  ggply = "ASVPRESENT")
+# some cross contamination in 3 samples
+ggsave("211002_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-asv-counts_chordates_only.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 125, height = 50, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+# extremely low read count  
 show_plate_loading(psob_molten_fish_controls,  ggply = "ABUNDANCE")
+ggsave("211002_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-read-counts_chordates_only.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 125, height = 50, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
 
-
-# Check barcodes of empty data 
-# -----------------------------
-# (not yet done, started 26-01-2021)
-
-
-
-# use data.table for speed reasons
-dt_molten_fish_controls <- data.table(psob_molten_fish_controls)
- 
-# set sorting key properly
-setkey(dt_molten_fish_controls,KEY)
- 
-# aggregate selected variables
-#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
-
-dt_molten_fish_controls <- dt_molten_fish_controls[, lapply(.SD, sum, na.rm=TRUE), by=c("KEY", "PLATE", "ROW", "COL", 
-  "PRIMER.LABEL",     "ADAPTER.FWD", "FLUPAD", "INDEX.FWD", "TEMPLATE.PRIMER.FWD",
-  "PRIMER.LABEL.REV", "ADAPTER.REV",           "INDEX.REV", "TEMPLATE.PRIMER.REV",
-  "COMPLETE.PRIMER.FWD", "COMPLETE.PRIMER.REV", "SAMPLE.NAME", "SAMPLE.TYPE", "ASV", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS",  "SPECIES"), .SDcols=c("ABUNDANCE") ]
-
-# add presence-absence abundance column
-dt_molten_fish_controls <- dt_molten_fish_controls[ , ASVPRESENT :=  fifelse(ABUNDANCE == 0 , 0, 1, na=NA)]
- 
-# as per picture of positive control loading (see above) to check for similarities isolate U.1 / U.2 1,2,3 / B, D, F
-#   can't finf any - check primer assignments with input sheet
-dt_molten_fish_controls <- dt_molten_fish_controls[PLATE %in% c("U.1", "U.2")] %>% .[COL %in% c("1", "2", "3", "5")] %>%
-  .[ROW %in% c("B", "D", "F")] %>% print(n = Inf)
-
-dt_molten_fish_controls <- dt_molten_fish_controls[, lapply(.SD, sum, na.rm=TRUE), by=c("KEY", "PLATE", "ROW", "COL", 
-  "PRIMER.LABEL",     "ADAPTER.FWD", "FLUPAD", "INDEX.FWD", "TEMPLATE.PRIMER.FWD",
-  "PRIMER.LABEL.REV", "ADAPTER.REV",           "INDEX.REV", "TEMPLATE.PRIMER.REV",
-  "COMPLETE.PRIMER.FWD", "COMPLETE.PRIMER.REV", "SAMPLE.NAME", "SAMPLE.TYPE"), .SDcols=c("ABUNDANCE") ] %>% print(n = Inf)
-
-write.xlsx(dt_molten_fish_controls,"/Users/paul/Desktop/210126__primers_to_spot_check__200_r_get_phyloseq.xlsx", overwrite = TRUE)
-
-rm(dt_molten_fish_controls)
 rm(psob_molten_fish_controls)
 
+# ------- continue here after 10-02-2020 ------- 
 
-# Check composition and ASV count of data types
-# ----------------------------------------------
-
-# - most Chordates in negative controls
-get_default_coverage_plot (neg_cntrl, taxlev = "PHYLUM", ptitl = "Negative controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_default_ocurrence_plot (neg_cntrl, taxlev = "PHYLUM", ptitl = "Negative controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-
-# - most Chordates in negatove controls
-get_default_coverage_plot (dna_cntrl, taxlev = "PHYLUM", ptitl = "Field water controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_default_ocurrence_plot (dna_cntrl, taxlev = "PHYLUM", ptitl = "Field water controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-
-# - as expected only one location with positive controls
-get_default_coverage_plot (pos_cntrl, taxlev = "PHYLUM", ptitl = "Positive controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_default_ocurrence_plot (pos_cntrl, taxlev = "PHYLUM", ptitl = "Positive controls", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-
-# - as expected
-get_default_coverage_plot (dna_smpls, taxlev = "PHYLUM", ptitl = "eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_default_ocurrence_plot (dna_smpls, taxlev = "PHYLUM", ptitl = "eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-
-# - unpoled samples shouldn't have any data in them - barcode jumping 
-get_default_coverage_plot (zro_smpls, taxlev = "PHYLUM", ptitl = "unpooled samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_default_ocurrence_plot (zro_smpls, taxlev = "PHYLUM", ptitl = "unpooled samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-
-
-# Check empty data
-# ----------------
-
-# KEY positions were used for quantification with stadards solutions - CONC is not 0 despite no library being present 
-zro_smpls %>% group_by(KEY) %>% summarise(KEY = KEY, CNTROL = SAMPLE.TYPE, CONC = NG.UL ) %>% distinct() %>% print(n = Inf)
-
-# some eDNA sampleshave not been pooled in (no PCR product) but are still in the data to catch errors
-dna_smpls %>% group_by(KEY) %>% summarise(KEY = KEY, CNTROL = SAMPLE.TYPE, CONC = NG.UL ) %>% distinct() %>% print(n = Inf)
-
-# isolate eDNA samples with 0 concentration for inspection - should be empty - but aren't
-
-dna_smpls_unpooled <- dna_smpls %>% filter(NG.UL == 0) 
-dna_smpls_unpooled %>% group_by(KEY) %>% summarise(KEY = KEY, CNTROL = SAMPLE.TYPE, CONC = NG.UL, LOC = LOC.NAME ) %>% distinct() %>% print(n = Inf)
-
-# un-pooled samples can be found across all locations
-get_default_coverage_plot (dna_smpls_unpooled, taxlev = "PHYLUM", ptitl = "unpooled eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_molten_ps_description(dna_smpls_unpooled, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
-
-# discarding un-pooled samples as primer cross contamination or tag jumping
-
-dna_smpls <- dna_smpls %>% filter(NG.UL != 0) 
-
-# luckily more reads in the actual samples then in the unpooled samples:
-get_default_coverage_plot (dna_smpls, taxlev = "PHYLUM", ptitl = "pooled eDNA samples", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_molten_ps_description(dna_smpls, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
-
-# describe all controls 
-get_molten_ps_description(shp_cntrl, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
-get_molten_ps_description(lab_cntrl, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
-get_molten_ps_description(pos_cntrl, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
-
-# remove temporary object
-rm(psob_molten)
-
-
-# III. Remove empty data and contamination
+# III. Remove  cross contamination
 # =======================================
 
-# Remove empty data from Phyloseq object as determined above
-# -----------------------------------------------------------
+# Summary for decontam package input data is not necessary anymore as done above already 
+# copy input data for sanity reasons
+psob_input <- psob 
 
-psob_input <- psob %>% subset_samples(., sample.type != "empty" ) %>% subset_samples(., ng.ul != "0" )
-
-# Summary after data trimming
-(psob_molten <- get_tidy_molten_ps(psob_input))
-get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-show_plate_loading(psob_molten)
-
-ggsave("210121_990_r_get_eDNA_phyloseq__psob-unfiltered-sample-type-overview.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
-         scale = 3, width = 75, height = 60, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-
-ggsave("210121_990_r_get_eDNA_phyloseq__psob-unfiltered-location-overview.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
-         scale = 3, width = 75, height = 60, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-get_molten_ps_description(psob_molten, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
-
-rm(psob_molten)
-
-
-# Identification of contamination with package `decontam`
+# Identification contamination with package `decontam`
 # --------------------------------------------------------
 
 # following:
 #   "https://benjjneb.github.io/decontam/vignettes/decontam_intro.html"
+
+
+
+
+
+
+
 
 # plot initial library sizes
 psob_df <- as.data.frame(sample_data(psob_input)) # Put sample_data into a ggplot-friendly data.frame
