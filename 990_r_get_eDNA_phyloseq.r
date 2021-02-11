@@ -400,45 +400,45 @@ save(psob, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repo
 
 # plot composition per sample type
 get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all sample types before filtering", pxlab = "phyla (NCBI taxonomy) ", pylab =  "read counts in sample category (y scales fixed)")
-ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-sample-type-read-counts.pdf", plot = last_plot(), 
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered-sample-type-read-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 75, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 get_default_ocurrence_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all sample types before filtering", pxlab = "phyla (NCBI taxonomy) ", pylab =  "ASV counts in sample category (y scales fixed)")
-ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-sample-type-asv-counts.pdf", plot = last_plot(), 
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered-sample-type-asv-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 75, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 # plot composition per location
 get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "read counts at each location (y scales fixed)")
-ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-location-read-counts.pdf", plot = last_plot(), 
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered-location-read-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 75, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 get_default_ocurrence_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations before filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "ASV counts at each location (y scales fixed)")
-ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-location-asv-counts.pdf", plot = last_plot(), 
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered-location-asv-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 75, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 # written summaries
-capture.output(get_molten_ps_description(psob_molten) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/211002_990_r_get_eDNA_phyloseq__psob-unfiltered_summary.txt")
+capture.output(get_molten_ps_description(psob_molten) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-unfiltered_summary.txt")
 
 # plate loadings - chordates only otherwise plotter crashes
 # - asvs
 
 show_plate_loading(psob_molten,  ggply = "ASVPRESENT")
-ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-plate-loading-asv-counts_chordates_only.pdf", plot = last_plot(), 
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered-plate-loading-asv-counts_chordates_only.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 # - read counts
 show_plate_loading(psob_molten,  ggply = "ABUNDANCE")
-ggsave("211002_990_r_get_eDNA_phyloseq__psob-unfiltered-plate-loading-read-counts_chordates_only.pdf", plot = last_plot(), 
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered-plate-loading-read-counts_chordates_only.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
@@ -471,10 +471,10 @@ neg_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("ncntrl-pcr", "ncntrol-xt
 dna_smpls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("eDNA"))
 
 # some cross contamination - but really low, should affect results if removed check summaries
-capture.output(get_molten_ps_description(dna_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/211002_990_r_get_eDNA_phyloseq__psob-dna_cntrl_summary.txt")
-capture.output(get_molten_ps_description(pos_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/211002_990_r_get_eDNA_phyloseq__psob-pos_cntrl_summary.txt")
-capture.output(get_molten_ps_description(neg_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/211002_990_r_get_eDNA_phyloseq__psob-neg_cntrl_summary.txt")
-capture.output(get_molten_ps_description(dna_smpls) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/211002_990_r_get_eDNA_phyloseq__psob-dna_smpls_summary.txt")
+capture.output(get_molten_ps_description(dna_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-dna_cntrl_summary.txt")
+capture.output(get_molten_ps_description(pos_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-pos_cntrl_summary.txt")
+capture.output(get_molten_ps_description(neg_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-neg_cntrl_summary.txt")
+capture.output(get_molten_ps_description(dna_smpls) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-dna_smpls_summary.txt")
 
 # Check cross contamination - visualize positive control data
 # ----------------------------------------------------------
@@ -488,41 +488,32 @@ psob_molten_fish_controls <- get_tidy_molten_ps(psob) %>% mutate(ABUNDANCE = ife
 # show distribution of positive controls across plates
 show_plate_loading(psob_molten_fish_controls,  ggply = "ASVPRESENT")
 # some cross contamination in 3 samples
-ggsave("211002_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-asv-counts_chordates_only.pdf", plot = last_plot(), 
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-asv-counts_chordates_only.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 # extremely low read count  
 show_plate_loading(psob_molten_fish_controls,  ggply = "ABUNDANCE")
-ggsave("211002_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-read-counts_chordates_only.pdf", plot = last_plot(), 
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-read-counts_chordates_only.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 rm(psob_molten_fish_controls)
 
-# ------- continue here after 10-02-2020 ------- 
 
-# III. Remove  cross contamination
-# =======================================
+# IV. Check  cross contamination with package `decontam`
+# ======================================================
+# following:
+#   "https://benjjneb.github.io/decontam/vignettes/decontam_intro.html"
 
 # Summary for decontam package input data is not necessary anymore as done above already 
 # copy input data for sanity reasons
 psob_input <- psob 
 
-# Identification contamination with package `decontam`
-# --------------------------------------------------------
-
-# following:
-#   "https://benjjneb.github.io/decontam/vignettes/decontam_intro.html"
-
-
-
-
-
-
-
+# initial plotting and data preparation
+# -------------------------------------
 
 # plot initial library sizes
 psob_df <- as.data.frame(sample_data(psob_input)) # Put sample_data into a ggplot-friendly data.frame
@@ -530,11 +521,25 @@ psob_df$LibrarySize <- sample_sums(psob_input)
 psob_df <- psob_df[order(psob_df$LibrarySize),]
 psob_df$Index <- seq(nrow(psob_df))
 
-ggplot(data = psob_df, aes(x=Index, y=LibrarySize, color=sample.type)) + geom_point() + theme_bw()
-ggsave("210121_990_r_get_eDNA_phyloseq__library-coverages-by-type.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
-         scale = 3, width = 50, height = 50, units = c("mm"),
+ggplot(data = psob_df, aes(x=Index, y=LibrarySize, color=sample.type)) + geom_point() + theme_bw() + 
+    theme(strip.text.y = element_text(angle=0)) + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
+          axis.ticks.y = element_blank()) +
+          theme(legend.title=element_blank()) +
+          labs(title = "Read Counts per library, and library types") +
+          xlab("libraries, sorted by size") + 
+          ylab("read counts")
+
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered_library_size_per_sample_type.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 75, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
+
+
+
+# Identify  contamination  based on read frequency
+# -------------------------------------------------
 
 # set type for subsequent code 
 sample_data(psob_input)$ng.ul <- as.numeric(sample_data(psob_input)$ng.ul)
@@ -542,25 +547,18 @@ sample_data(psob_input)$ng.ul <- as.numeric(sample_data(psob_input)$ng.ul)
 # get combined factor identifying negative controls
 sample_data(psob_input)$is.neg <- sample_data(psob_input)$sample.type %in% c("ncntrl-pcr", "ncntrol-xtr", "blank")
 
-# accomodating package decontam - negative controls can't have 0 concentration
-# as_tibble(sample_data(psob)) %>% filter(is.neg == TRUE) %>% select(is.neg, libconc) %>% print(n = Inf)
-# sum(sample_data(psob)$is.neg)
-# sample_data(psob)$is.neg [which(sample_data(psob)$is.neg == TRUE & sample_data(psob)$libconc == 0)] <- FALSE
-# sum(sample_data(psob)$is.neg)
-# as_tibble(sample_data(psob)) %>% filter(is.neg == TRUE) %>% select(is.neg, libconc) %>% print(n = Inf)
-
 # frequency and prevalence based contamination identification
 contamdf.freq <- isContaminant(psob_input, method="combined", conc="ng.ul", neg="is.neg", threshold=0.6)
-table(contamdf.freq$contaminant) # FALSE 2969  TRUE 143 
+table(contamdf.freq$contaminant) # FALSE 2057 TRUE 114 
 which(contamdf.freq$contaminant) # indices for contaminant ASVs
 
 # inspecting and plotting contaminant ASV
 plot_frequency(psob_input, taxa_names(psob)[which(contamdf.freq$contaminant)], conc="ng.ul") +
     xlab("DNA Concentration (PicoGreen fluorescent intensity)")
 
-ggsave("210121_990_r_get_eDNA_phyloseq__decontam-likely-contaminats.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
-         scale = 3, width = 200, height = 200, units = c("mm"),
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered_likely_contaminants.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 250, height = 125, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 # "In this plot the dashed black line shows the model of a noncontaminant
@@ -573,173 +571,145 @@ ggsave("210121_990_r_get_eDNA_phyloseq__decontam-likely-contaminats.pdf", plot =
 
 
 # further inspect likely contaminants
-psob_contaminants <- prune_taxa(contamdf.freq$contaminant, psob_input)
+# -----------------------------------
 
-(psob_molten <- get_tidy_molten_ps(psob_contaminants))
-get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Contaminant phyla across all sample types before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_default_ocurrence_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Contaminant phyla across all sample types before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_molten_ps_description(psob_molten)
+# separate assumed contamination from assumed true signals as phyloseq object 
+psob_cand_cont <- prune_taxa(contamdf.freq$contaminant, psob_input)
+psob_cand_eDNA <- prune_taxa(!contamdf.freq$contaminant, psob_input)
 
-show_plate_loading(psob_molten)
-ggsave("210121_990_r_get_eDNA_phyloseq__psob-contaminants-sample-type-overview.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
-         scale = 3, width = 75, height = 60, units = c("mm"),
+# melt both 
+psob_cont_molten <- get_tidy_molten_ps(psob_cand_cont)
+psob_eDNA_molten <- get_tidy_molten_ps(psob_cand_eDNA)
+
+# just keep the important taxa for inspection  
+psob_cont_molten_chrd <- psob_cont_molten %>% mutate(ABUNDANCE = ifelse(PHYLUM %in% c("Chordata"), ABUNDANCE, 0))
+psob_eDNA_molten_chrd <- psob_eDNA_molten %>% mutate(ABUNDANCE = ifelse(PHYLUM %in% c("Chordata"), ABUNDANCE, 0))
+
+# get text summaries
+capture.output(get_molten_ps_description(psob_cont_molten_chrd) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-dna_cont_summary.txt")
+capture.output(get_molten_ps_description(psob_eDNA_molten_chrd) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-dna_eDNA_summary.txt")
+
+# check plate loadings of both categories
+show_plate_loading(psob_cont_molten_chrd,  ggply = "ABUNDANCE")
+show_plate_loading(psob_cont_molten_chrd,  ggply = "ASVPRESENT")
+
+show_plate_loading(psob_eDNA_molten_chrd,  ggply = "ASVPRESENT")
+show_plate_loading(psob_eDNA_molten_chrd,  ggply = "ABUNDANCE")
+
+# decontam doesn't work well with the data at hand as contaminants are still in the data and mixed with obviously real samples
+# resorting to simple subtraction
+
+# V. Remove contamination with subtractive approach 
+# ===================================================
+
+# melt and tidy Phyloseq object 
+(psob_molten <- get_tidy_molten_ps(psob))
+
+# check sample types - what sample type are available? 
+unique(psob_molten$SAMPLE.TYPE) # "eDNA": eDNA sample
+                                # "blank": eDNA collection blank - bottel with mol grade water
+                                # "pcntrol-blnd" positive controls (fish blend)
+                                # "ncntrl-pcr": amplification blank
+                                # "ncntrol-xtr"
+
+# remove all species and ASVs found in all controls 
+# isolate all control data in unison 
+psob_molten_all_controls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("pcntrol-blnd", "ncntrl-pcr", "blank", "ncntrol-xtr"))
+capture.output(get_molten_ps_description(psob_molten_all_controls) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-all_controls_summary.txt")
+
+
+# pull out all species and asvs that have to be removed from everywhere
+cont_asvs <- psob_molten_all_controls %>% pull(ASV) %>% unique()
+cont_spec <- psob_molten_all_controls %>% pull(SPECIES) %>% unique()
+
+# isolating and inspecting all contamination
+psob_molten_all_contamination <-  psob_molten %>% filter(ASV %in% cont_asvs | SPECIES %in% cont_spec[1:9])
+
+show_plate_loading(psob_molten_all_contamination,  ggply = "ASVPRESENT")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-contamination-plate-loading-asv-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Contaminant phyla across all locations before filtering", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-
-ggsave("210121_990_r_get_eDNA_phyloseq__psob-unfiltered-location-overview.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
-         scale = 3, width = 75, height = 60, units = c("mm"),
+show_plate_loading(psob_molten_all_contamination,  ggply = "ABUNDANCE")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-contamination-plate-loading-read-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-get_molten_ps_description(psob_molten)
-
-rm(psob_molten)
-
-# Make phyloseq object of presence-absence in negative controls and true samples
-psob.pa <- transform_sample_counts(psob_input, function(abund) 1*(abund>0))
-
-# sample.type %in% c("ncntrl-pcr", "ncntrol-xtr", "blank")
-
-psob.pa.neg <- prune_samples(sample_data(psob.pa)$sample.type %in% c("ncntrl-pcr", "ncntrol-xtr", "blank"), psob.pa)
-psob.pa.pos <- prune_samples(sample_data(psob.pa)$sample.type %in% c("eDNA", "pcntrol-blnd", "pcntrol-zebra"), psob.pa)
-
-
-
-# Make data.frame of prevalence in positive and negative samples
-df.pa <- data.frame(pa.pos = taxa_sums(psob.pa.pos), pa.neg = taxa_sums(psob.pa.neg), contaminant=contamdf.freq$contaminant)
-
-# look at the incidences of taxa observations in negative controls and positive samples.
-ggplot(data=df.pa, aes(x=pa.neg, y=pa.pos, color=contaminant)) + 
-  geom_point() +
-  xlab("prevalence (PCR and Extraction Controls)") +
-  ylab("prevalence (eDNA samples and positive controls)") +
-  theme_bw()
-
-ggsave("210121_990_r_get_eDNA_phyloseq__psob-cross-contaminants-prevalence-overview.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
-         scale = 3, width = 50, height = 50, units = c("mm"),
+get_default_coverage_plot (psob_molten_all_contamination, taxlev = "PHYLUM", ptitl = "Contamination across all locations before filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "read counts at each location (y scales fixed)")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-contamination-location-read-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 30, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-# Removal of contamination with package `decontam`
-# ------------------------------------------------
-
-# contamination filtering
-psob_decontam <- prune_taxa(!contamdf.freq$contaminant, psob_input)
-
-
-# Summary after contaminant filtering
-(psob_molten <- get_tidy_molten_ps(psob_decontam))
-get_default_coverage_plot (psob_molten, facet_var = "SAMPLE.TYPE", taxlev = "PHYLUM", ptitl = "Phyla across all sample types after contaminant removal", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
-
-ggsave("210121_990_r_get_eDNA_phyloseq__psob-filtered-sample-type-overview.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
-         scale = 3, width = 75, height = 60, units = c("mm"),
+get_default_ocurrence_plot (psob_molten_all_contamination, taxlev = "PHYLUM", ptitl = "Contamination across all locations before filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "ASV counts at each location (y scales fixed)")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-contamination-location-asv-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 30, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-get_default_coverage_plot (psob_molten, taxlev = "PHYLUM", ptitl = "Phyla across all locations after contaminant removal", pxlab = "phyla at all locations", pylab =  "read counts at each location (y scales fixed)")
 
-ggsave("210121_990_r_get_eDNA_phyloseq__psob-filtered-location-overview.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
-         scale = 3, width = 75, height = 60, units = c("mm"),
+# subtract contamination and inspect again 
+psob_molten_clean <- anti_join(psob_molten, psob_molten_all_contamination, by = "ASV", copy = FALSE)
+
+get_default_coverage_plot (psob_molten_clean, taxlev = "PHYLUM", ptitl = "Phyla across all locations after filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "read counts at each location (y scales fixed)")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-eDNA-location-read-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 90, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-get_molten_ps_description(psob_molten, rank_level = "SUPERKINGDOM", rank_name = "Eukaryota")
+get_default_ocurrence_plot (psob_molten_clean, taxlev = "PHYLUM", ptitl = "Phyla across all locations after filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "ASV counts at each location (y scales fixed)")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-eDNA-location-asv-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 90, height = 60, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
 
-# remove temporary object
-rm(psob_molten)
+capture.output(get_molten_ps_description(psob_molten_clean) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-all_data_summary.txt")
 
+# get a full species list with Chordates at the top
+psob_molten_clean_chordates_top <- psob_molten_clean %>% mutate(ABUNDANCE = ifelse(PHYLUM %in% c("Chordata"), ABUNDANCE, 0))
 
-# IV. Retain eDNA samples with fish only - and summarise 
-# ======================================================
-
-# melt cleaned phyloseq object
-(psob_molten <- get_tidy_molten_ps(psob_decontam))
-
-
-# get info on filtering criteria
-unique(psob_molten$PHYLUM)
-
-# isolate and summarize interesting phyla
-psob_molten_sponges <- psob_molten %>% filter(PHYLUM == "Porifera")
-psob_molten_chordat <- psob_molten %>% filter(PHYLUM == "Chordata")
-
-get_molten_ps_description(psob_molten_sponges, rank_level = "PHYLUM", rank_name = "Porifera")
-get_molten_ps_description(psob_molten_chordat, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
-
-# notable mentions: Mamamlia
-# Homo sapiens - human
-# Trichosurus vulpecula  - bushtail possum  
-# Arctocephalus forsteri - New Zealand fur seal
-# Cervus elaphus - Red Deer
-# Bos taurus - cattle
-# Ovis aries - sheep
-# Canis lupus - dog
-# Bos frontalis - gayal
-# Tursiops truncatus - bottlenose dolphin
-# Mus musculus - mouse
-# Sus scrofa - pig
-# Rattus exulans - Polynesian rat
-
-# notable mentions: Aves
-# Gallus gallus - chicken
-
-# keep and check classes Chondrichthyes Actinopteri across entire data
-psob_molten_fish <- psob_molten_chordat %>% filter(CLASS %in% c("Chondrichthyes", "Actinopteri"))
-
-get_default_coverage_plot(psob_molten_fish, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across all locations after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_default_ocurrence_plot(psob_molten_fish, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across all locations after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
-
-get_molten_ps_description(psob_molten_fish, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
-
-# The current data set contains 18588722 sequences across 157 samples and 123 ASV's (123 Chordata, as well as 0 non-Chordata, i.e. ).
-#  Sample mean (min., med., max.) coverage is 118400 reads (17, 51474, 831439), and ASV mean (min, median, max) coverage is 151128 reads
-#  (5, 3580, 4173587).
-#  A tibble: 1 x 11
-#    ASV ABUNDANCE SAMPLE LOC.NAME SUPERKINGDOM PHYLUM CLASS ORDER FAMILY GENUS SPECIES
-#   <int>     <int>  <int>    <int>        <int>  <int> <int> <int>  <int> <int>   <int>
-#    123      1661    157       12            1      1     2    29     48    58      65
-
-# remove ASVs of  controls from eDNA data
-
-# A tibble: 124 x 41
-psob_molten_fish_controls <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("pcntrol-blnd", "pcntrol-zebra", "ncntrl-pcr", "ncntrol-xtr", "blank")) %>% filter(ABUNDANCE != 0)
-asvs_molten_fish_controls <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("pcntrol-blnd", "pcntrol-zebra", "ncntrl-pcr", "ncntrol-xtr", "blank")) %>% filter(ABUNDANCE != 0) %>% pull(ASV) %>% unique(.)
-length(asvs_molten_fish_controls)
-
-get_default_coverage_plot(psob_molten_fish_controls, facet_var = "SAMPLE.TYPE", taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families across controls after contaminant removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_molten_ps_description(psob_molten_fish_controls, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
-
-# The current data set contains 2830326 sequences across 32 samples and 84 ASV's (84 Chordata, as well as 0 non-Chordata, i.e. ). 
-# Sample mean (min., med., max.) coverage is 88448 reads (17, 5668, 568752), and ASV mean (min, median, max) coverage is 336944 
-# reads (40, 7725, 10203800).
-# 
-# In the following summary variable names shown are hard-coded in function "get_molten_ps_stats": 
-# # A tibble: 1 x 11
-#     ASV ABUNDANCE SAMPLE LOC.NAME SUPERKINGDOM PHYLUM CLASS ORDER FAMILY GENUS SPECIES
-#   <int>     <int>  <int>    <int>        <int>  <int> <int> <int>  <int> <int>   <int>
-# 1    84       331     32        1            1      1     2    26     40    48      53
+capture.output(get_molten_ps_description(psob_molten_clean_chordates_top) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-all_data_and_chordates_summary.txt")
 
 
-# A tibble: 1,782 x 41
-psob_molten_fish_eDNA_samples <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("eDNA")) %>% filter(ABUNDANCE != 0)
+# isolate fish and marine mammals
+psob_molten_clean_marine <- psob_molten_clean_chordates_top %>% filter(
+  CLASS %in% c("Actinopteri", "Chondrichthyes") |
+  ORDER %in% c("Cetacea") | 
+  FAMILY %in% c("Otariidae")) %>% filter(!(GENUS %in% c("Sardinops")))
 
-get_default_coverage_plot(psob_molten_fish_eDNA_samples, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families in eDNA samples before control removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_molten_ps_description(psob_molten_fish_eDNA_samples, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
+capture.output(get_molten_ps_description(psob_molten_clean_marine) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_summary.txt")
+show_plate_loading(psob_molten_clean_marine,  ggply = "ASVPRESENT")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-asv-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 125, height = 50, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
 
-# A tibble: 550 x 41
-psob_molten_fish_eDNA_samples <- psob_molten_fish %>% filter(SAMPLE.TYPE %in% c("eDNA")) %>% filter(!ASV %in% asvs_molten_fish_controls)
+show_plate_loading(psob_molten_clean_marine,  ggply = "ABUNDANCE")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-read-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 125, height = 50, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
 
-get_default_coverage_plot(psob_molten_fish_eDNA_samples, taxlev = "FAMILY", taxlev_fill = "CLASS", ptitl = "Fish families in eDNA samples after control removal", pxlab = "families at all locations", pylab =  "read counts at each location (y scales fixed)")
-get_molten_ps_description(psob_molten_fish_eDNA_samples, rank_level = "PHYLUM", rank_name = "Chordata", prnt_n = Inf) 
 
+# plot composition per location
+get_default_coverage_plot (psob_molten_clean_marine, taxlev = "FAMILY", ptitl = "Marine families across all locations (read counts)", pxlab = "families (NCBI taxonomy)", pylab =  "read counts at each location (y scales fixed)")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-location-read-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 120, height = 60, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+get_default_ocurrence_plot (psob_molten_clean_marine, taxlev = "FAMILY", ptitl = "Marine families across all locations (sequence variants)", pxlab = "families (NCBI taxonomy)", pylab =  "ASV counts at each location (y scales fixed)")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-location-asv-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 120, height = 60, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
 
 # V. Save eDNA object for further analysis
 # ==========================================
 
 # save or load molten state
 save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210108_990_r_get_eDNA_phyloseq__export_workspace.Rdata")
-save(psob_molten_fish_eDNA_samples, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210108_990_r_get_eDNA_phyloseq__exported-eDNA-psob.Rdata")
-save(psob_molten_fish_eDNA_samples, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/zenodo/210108_990_r_get_eDNA_phyloseq__exported-eDNA-psob.Rds")
-
+save(psob_molten_clean_marine, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")
+save(psob_molten_clean_marine, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")

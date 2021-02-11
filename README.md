@@ -272,14 +272,16 @@
   * stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
     * looking much better now - work on publishable version next
     * commit `d6e15bd6e25c18e91f56540bf8a0d43bcee7b7f2`
+* **10-Feb-2021** - continuing second processing iteration
   * re-working processing script `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
     * got to line 505 - prior to contamination removal
-    * commit ``
-    
+    * commit `1335c18362eb60828bb52d28def5bfbea281b394`
+* **11-Feb-2021** - finished second processing iteration
+  * finished processing script `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+  * commit ``
+
 
 * **next:** 
-  * run `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`
-  * step through all scripts
   * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
   
 
