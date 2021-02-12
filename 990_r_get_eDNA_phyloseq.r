@@ -10,6 +10,7 @@ rm(list = ls(all.names = TRUE))
 gc()
 
 library("tidyverse") # work using tibbles
+library("magrittr") # more pipes
 library("phyloseq") # handle Qiime 2 data in R - best used to generate long dataframe
 
 library("data.table") # faster handling of large tables - such as molten Phyloseq objects
@@ -17,6 +18,7 @@ library("future.apply") # faster handling of large tables - such as molten Phylo
 
 library("decontam") # decontamination - check `https://benjjneb.github.io/decontam/vignettes/decontam_intro.html`
 library("openxlsx") # write Excel tables
+
 
 
 # Functions
@@ -672,26 +674,75 @@ psob_molten_clean_chordates_top <- psob_molten_clean %>% mutate(ABUNDANCE = ifel
 
 capture.output(get_molten_ps_description(psob_molten_clean_chordates_top) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-all_data_and_chordates_summary.txt")
 
-
 # isolate fish and marine mammals
 psob_molten_clean_marine <- psob_molten_clean_chordates_top %>% filter(
   CLASS %in% c("Actinopteri", "Chondrichthyes") |
   ORDER %in% c("Cetacea") | 
   FAMILY %in% c("Otariidae")) %>% filter(!(GENUS %in% c("Sardinops")))
 
-capture.output(get_molten_ps_description(psob_molten_clean_marine) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_summary.txt")
-show_plate_loading(psob_molten_clean_marine,  ggply = "ASVPRESENT")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-asv-counts.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
-         scale = 3, width = 125, height = 50, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
 
+# VII. Get abundance values for biologically replicate observations in clean data 
+# ===============================================================================
+
+# get a suitable grouping variable in the clean data
+# ---------------------------------------------------
+
+# define replicates with use of external table
+pth <- c("/Users/paul/Documents/OU_eDNA/191213_field_work/201130_sample_overview_updated.xlsx")
+sample_order <- readxl::read_excel(pth, range = "F1:F91", .name_repair = "universal")
+sample_order %<>% rowid_to_column("ID") %>% print(n = Inf)
+sample_order$RepID <- rep(c(1,2,3), times = 2, length.out = length(sample_order$ID), NA, each = 1)
+sample_order %<>% group_by(RepID) %>% mutate(SetID = row_number(RepID))
+sample_order %<>% filter(!grepl("blk", sample_name)) 
+sample_order %>% print(n = Inf)
+
+# merge set IDs with clean data - get overview of sample covergae and test merging of ids 
+overview <- full_join(as_tibble(psob_molten_clean_marine$SAMPLE.NAME), as_tibble(sample_order$sample_name), keep = TRUE) %>% 
+  distinct() %>% setnames(c("mdata", "tdata")) %>% arrange(tdata) %>% print(n = Inf)
+
+smpl_coverage <- left_join(overview %>% 
+  select(tdata), psob_molten_clean_marine %>% 
+  select(SAMPLE.NAME, LOC.NAME,  INSIDE.RESERVE), by=c("tdata" = "SAMPLE.NAME") , keep=TRUE) %>% 
+  distinct() %>% arrange(tdata) %>% print(n = Inf)
+
+# write sample overview
+# ---------------------
+# save overview for writing and if needed later
+write.xlsx(smpl_coverage, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.xlsx", asTable = FALSE)
+save(smpl_coverage, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.Rds")
+
+
+# merge  replicate water samples
+# ------------------------------
+
+# copy grouping variable to main object
+clean_marine <- left_join(psob_molten_clean_marine, sample_order,  by=c("SAMPLE.NAME" = "sample_name"))
+
+
+# test sample merging approach - continue here after 12-Feb-2020
+#  1) create test data with 344 rows
+foo <- clean_marine[ c("ASV", "SAMPLE.NAME", "ABUNDANCE", "ID", "SetID", "RepID")] %>% arrange(ASV, SetID, RepID) %>% print(n = 20)
+
+#  2) erases possibly unique metadata - to yield 251 rows
+foo %>% group_by(ASV, SetID) %>% summarise(SET_ABUNDANCE = sum(ABUNDANCE)) 
+
+#  3) keeps all 344 rows and duplicates SET_ABUNDANCE with each group of ASV and SetID
+foo %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE))
+foo %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE)) %>% pull(SET_ABUNDANCE)
+
+#  keeping all data duplicates SET_ABUNDANCE with each group of ASV and SetID
+clean_marine <- clean_marine %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE))
+
+
+# continue here after 17-02-2021
+
+
+# show plate loading 
 show_plate_loading(psob_molten_clean_marine,  ggply = "ABUNDANCE")
 ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-read-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
-
 
 # plot composition per location
 get_default_coverage_plot (psob_molten_clean_marine, taxlev = "FAMILY", ptitl = "Marine families across all locations (read counts)", pxlab = "families (NCBI taxonomy)", pylab =  "read counts at each location (y scales fixed)")
@@ -706,7 +757,18 @@ ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-location-asv-counts.pd
          scale = 3, width = 120, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-# V. Save eDNA object for further analysis
+show_plate_loading(psob_molten_clean_marine,  ggply = "ASVPRESENT")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-asv-counts.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 125, height = 50, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
+# get text summary - also show alignments judgments
+capture.output(get_molten_ps_description(psob_molten_clean_marine) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_summary.txt")
+
+
+# VII. Save eDNA object for further analysis
 # ==========================================
 
 # save or load molten state

@@ -276,9 +276,18 @@
   * re-working processing script `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
     * got to line 505 - prior to contamination removal
     * commit `1335c18362eb60828bb52d28def5bfbea281b394`
-* **11-Feb-2021** - finished second processing iteration
+* **11-Feb-2021** - continued second processing iteration
   * finished processing script `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+  * commit `6d74175af74d98c4069995294201e4e06e00d564`
+* **12-Feb-2021** - continued second processing iteration
+  * continued processing script `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+    * combined sequences counts across biological replicates - **ok**
+    * next:
+      * erase old files, update names, and re-write
+      * tweak length filtering
+      * indicate quality of alignments in clean data object
   * commit ``
+
 
 
 * **next:** 
