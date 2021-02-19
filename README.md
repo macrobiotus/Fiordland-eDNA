@@ -286,21 +286,18 @@
       * erase old files, update names, and re-write
       * tweak length filtering
       * indicate quality of alignments in clean data object
+  * commit `1381ff1ff616e0f3cb7b59240e7e075a7520dd26`
+* **19-Feb-2021** - eDNA data check 
+  * implemented and checked low abundance filtering in "~/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r"
+    * based on Poisson distribution of cross-contaminated positive control read counts
   * commit ``
-
-
-
+ 
 * **next:** 
   * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
-  
+  * combine and check BRUV and eDNA data, create maps (marine reserves etc), 
 
 * **unfinished**
-  * use `/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R` to import file - **pending**
-  * use `/Users/paul/Documents/OU_eDNA/200901_scripts/200_sample_matadata_managment.R` to mapping file - **pending**
-  * `/Users/paul/Documents/OU_eDNA/200901_scripts/201028_sample_matadata_managment.R`
-    * finish for creation of mapping file - **pending**
   * read in new BRUV observations as alternatives to `/Users/paul/Documents/OU_eDNA/191213_field_work/200520_MH_bruv_data.xlsx`
-  * erase files on Cornell cluster after taxonomy assignmenets
 
 * **later or never**
   * modify `850_r_prep_q2_predictor-tab.r` to get per-sample-stats independent of primer

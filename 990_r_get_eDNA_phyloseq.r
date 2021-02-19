@@ -261,7 +261,7 @@ get_molten_ps_description = function(ps, rank_level = "SUPERKINGDOM", rank_name 
   # summarize distinct values across the long data frame
   print("In the following summary variable names shown are hard-coded in function \"get_molten_ps_stats\": ") 
   show_vars <- c("ASV", "ABUNDANCE", "SAMPLE", "LOC.NAME", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES")
-  ps %>% select(any_of(show_vars)) %>% summarize_all(n_distinct, na.rm = TRUE) %>% print()
+  ps %>% dplyr::select(any_of(show_vars)) %>% summarize_all(n_distinct, na.rm = TRUE) %>% print()
   
   # get most ASV's (not species) ordered by frequency
   print("Getting and returning highest-covered ASV's (not: species) ordered by frequency:")
@@ -488,6 +488,13 @@ capture.output(get_molten_ps_description(dna_smpls) , file = "/Users/paul/Docume
 psob_molten_fish_controls <- get_tidy_molten_ps(psob) %>% mutate(ABUNDANCE = ifelse(GENUS %in% c("Crydoras", "Chromobotia","Poecilia"), ABUNDANCE, 0))
 
 # show distribution of positive controls across plates
+# reads only visible in the right places at this scale
+show_plate_loading(psob_molten_fish_controls,  ggply = "ABUNDANCE")
+ggsave("210211_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-read-counts_chordates_only.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
+         scale = 3, width = 125, height = 50, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
 show_plate_loading(psob_molten_fish_controls,  ggply = "ASVPRESENT")
 # some cross contamination in 3 samples
 ggsave("210211_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-asv-counts_chordates_only.pdf", plot = last_plot(), 
@@ -495,12 +502,18 @@ ggsave("210211_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-asv-counts_c
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-# extremely low read count  
-show_plate_loading(psob_molten_fish_controls,  ggply = "ABUNDANCE")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-read-counts_chordates_only.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
-         scale = 3, width = 125, height = 50, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
+# check read counts in U.2.A.2 and U.2.A.3 and (U.2.D.3)
+sort(unique(psob_molten_fish_controls$SAMPLE)) #i.e. U-2-A-2-PC191218-AZ, U-2-A-3-PC191218-AYAZ-blk, U-2-D-3-ncntrl-pcr
+# they are quite low 
+cross_cont <- psob_molten_fish_controls %>% filter(SAMPLE %in% c("U-2-A-2-PC191218-AZ", "U-2-A-3-PC191218-AYAZ-blk", "U-2-D-3-ncntrl-pcr")) %>%
+  filter(ABUNDANCE != 0) %>% unique() %>% select(SAMPLE, ABUNDANCE)
+
+# from the observed cross contamination get a simple model of how mmany reads to remove
+# assume Poisson distribution of cross contamination counts
+lmbda <- MASS::fitdistr(cross_cont %>% pull(ABUNDANCE), "Poisson")
+
+# find upper read count limit of 95% of typical cross-contamination as observed
+treshhold <- qpois(0.95, lmbda$estimate) # will remove 18S with 18 reads or less as possibly cross-contaminated
 
 rm(psob_molten_fish_controls)
 
@@ -669,8 +682,30 @@ ggsave("210211_990_r_get_eDNA_phyloseq__psob-eDNA-location-asv-counts.pdf", plot
 
 capture.output(get_molten_ps_description(psob_molten_clean) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-all_data_summary.txt")
 
+
+
+# remove low abundance reads
+
+#   check the lower end of the read count distribution 
+summary(psob_molten_clean$ABUNDANCE)
+hist(psob_molten_clean$ABUNDANCE, breaks = 300000, xlim = c(0,25))
+
+#   filter out ASV with less then 15 reads
+possible_cc <- psob_molten_clean %>% filter(ABUNDANCE <= treshhold) %>% filter(PHYLUM == "Chordata")
+
+#   low abundance filtering gets rid of (some(!!!), not necessarily all)
+#   Trichosurus vulpecula
+#   Sus scrofa
+get_molten_ps_description(possible_cc) 
+capture.output(get_molten_ps_description(possible_cc) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__low_abundance_reads__summary.txt")
+
+
+# subtract possible cross contamination (by abundance) and inspect again 
+psob_molten_clean_new <- anti_join(psob_molten_clean, possible_cc, by = "ASV", copy = FALSE)
+
+
 # get a full species list with Chordates at the top
-psob_molten_clean_chordates_top <- psob_molten_clean %>% mutate(ABUNDANCE = ifelse(PHYLUM %in% c("Chordata"), ABUNDANCE, 0))
+psob_molten_clean_chordates_top <- psob_molten_clean_new %>% mutate(ABUNDANCE = ifelse(PHYLUM %in% c("Chordata"), ABUNDANCE, 0))
 
 capture.output(get_molten_ps_description(psob_molten_clean_chordates_top) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-all_data_and_chordates_summary.txt")
 
@@ -680,6 +715,7 @@ psob_molten_clean_marine <- psob_molten_clean_chordates_top %>% filter(
   ORDER %in% c("Cetacea") | 
   FAMILY %in% c("Otariidae")) %>% filter(!(GENUS %in% c("Sardinops")))
 
+capture.output(get_molten_ps_description(psob_molten_clean_marine) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_summary.txt")
 
 # VII. Get abundance values for biologically replicate observations in clean data 
 # ===============================================================================
@@ -700,10 +736,13 @@ sample_order %>% print(n = Inf)
 overview <- full_join(as_tibble(psob_molten_clean_marine$SAMPLE.NAME), as_tibble(sample_order$sample_name), keep = TRUE) %>% 
   distinct() %>% setnames(c("mdata", "tdata")) %>% arrange(tdata) %>% print(n = Inf)
 
-smpl_coverage <- left_join(overview %>% 
-  select(tdata), psob_molten_clean_marine %>% 
-  select(SAMPLE.NAME, LOC.NAME,  INSIDE.RESERVE), by=c("tdata" = "SAMPLE.NAME") , keep=TRUE) %>% 
-  distinct() %>% arrange(tdata) %>% print(n = Inf)
+smpl_coverage <- left_join( overview %>% dplyr::select(tdata), 
+                            psob_molten_clean_marine %>% dplyr::select(SAMPLE.NAME, LOC.NAME,  INSIDE.RESERVE),
+                            by=c("tdata" = "SAMPLE.NAME"),
+                            keep=TRUE) %>% 
+                            distinct() %>% 
+                            arrange(tdata) %>% 
+                            print(n = Inf)
 
 # write sample overview
 # ---------------------
@@ -730,11 +769,8 @@ foo %>% group_by(ASV, SetID) %>% summarise(SET_ABUNDANCE = sum(ABUNDANCE))
 foo %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE))
 foo %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE)) %>% pull(SET_ABUNDANCE)
 
-#  keeping all data duplicates SET_ABUNDANCE with each group of ASV and SetID
+#  keeping all data and duplicated SET_ABUNDANCE values with each group of ASV and SetID - pull out later when required
 clean_marine <- clean_marine %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE))
-
-
-# continue here after 17-02-2021
 
 
 # show plate loading 
@@ -762,7 +798,6 @@ ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-asv-coun
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
-
 
 # get text summary - also show alignments judgments
 capture.output(get_molten_ps_description(psob_molten_clean_marine) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_summary.txt")
