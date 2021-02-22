@@ -288,12 +288,21 @@
       * indicate quality of alignments in clean data object
   * commit `1381ff1ff616e0f3cb7b59240e7e075a7520dd26`
 * **19-Feb-2021** - eDNA data check 
-  * implemented and checked low abundance filtering in "~/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r"
+  * implemented and checked low abundance filtering in `~/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
     * based on Poisson distribution of cross-contaminated positive control read counts
-  * commit ``
+  * commit `dd61faf0ead4e372ae5c92b3699421ac97505ed2`
+* **22-Feb-2021** - eDNA data work and subsequent
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
+    * added Blast information to clean eDNA data 
+    * updated all output files
+  * commit ``  
+  
+    
+
  
 * **next:** 
   * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
+  * read in Blast data
   * combine and check BRUV and eDNA data, create maps (marine reserves etc), 
 
 * **unfinished**

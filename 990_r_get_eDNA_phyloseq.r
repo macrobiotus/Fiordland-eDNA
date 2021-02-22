@@ -4,7 +4,7 @@
 # 12-Dec-2020, 08-Jan-2020, 11-Jan-2020, 20-Jan-2020, 21-Jan-2020,  10-Feb-2020 
 
 
-# Packages loading 
+# I. Packages loading 
 # ==================
 rm(list = ls(all.names = TRUE))
 gc()
@@ -21,8 +21,8 @@ library("openxlsx") # write Excel tables
 
 
 
-# Functions
-# =========
+# II. Functions
+# =============
 
 # Define new operator "not in"
 "%!in%" <- function(x, y) !(x %in% y)
@@ -260,7 +260,8 @@ get_molten_ps_description = function(ps, rank_level = "SUPERKINGDOM", rank_name 
 
   # summarize distinct values across the long data frame
   print("In the following summary variable names shown are hard-coded in function \"get_molten_ps_stats\": ") 
-  show_vars <- c("ASV", "ABUNDANCE", "SAMPLE", "LOC.NAME", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES")
+  show_vars <- c("ASV", "ABUNDANCE", "SAMPLE", "LOC.NAME", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY",
+    "GENUS", "SPECIES")
   ps %>% dplyr::select(any_of(show_vars)) %>% summarize_all(n_distinct, na.rm = TRUE) %>% print()
   
   # get most ASV's (not species) ordered by frequency
@@ -339,7 +340,7 @@ show_plate_loading = function(psob_molten, level = "PHYLUM", tax_vector = c("Cho
 }
 
 
-# I. Import Phyloseq object
+# III. Import Phyloseq object
 # =========================
 
 # Read in
@@ -391,8 +392,8 @@ save(psob, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210203_990_r_ge
 save(psob, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210210_990_r_get_eDNA_phyloseq__imported-psob.Rds")
 
 
-# II. Inspect and summarize raw data
-# ==================================
+# IV. Inspect and summarize raw data
+# ===================================
 
 # melt and tidy Phyloseq object 
 (psob_molten <- get_tidy_molten_ps(psob))
@@ -446,7 +447,7 @@ ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered-plate-loading-read-count
          dpi = 500, limitsize = TRUE)
 
 
-# III. Inspect and summarize control data
+# V. Inspect and summarize control data
 # =======================================
 
 # melt and tidy Phyloseq object 
@@ -518,7 +519,7 @@ treshhold <- qpois(0.95, lmbda$estimate) # will remove 18S with 18 reads or less
 rm(psob_molten_fish_controls)
 
 
-# IV. Check  cross contamination with package `decontam`
+# VI. Check  cross contamination with package `decontam`
 # ======================================================
 # following:
 #   "https://benjjneb.github.io/decontam/vignettes/decontam_intro.html"
@@ -614,7 +615,7 @@ show_plate_loading(psob_eDNA_molten_chrd,  ggply = "ABUNDANCE")
 # decontam doesn't work well with the data at hand as contaminants are still in the data and mixed with obviously real samples
 # resorting to simple subtraction
 
-# V. Remove contamination with subtractive approach 
+# VII. Remove contamination with subtractive approach 
 # ===================================================
 
 # melt and tidy Phyloseq object 
@@ -682,10 +683,7 @@ ggsave("210211_990_r_get_eDNA_phyloseq__psob-eDNA-location-asv-counts.pdf", plot
 
 capture.output(get_molten_ps_description(psob_molten_clean) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-all_data_summary.txt")
 
-
-
 # remove low abundance reads
-
 #   check the lower end of the read count distribution 
 summary(psob_molten_clean$ABUNDANCE)
 hist(psob_molten_clean$ABUNDANCE, breaks = 300000, xlim = c(0,25))
@@ -699,10 +697,8 @@ possible_cc <- psob_molten_clean %>% filter(ABUNDANCE <= treshhold) %>% filter(P
 get_molten_ps_description(possible_cc) 
 capture.output(get_molten_ps_description(possible_cc) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__low_abundance_reads__summary.txt")
 
-
 # subtract possible cross contamination (by abundance) and inspect again 
 psob_molten_clean_new <- anti_join(psob_molten_clean, possible_cc, by = "ASV", copy = FALSE)
-
 
 # get a full species list with Chordates at the top
 psob_molten_clean_chordates_top <- psob_molten_clean_new %>% mutate(ABUNDANCE = ifelse(PHYLUM %in% c("Chordata"), ABUNDANCE, 0))
@@ -715,63 +711,54 @@ psob_molten_clean_marine <- psob_molten_clean_chordates_top %>% filter(
   ORDER %in% c("Cetacea") | 
   FAMILY %in% c("Otariidae")) %>% filter(!(GENUS %in% c("Sardinops")))
 
-capture.output(get_molten_ps_description(psob_molten_clean_marine) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_summary.txt")
 
-# VII. Get abundance values for biologically replicate observations in clean data 
-# ===============================================================================
+# VIII. Merge in Blast data for alignment quality (started 22-02-2021)
+# ===============================================================
 
-# get a suitable grouping variable in the clean data
-# ---------------------------------------------------
+# check which columns to isolate to join on: "ASV" 
+psob_molten_clean_marine
 
-# define replicates with use of external table
-pth <- c("/Users/paul/Documents/OU_eDNA/191213_field_work/201130_sample_overview_updated.xlsx")
-sample_order <- readxl::read_excel(pth, range = "F1:F91", .name_repair = "universal")
-sample_order %<>% rowid_to_column("ID") %>% print(n = Inf)
-sample_order$RepID <- rep(c(1,2,3), times = 2, length.out = length(sample_order$ID), NA, each = 1)
-sample_order %<>% group_by(RepID) %>% mutate(SetID = row_number(RepID))
-sample_order %<>% filter(!grepl("blk", sample_name)) 
-sample_order %>% print(n = Inf)
+# load formatted Blast result table - from /Users/paul/Documents/OU_eDNA/200901_scripts/800_r_get_q2_tax-tab.r
+#    limit search space by constraining to chordates
+load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
+blast_results_final_chord <-  blast_results_final %>% filter(phylum %in% c("Chordata"))
+names(blast_results_final_chord)
 
-# merge set IDs with clean data - get overview of sample covergae and test merging of ids 
-overview <- full_join(as_tibble(psob_molten_clean_marine$SAMPLE.NAME), as_tibble(sample_order$sample_name), keep = TRUE) %>% 
-  distinct() %>% setnames(c("mdata", "tdata")) %>% arrange(tdata) %>% print(n = Inf)
+# "iteration_query_id" 
+# check which columns to isolate, to join on, and to merge in  ("ASV"  and Blast, specific information) 
+# explanation from https://mycocosm.jgi.doe.gov/help/alignment_hits.jsf
+#     Hsp_num - The high-scoring pair number, within the alignment.
+#     Hsp_score -  The score for the HSP.
+#     Hsp_bit_score - The bit score for the HSP. The higher the bit score, the more highly significant the match is.
+#     https://www.biostars.org/p/187230/
+#     Hsp_evalue  - The E-value for the HSP.
+#     Hsp_hit_from - The number of the first base in the alignment along the hit sequence.
+#     Hsp_hit_to - The number of the last base in the alignment along the hit sequence.
+#     Hsp_identity - The number (and percentage) of identical bases or amino acids in the alignment
+#     Hsp_positive - The number (and percentage) of positive, or conservative, matches (not including identities) in the alignment.
+#     Hsp_align-len -  The alignment length of the HSP.
+#     Scaffold Seq A link to the scaffold genomic sequence for the HSP.
 
-smpl_coverage <- left_join( overview %>% dplyr::select(tdata), 
-                            psob_molten_clean_marine %>% dplyr::select(SAMPLE.NAME, LOC.NAME,  INSIDE.RESERVE),
-                            by=c("tdata" = "SAMPLE.NAME"),
-                            keep=TRUE) %>% 
-                            distinct() %>% 
-                            arrange(tdata) %>% 
-                            print(n = Inf)
+blast_results_final_chord_slct <- blast_results_final_chord %>% select(iteration_query_def, hsp_num,  hsp_bit_score, hsp_evalue, iteration_query_len, hsp_query_from, hsp_query_to, hsp_identity, hsp_positive, hsp_gaps, hsp_align_len) %>% print(n = Inf)
 
-# write sample overview
-# ---------------------
-# save overview for writing and if needed later
-write.xlsx(smpl_coverage, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.xlsx", asTable = FALSE)
-save(smpl_coverage, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.Rds")
+# calculate mismatch percentage 
+blast_results_final_chord_slct %<>% mutate(hsp_identity_perc = hsp_positive / iteration_query_len) %>% print(n = Inf)
 
+# merge information with cleaned eDNA object
+psob_molten_clean_marine <- left_join(psob_molten_clean_marine, blast_results_final_chord_slct, by = c("ASV" = "iteration_query_def"), keep = FALSE)
 
-# merge  replicate water samples
-# ------------------------------
-
-# copy grouping variable to main object
-clean_marine <- left_join(psob_molten_clean_marine, sample_order,  by=c("SAMPLE.NAME" = "sample_name"))
+# check if all info is there
+psob_molten_clean_marine$hsp_identity_perc
+summary(psob_molten_clean_marine$hsp_identity_perc)
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#  0.7868  0.8596  0.9702  0.9302  0.9882  1.0000 
+summary(psob_molten_clean_marine$hsp_bit_score) 
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#   141.0   213.2   281.7   258.0   301.5   345.7
 
 
-# test sample merging approach - continue here after 12-Feb-2020
-#  1) create test data with 344 rows
-foo <- clean_marine[ c("ASV", "SAMPLE.NAME", "ABUNDANCE", "ID", "SetID", "RepID")] %>% arrange(ASV, SetID, RepID) %>% print(n = 20)
-
-#  2) erases possibly unique metadata - to yield 251 rows
-foo %>% group_by(ASV, SetID) %>% summarise(SET_ABUNDANCE = sum(ABUNDANCE)) 
-
-#  3) keeps all 344 rows and duplicates SET_ABUNDANCE with each group of ASV and SetID
-foo %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE))
-foo %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE)) %>% pull(SET_ABUNDANCE)
-
-#  keeping all data and duplicated SET_ABUNDANCE values with each group of ASV and SetID - pull out later when required
-clean_marine <- clean_marine %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE))
-
+# IX. Summarize data 
+# ==================
 
 # show plate loading 
 show_plate_loading(psob_molten_clean_marine,  ggply = "ABUNDANCE")
@@ -799,14 +786,76 @@ ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-asv-coun
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-# get text summary - also show alignments judgments
+# get text summary
 capture.output(get_molten_ps_description(psob_molten_clean_marine) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_summary.txt")
 
 
-# VII. Save eDNA object for further analysis
+# get text summary with alignment qualities
+coverage_per_asv_cm <- aggregate(psob_molten_clean_marine$ABUNDANCE, by=list(ASV=psob_molten_clean_marine$ASV), FUN=sum)
+  show_vars <- c("ASV", "ABUNDANCE", "SAMPLE", "LOC.NAME", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES")
+  coverage_per_asv_cm_list <- left_join(coverage_per_asv_cm, psob_molten_clean_marine, by = c("ASV" = "ASV")) %>%
+    distinct_at(vars("ASV", "x", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES", "hsp_bit_score", "hsp_identity_perc"))
+capture.output(coverage_per_asv_cm_list %>% arrange(desc(hsp_identity_perc), SPECIES, desc(x)) %>% head(., n = Inf) %>% print(), file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_asv_summary_with_quality.txt")
+
+# X. Get abundance values for biologically replicate observations in clean data 
+# ===============================================================================
+
+# get a suitable grouping variable in the clean data
+# ---------------------------------------------------
+
+# define replicates with use of external table
+pth <- c("/Users/paul/Documents/OU_eDNA/191213_field_work/201130_sample_overview_updated.xlsx")
+sample_order <- readxl::read_excel(pth, range = "F1:F91", .name_repair = "universal")
+sample_order %<>% rowid_to_column("ID") %>% print(n = Inf)
+sample_order$RepID <- rep(c(1,2,3), times = 2, length.out = length(sample_order$ID), NA, each = 1)
+sample_order %<>% group_by(RepID) %>% mutate(SetID = row_number(RepID))
+sample_order %<>% filter(!grepl("blk", sample_name)) 
+sample_order %>% print(n = Inf)
+
+# merge set IDs with clean data - get overview of sample coverage and test merging of ids 
+overview <- full_join(as_tibble(psob_molten_clean_marine$SAMPLE.NAME), as_tibble(sample_order$sample_name), keep = TRUE) %>% 
+  distinct() %>% setnames(c("mdata", "tdata")) %>% arrange(tdata) %>% print(n = Inf)
+
+smpl_coverage <- left_join( overview %>% dplyr::select(tdata), 
+                            psob_molten_clean_marine %>% dplyr::select(SAMPLE.NAME, LOC.NAME,  INSIDE.RESERVE),
+                            by=c("tdata" = "SAMPLE.NAME"),
+                            keep=TRUE) %>% 
+                            distinct() %>% 
+                            arrange(tdata) %>% 
+                            print(n = Inf)
+
+# write sample overview
+# ---------------------
+# save overview for writing and if needed later
+write.xlsx(smpl_coverage, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.xlsx", asTable = FALSE)
+save(smpl_coverage, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.Rds")
+
+# XI. Merge replicate water samples
+# ================================
+
+# copy grouping variable to main object
+clean_marine <- left_join(psob_molten_clean_marine, sample_order,  by=c("SAMPLE.NAME" = "sample_name"))
+
+
+# test sample merging approach - continue here after 12-Feb-2020
+#  1) create test data with 344 rows
+foo <- clean_marine[ c("ASV", "SAMPLE.NAME", "ABUNDANCE", "ID", "SetID", "RepID")] %>% arrange(ASV, SetID, RepID) %>% print(n = 20)
+
+#  2) erases possibly unique metadata - to yield 251 rows
+foo %>% group_by(ASV, SetID) %>% summarise(SET_ABUNDANCE = sum(ABUNDANCE)) 
+
+#  3) keeps all 344 rows and duplicates SET_ABUNDANCE with each group of ASV and SetID
+foo %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE))
+foo %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE)) %>% pull(SET_ABUNDANCE)
+
+#  keeping all data and duplicated SET_ABUNDANCE values with each group of ASV and SetID - pull out later when required
+clean_marine <- clean_marine %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE))
+
+
+# XII. Save eDNA object for further analysis
 # ==========================================
 
 # save or load molten state
 save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210108_990_r_get_eDNA_phyloseq__export_workspace.Rdata")
-save(psob_molten_clean_marine, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")
-save(psob_molten_clean_marine, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")
+save(clean_marine, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")
+save(clean_marine, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")
