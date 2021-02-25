@@ -341,7 +341,7 @@ show_plate_loading = function(psob_molten, level = "PHYLUM", tax_vector = c("Cho
 
 
 # III. Import Phyloseq object
-# =========================
+# ===========================
 
 # Read in
 # -------
@@ -518,7 +518,6 @@ treshhold <- qpois(0.95, lmbda$estimate) # will remove 18S with 18 reads or less
 
 rm(psob_molten_fish_controls)
 
-
 # VI. Check  cross contamination with package `decontam`
 # ======================================================
 # following:
@@ -551,8 +550,6 @@ ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered_library_size_per_sample_
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 75, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
-
-
 
 # Identify  contamination  based on read frequency
 # -------------------------------------------------
@@ -705,6 +702,10 @@ psob_molten_clean_chordates_top <- psob_molten_clean_new %>% mutate(ABUNDANCE = 
 
 capture.output(get_molten_ps_description(psob_molten_clean_chordates_top) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-all_data_and_chordates_summary.txt")
 
+
+# VIII. Isolate fish and marine mammals (started 22-02-2021)
+# ===============================================================
+
 # isolate fish and marine mammals
 psob_molten_clean_marine <- psob_molten_clean_chordates_top %>% filter(
   CLASS %in% c("Actinopteri", "Chondrichthyes") |
@@ -712,7 +713,8 @@ psob_molten_clean_marine <- psob_molten_clean_chordates_top %>% filter(
   FAMILY %in% c("Otariidae")) %>% filter(!(GENUS %in% c("Sardinops")))
 
 
-# VIII. Merge in Blast data for alignment quality (started 22-02-2021)
+
+# IX. Merge in Blast data for alignment quality (started 22-02-2021)
 # ===============================================================
 
 # check which columns to isolate to join on: "ASV" 
@@ -757,7 +759,7 @@ summary(psob_molten_clean_marine$hsp_bit_score)
 #   141.0   213.2   281.7   258.0   301.5   345.7
 
 
-# IX. Summarize data 
+# X. Summarize data 
 # ==================
 
 # show plate loading 
@@ -797,7 +799,7 @@ coverage_per_asv_cm <- aggregate(psob_molten_clean_marine$ABUNDANCE, by=list(ASV
     distinct_at(vars("ASV", "x", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES", "hsp_bit_score", "hsp_identity_perc"))
 capture.output(coverage_per_asv_cm_list %>% arrange(desc(hsp_identity_perc), SPECIES, desc(x)) %>% head(., n = Inf) %>% print(), file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_asv_summary_with_quality.txt")
 
-# X. Get abundance values for biologically replicate observations in clean data 
+# XI. Get abundance values for biologically replicate observations in clean data 
 # ===============================================================================
 
 # get a suitable grouping variable in the clean data
@@ -813,43 +815,31 @@ sample_order %<>% filter(!grepl("blk", sample_name))
 sample_order %>% print(n = Inf)
 
 # merge set IDs with clean data - get overview of sample coverage and test merging of ids 
-overview <- full_join(as_tibble(psob_molten_clean_marine$SAMPLE.NAME), as_tibble(sample_order$sample_name), keep = TRUE) %>% 
-  distinct() %>% setnames(c("mdata", "tdata")) %>% arrange(tdata) %>% print(n = Inf)
-
-smpl_coverage <- left_join( overview %>% dplyr::select(tdata), 
-                            psob_molten_clean_marine %>% dplyr::select(SAMPLE.NAME, LOC.NAME,  INSIDE.RESERVE),
-                            by=c("tdata" = "SAMPLE.NAME"),
-                            keep=TRUE) %>% 
-                            distinct() %>% 
-                            arrange(tdata) %>% 
-                            print(n = Inf)
+overview <- full_join( dplyr::select(psob_molten_clean_marine, SAMPLE.NAME), dplyr::select(sample_order, ID, sample_name, RepID, SetID) , by = c( "SAMPLE.NAME" = "sample_name" ),  keep = TRUE) %>% print(n = Inf)
+overview <- overview %>% rename("EDNA.ID" = "ID", "REP.ID" = "RepID", "SET.ID" = "SetID", "SAMPLE.NAME.FIELD" = "sample_name") 
+overview <- overview %>% relocate(EDNA.ID, SET.ID, REP.ID) 
+overview <- overview %>% distinct(across(c(EDNA.ID, SET.ID, REP.ID, SAMPLE.NAME, SAMPLE.NAME.FIELD)))
+overview <- overview %>% arrange(EDNA.ID, SET.ID, REP.ID)  %>% print(n = Inf)
+overview <- left_join(overview, dplyr::select(psob_molten_clean_marine, SAMPLE.NAME, SAMPLE.TIME, LOC.NAME,  INSIDE.RESERVE, LAT.DD, LONG.DD),
+  by=c("SAMPLE.NAME" = "SAMPLE.NAME"), keep=FALSE) %>% 
+  distinct() %>% 
+  print(n = Inf)
 
 # write sample overview
 # ---------------------
 # save overview for writing and if needed later
-write.xlsx(smpl_coverage, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.xlsx", asTable = FALSE)
-save(smpl_coverage, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.Rds")
+write.xlsx(overview, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.xlsx", asTable = FALSE)
+save(overview, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.Rds")
 
-# XI. Merge replicate water samples
+
+# XII. Merge replicate water samples
 # ================================
 
 # copy grouping variable to main object
-clean_marine <- left_join(psob_molten_clean_marine, sample_order,  by=c("SAMPLE.NAME" = "sample_name"))
-
-
-# test sample merging approach - continue here after 12-Feb-2020
-#  1) create test data with 344 rows
-foo <- clean_marine[ c("ASV", "SAMPLE.NAME", "ABUNDANCE", "ID", "SetID", "RepID")] %>% arrange(ASV, SetID, RepID) %>% print(n = 20)
-
-#  2) erases possibly unique metadata - to yield 251 rows
-foo %>% group_by(ASV, SetID) %>% summarise(SET_ABUNDANCE = sum(ABUNDANCE)) 
-
-#  3) keeps all 344 rows and duplicates SET_ABUNDANCE with each group of ASV and SetID
-foo %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE))
-foo %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE)) %>% pull(SET_ABUNDANCE)
+clean_marine <- left_join(psob_molten_clean_marine, overview,  by=c("SAMPLE.NAME" = "SAMPLE.NAME"))
 
 #  keeping all data and duplicated SET_ABUNDANCE values with each group of ASV and SetID - pull out later when required
-clean_marine <- clean_marine %>% group_by(ASV, SetID) %>% mutate(SET_ABUNDANCE = sum(ABUNDANCE))
+clean_marine <- clean_marine %>% group_by(ASV, SET.ID) %>% mutate(SET.ABUNDANCE = sum(ABUNDANCE))
 
 
 # XII. Save eDNA object for further analysis

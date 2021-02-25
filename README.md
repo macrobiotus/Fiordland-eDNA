@@ -295,9 +295,30 @@
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_phyloseq.r`
     * added Blast information to clean eDNA data 
     * updated all output files
-  * commit ``  
-  
-    
+  * commit `abb0ec2bf56e40dee0318250c337963da0baeb24`  
+* **24-Feb-2021** - eDNA data work and subsequent
+  * started working on `~/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
+    * looks up taxonomy strings from local data base by means of manually matched tax ids
+    * writes random strings for NCBI tax ids to 
+      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210224_995_r_get_BRUV_phyloseq_mh bruv_taxa_db_lookup_stable.xlsx`*
+  * **next**: 
+    * check sample locations and coordinate format and manually match up before reading into above script:
+      * `/Users/paul/Documents/OU_eDNA/191213_field_work/220224_MH_bruv_data_machine_readable_preformat_long.csv`
+      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.xlsx`
+    * taxonomy id key is:
+      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210224_995_r_get_BRUV_phyloseq_mh bruv_taxa_db_lookup_stable.xlsx`
+* **25-Feb-2021** - BRUV observations received from MH
+  * created `/Users/paul/Documents/OU_eDNA/191213_field_work/210225_MH_bruv_data_machine_readable_long.csv`
+    * using `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.Rds`
+    * using `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.xlsx`
+  * looking up tax information from DB in script `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
+* **25-Feb-2021** - merging BRUV and eDNA data
+  * ready to merge BRUV with eDNA object and send off
+    * finished `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_long_table.r`
+    * finished `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_long_table.r`
+  * commit ``
+
+
 
  
 * **next:** 
