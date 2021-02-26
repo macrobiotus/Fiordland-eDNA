@@ -316,11 +316,15 @@
   * ready to merge BRUV with eDNA object and send off
     * finished `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_long_table.r`
     * finished `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_long_table.r`
+  * commit `a2646b91ba1f1d13050a35c49a64090b803c013e`
+* **25-Feb-2021** - continue merging BRUV and eDNA data
+  * starte `~/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r` 
+  * next:
+    * check for proper joining in: `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_long_table.r`
+    * continue working on: `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
   * commit ``
 
 
-
- 
 * **next:** 
   * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
   * read in Blast data

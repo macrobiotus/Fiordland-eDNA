@@ -847,5 +847,5 @@ clean_marine <- clean_marine %>% group_by(ASV, SET.ID) %>% mutate(SET.ABUNDANCE 
 
 # save or load molten state
 save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210108_990_r_get_eDNA_phyloseq__export_workspace.Rdata")
-save(clean_marine, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")
-save(clean_marine, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")
+saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")
+saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")

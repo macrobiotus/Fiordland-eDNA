@@ -1,20 +1,18 @@
 # **********************************************
-# * Create, filter, and write Physloseq object *
+# * Create, filter, and write long table object *
 #            from BRUV observations            * 
 # **********************************************
-# 26-Aug-2022, 22-Feb-2021, 23-Feb-2021, 25-Feb-2021
+# 26-Aug-2022, 22-Feb-2021, 23-Feb-2021, 25-Feb-2021, 26-Feb-2021
 
 # I. Load packages
 # ================
 rm(list = ls(all.names = TRUE))
 gc()
 
-library("readxl")     # read Excel files
-library("openxlsx")   # write Excel tables
-library("janitor")    # clean column names
-library("taxonomizr") # query taxon names
-library("stringi")     # random strings
-library("tidyverse")   # 
+library("readxl")      # read Excel files
+library("openxlsx")    # write Excel tables
+library("taxonomizr")  # query taxon names
+library("tidyverse")   # tibbles, pipes, and more
 
 # II. Functions
 # =============
@@ -86,5 +84,5 @@ mh_obs <- right_join(mh_obs_raw, tax_table_distinct_curated, by = "NCBI.TAXID", 
 
 # save or load molten state 
 save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210226_995_r_get_BRUV_long_table__image.Rdata")
-save(mh_obs, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210226_995_r_get_BRUV_long_table__mh_bruv_obs.Rds")
-save(mh_obs, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210226_995_r_get_BRUV_long_table__mh_bruv_obs.Rds")
+saveRDS(mh_obs, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210226_995_r_get_BRUV_long_table__mh_bruv_obs.Rds")
+saveRDS(mh_obs, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210226_995_r_get_BRUV_long_table__mh_bruv_obs.Rds")
