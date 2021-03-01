@@ -713,7 +713,6 @@ psob_molten_clean_marine <- psob_molten_clean_chordates_top %>% filter(
   FAMILY %in% c("Otariidae")) %>% filter(!(GENUS %in% c("Sardinops")))
 
 
-
 # IX. Merge in Blast data for alignment quality (started 22-02-2021)
 # ===============================================================
 
@@ -833,19 +832,27 @@ save(overview, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_
 
 
 # XII. Merge replicate water samples
-# ================================
+# ===================================
 
 # copy grouping variable to main object
-clean_marine <- left_join(psob_molten_clean_marine, overview,  by=c("SAMPLE.NAME" = "SAMPLE.NAME"))
+clean_marine <- left_join(psob_molten_clean_marine, select(overview, EDNA.ID, SET.ID, REP.ID, SAMPLE.NAME, SAMPLE.NAME.FIELD),  by=c("SAMPLE.NAME" = "SAMPLE.NAME"))
 
 #  keeping all data and duplicated SET_ABUNDANCE values with each group of ASV and SetID - pull out later when required
 clean_marine <- clean_marine %>% group_by(ASV, SET.ID) %>% mutate(SET.ABUNDANCE = sum(ABUNDANCE))
 
+# create presenece absence abundance column
+clean_marine <- clean_marine %>% mutate(SET.ABUNDANCE.PRSNT = ifelse(SET.ABUNDANCE == 0, FALSE, TRUE))  
+clean_marine %>% pull(SET.ABUNDANCE.PRSNT)
 
 # XII. Save eDNA object for further analysis
 # ==========================================
 
+# some final formatting
+names(clean_marine) <- toupper(names(clean_marine))
+names(clean_marine) <- gsub("_", ".", names(clean_marine))
+
 # save or load molten state
-save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210108_990_r_get_eDNA_phyloseq__export_workspace.Rdata")
-saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")
-saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210210_990_r_get_eDNA_phyloseq__clean-marine-eDNA.Rds")
+save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_990_r_get_eDNA_long_table__export_workspace.Rdata")
+write.xlsx(clean_marine, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_990_r_get_eDNA_long_table__eDNA_data.xlsx", asTable = FALSE)
+saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_990_r_get_eDNA_long_table__eDNA_data.Rds")
+saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_990_r_get_eDNA_long_table__eDNA_data.Rds")

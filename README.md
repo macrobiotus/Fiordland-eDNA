@@ -322,17 +322,14 @@
   * next:
     * check for proper joining in: `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_long_table.r`
     * continue working on: `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
+  * commit `a2646b91ba1f1d13050a35c49a64090b803c013e`
+* **01-Mar-2021** - finished formatting file data
+  * stored at:
+    * `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds`
+    * `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx`
   * commit ``
 
 
-* **next:** 
-  * get Phyloseq object of BRUV data and melt - implement new code in `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_phyloseq.r`
-  * read in Blast data
-  * combine and check BRUV and eDNA data, create maps (marine reserves etc), 
 
-* **unfinished**
-  * read in new BRUV observations as alternatives to `/Users/paul/Documents/OU_eDNA/191213_field_work/200520_MH_bruv_data.xlsx`
 
-* **later or never**
-  * modify `850_r_prep_q2_predictor-tab.r` to get per-sample-stats independent of primer
 
