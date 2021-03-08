@@ -327,8 +327,15 @@
   * stored at:
     * `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds`
     * `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx`
+  * commit `d80b20cc53f5942fb322383523e157a8d26e3911`
+* **07-Mar-2021** - working on maps
+  * create map using `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz`
+  * exporting data files for analysis and mapping from `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
+    * add export for mapping: `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210301_997_r_format_longtables__analysis_input.csv`
+* **09-Mar-2021** - working on results summaries
+  * created `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+  * to summarise long table exported by `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
   * commit ``
-
 
 
 

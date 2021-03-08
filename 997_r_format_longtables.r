@@ -98,12 +98,10 @@ stack_long_table <-  stack_long_table %>% relocate(SET.ID,	REP.ID, SAMPLE.TYPE, 
 # ===================
 
 save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input__image.Rdata")
+# for analysis by MDL
 saveRDS(stack_long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input.Rds")
 saveRDS(stack_long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds")
+# for verbosity
 write.xlsx(stack_long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx", asTable = FALSE)
-
-
-
-
-
-
+# for mapping in /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz
+write.csv(stack_long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210301_997_r_format_longtables__analysis_input.csv")
