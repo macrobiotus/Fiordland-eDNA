@@ -333,10 +333,14 @@
   * exporting data files for analysis and mapping from `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
     * add export for mapping: `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210301_997_r_format_longtables__analysis_input.csv`
 * **09-Mar-2021** - working on results summaries
-  * created `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
-  * to summarise long table exported by `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
+  * created `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`, commit `df7577353c5baef344b0f502d75b5d07d2625e0b`
+    * to summarise long table exported by `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
+    * to summarize M.d.L.'s derivative of above file `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210309_mdl_tablebygenus.csv`
+    * to summarize M.d.L.'s derivative of above file `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210309_mdl_tablebyspecies.csv`
+* **11-Mar-2021** - working on results summaries
+  * altered `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
+    * renamed the cryptic A, B, C locations in RESERVE.GROUP with something more meaningful (WJ, FF, LS)
+    * defined a new variable RESERVE.GROUP.LOCATION 
+  * implemented MDS and basic plot in: `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
   * commit ``
-
-
-
-
+    

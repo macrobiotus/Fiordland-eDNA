@@ -70,7 +70,8 @@ stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% fill(MH.PPS.LONG, 
 # IV. Redefine areas inside and out side marine reserves
 # ========================================================
 # done using GID externally - check `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/210301_sample_map_overview.pdf`
-
+# see subsequent script for site assignments - but not run here to maintain compatibility with MdL scripts
+#  long_table <- long_table %>% mutate( RESERVE.GROUP = case_when(RESERVE.GROUP == "A" ~ "WJ", RESERVE.GROUP == "B" ~ "FF", RESERVE.GROUP == "C" ~ "LS"))
 stack_long_table <- stack_long_table %>% mutate(RESERVE.GROUP = 
                                             case_when(SET.ID %in% c(21,22,23,24) ~ "A",
                                                       SET.ID %in% c(26,27,28,29) ~ "A",
@@ -87,21 +88,52 @@ stack_long_table <- stack_long_table %>% mutate(RESERVE.GROUP.INSIDE =
                                                       SET.ID %in% c(7,8,9,10)    ~ FALSE,
                                                       SET.ID %in% c(1,3,4,5)     ~ TRUE))
 
-stack_long_table <- stack_long_table %>% mutate(SAMPLE.TYPE = case_when(REP.ID %in% c(3)   ~  "BRUV",
+long_table <- stack_long_table %>% mutate(SAMPLE.TYPE = case_when(REP.ID %in% c(3)   ~  "BRUV",
                                                                         REP.ID %in% c(1,2) ~  SAMPLE.TYPE))
 
+# correct location name in fulls table
+long_table <- long_table %>% mutate( RESERVE.GROUP = case_when(RESERVE.GROUP == "A" ~ "WJ", RESERVE.GROUP == "B" ~ "FF", RESERVE.GROUP == "C" ~ "LS"))
+
+# remove three undetermined fish taxa from BRUV 
+long_table <- long_table %>% filter(ORDER != "NA") %>% print(n = Inf)
+
+# combine RESERVE.GROUP and RESERVE.GROUP.INSIDE to get six locations RESERVE.GROUP.LOCATION
+long_table$RESERVE.GROUP
+long_table$RESERVE.GROUP.INSIDE
+
+long_table <- long_table %>% mutate( RESERVE.GROUP.LOCATION = 
+  case_when(RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == TRUE  ~ "WJ MR",
+            RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == FALSE ~ "WJ CTRL",
+            RESERVE.GROUP == "FF" & RESERVE.GROUP.INSIDE == TRUE  ~ "FF MR",
+            RESERVE.GROUP == "FF" & RESERVE.GROUP.INSIDE == FALSE ~ "FF CTRL",
+            RESERVE.GROUP == "LS" & RESERVE.GROUP.INSIDE == TRUE  ~ "LS MR",
+            RESERVE.GROUP == "LS" & RESERVE.GROUP.INSIDE == FALSE ~ "LS CTRL")
+            )
+
+long_table$RESERVE.GROUP.LOCATION
+long_table <- long_table %>% relocate(RESERVE.GROUP.LOCATION)
+
+# set BRUV observations to 1 for downstream generation of ASV presence column
+long_table <- long_table %>% mutate(ABUNDANCE = 
+   case_when(SAMPLE.TYPE == "BRUV" & is.na(ABUNDANCE) ~ 1,
+             TRUE ~ ABUNDANCE)
+             ) 
 
 # rearrange columns 
-stack_long_table <-  stack_long_table %>% relocate(SET.ID,	REP.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT,	MH.PPS.LONG, RESERVE.GROUP,  RESERVE.GROUP.INSIDE,  SUPERKINGDOM,	PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES)
+long_table <-  long_table %>% relocate(SET.ID,	REP.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT,
+  MH.PPS.LONG, RESERVE.GROUP,  RESERVE.GROUP.INSIDE, RESERVE.GROUP.LOCATION, SUPERKINGDOM,	
+  PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES)
+
+print(long_table, n = Inf)
 
 # V. write final file 
 # ===================
 
 save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input__image.Rdata")
 # for analysis by MDL
-saveRDS(stack_long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input.Rds")
-saveRDS(stack_long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds")
+saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input.Rds")
+saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds")
 # for verbosity
-write.xlsx(stack_long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx", asTable = FALSE)
+write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx", asTable = FALSE)
 # for mapping in /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz
-write.csv(stack_long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210301_997_r_format_longtables__analysis_input.csv")
+write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210301_997_r_format_longtables__analysis_input.csv")
