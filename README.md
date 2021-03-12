@@ -347,9 +347,11 @@
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
     * implemented BRIUV vs eDNA comparison - **drafted**
     * implemented NMDS on Jaccards - **started**
-  * **next**
+    * commit `d3f766a72163f746394092c583c4cad437ea21fd`
     * improve NMDS plot to GGplot
+    * implements indicator species analysis 
+  * **next**
     * implement MCS
-    * indicate indicator species analysis 
+    
     * check if ICC usage is appropriate
     

@@ -11,14 +11,18 @@
 library("tidyverse") # because we can't stop using it anymore
 library("data.table")   # faster handling of large tables
 library("future.apply") # faster handling of large tables
-library("vegan")
-library("nVennR")
 library("irr")
-library("UpSetR")    # Conway, J. R., Lex, A. & Gehlenborg, N. 2017 UpSetR: an R package for the
-                     # visualization of intersecting sets and their properties. Bioinformatics 33,
-                     # 2938Ð2940. (doi:10.1093/bioinformatics/btx364)
-                     # 
-                     # documentation at https://rdrr.io/cran/UpSetR/man/upset.html - hard to follow
+
+library("vegan")
+library("ggrepel")
+
+
+# library("nVennR")
+# library("UpSetR")    # Conway, J. R., Lex, A. & Gehlenborg, N. 2017 UpSetR: an R package for the
+#                      # visualization of intersecting sets and their properties. Bioinformatics 33,
+#                      # 2938Ð2940. (doi:10.1093/bioinformatics/btx364)
+#                      # 
+#                      # documentation at https://rdrr.io/cran/UpSetR/man/upset.html - hard to follow
 
 # II. Read in data
 # ================
@@ -118,8 +122,8 @@ ggsave("210312_998_r_summarize_results_edna_bruv_comp.pdf", plot = last_plot(),
          scale = 1, width = 100, height = 100, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
   
-# V. Analyse site similarity based on GENUS overlap 
-# ===================================================
+# V. Show RESERVE.GROUP.LOCATION similarity based on GENUS overlap 
+# ===================================================================
  
 # check data
 print(long_table, n = Inf)
@@ -134,14 +138,13 @@ setkey(long_table_dt,ASV)
 long_table_dt_agg_gen <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
 
 # reshape to observation matrix digestible by Vegan, discrete observations will be summed per genus
-long_table_dt_agg_gen_mat <- as.matrix(data.table::dcast(setDT(long_table_dt_agg), RESERVE.GROUP.LOCATION~GENUS, value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
+long_table_dt_agg_gen_mat <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_gen), RESERVE.GROUP.LOCATION~GENUS, value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
 
 # get a Jaccard distance matrix (distance define by overlap between sites)
 #   see https://rpubs.com/CPEL/NMDS
 #   see https://peat-clark.github.io/BIO381/veganTutorial.html
 #   see https://fromthebottomoftheheap.net/2013/01/12/decluttering-ordination-plots-in-vegan-part-1-ordilabel/
 #   see https://stackoverflow.com/questions/13794419/plotting-ordiellipse-function-from-vegan-package-onto-nmds-plot-created-in-ggplo
-
 
 
 # run metaMDS - at pressence does just use the presence absence matrix (to keep genus scrores), but distance matrix is possible as well
@@ -154,28 +157,76 @@ orditorp(long_table_dt_agg_gen_mat_jacc_NMS, display =  "sites", cex = 1.25, air
 # improve plot as shown here
 #  https://jkzorz.github.io/2019/06/06/NMDS.html
 
+#extract NMDS scores (x and y coordinates)
+long_table_dt_agg_gen_mat_jacc_NMS.scores <- as_tibble(scores(long_table_dt_agg_gen_mat_jacc_NMS), rownames = "RESERVE.GROUP.LOCATION")
+
+ggplot(long_table_dt_agg_gen_mat_jacc_NMS.scores, aes(x = NMDS1, y = NMDS2)) +
+   geom_point(size = 6, colour = "red", shape = c(16,16,17,17,18,18)) +
+   geom_point(size = 6, colour = "red", shape = c(16,16,17,17,18,18)) +
+   geom_label_repel(aes(label=RESERVE.GROUP.LOCATION), point.padding = 0.5) +
+   theme_bw()
+ggsave("210312_998_r_summarize_results_jaccard.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 100, height = 100, units = c("mm"),
+         dpi = 500, limitsize = TRUE)     
 
 
+# VI. ANOSIM Test show that RESERVE.GROUP.LOCATIONs are significantly different
+# ==================================================================================
 
-### Construction Sire below ######
+# A. Show that RESERVE.GROUP.LOCATIONs are significantly different 
+# -----------------------------------------------------------------
+# https://jkzorz.github.io/2019/06/11/ANOSIM-test.html
+# - To test if there is a statistical difference between the fish communities of two or more groups of samples.
+# - Null Hypothesis: there is no difference between the microbial communities of your groups of samples.
 
-# basic plots - variant B
-ordipointlabel(area_genera_pres_jacc_NMS)
+# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
+#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+long_table_dt_agg_gen_sets <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("SET.ID", "RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+
+# rename SET.ID to circumvent naming snafu with package data.table
+setnames(long_table_dt_agg_gen_sets, "SET.ID", "SET_ID")
+
+# reshape to observation matrix digestible by Vegan, discrete observations will be summed per genus
+long_table_dt_agg_gen_mat_sets <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_gen_sets), SET_ID~GENUS, value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
+
+# get grouping variable of  RESERVE.GROUP.LOCATION
+groupings <- as_tibble(long_table_dt_agg_gen_sets %>% select( SET_ID, RESERVE.GROUP.LOCATION)) %>% distinct( )
+
+long_table_dt_agg_gen_mat_sets_ano <-  anosim(long_table_dt_agg_gen_mat_sets, groupings$RESERVE.GROUP.LOCATION, distance = "jaccard", permutations = 9999)
+
+# Dissimilarity: jaccard 
+# 
+# ANOSIM statistic R: 0.1992 
+#       Significance: 0.0244 
+# 
+# Permutation: free
+# Number of permutations: 9999
+
+# B. Show that [inside/outside MR] are significantly different 
+# -----------------------------------------------------------------
+
+# [not done yet]
 
 
-# basic plots - variant C
-plot(area_genera_pres_jacc_NMS, type = "n", scaling = 3)
-ordilabel(area_genera_pres_jacc_NMS, display = "species", font = 2)
-ordilabel(area_genera_pres_jacc_NMS, display = "sites", font = 3, fill = "hotpink", col = "blue")
+# VII. Show indicator genera for inside/outside each/all reserve(s)
+# ============================================================================
+# indicator species analysis
+# https://jkzorz.github.io/2019/07/02/Indicator-species-analysis.html
 
-# basic plots - variant D
-area_genera_pres_jacc_NMS_plot <- ordipointlabel(area_genera_pres_jacc_NMS, cex = 2)
-orditkplot(area_genera_pres_jacc_NMS_plot)
-# result saved at /Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/210311_998_r_summarize_results_area_genera_pres_jacc_NMS_plot.pdf
+# A. Show that RESERVE.GROUP.LOCATIONs are significantly different 
+# -----------------------------------------------------------------
+
+# [not done yet]
+
+# B. Show that [inside/outside MR] are significantly different 
+# -----------------------------------------------------------------
+
+# [not done yet]
 
 
-# V. Get other results information 
-# =============================
+# VIII. Multiple Correspondence analysis
+# =======================================
 
 # Construction site: testing venn diagrams
 # -----------------------------------------
