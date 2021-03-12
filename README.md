@@ -342,5 +342,14 @@
     * renamed the cryptic A, B, C locations in RESERVE.GROUP with something more meaningful (WJ, FF, LS)
     * defined a new variable RESERVE.GROUP.LOCATION 
   * implemented MDS and basic plot in: `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
-  * commit ``
+  * commit `81d0142db89dfed924a4097efedc761b56354cad`
+* **12-Mar-2021** - working on results recode
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * implemented BRIUV vs eDNA comparison - **drafted**
+    * implemented NMDS on Jaccards - **started**
+  * **next**
+    * improve NMDS plot to GGplot
+    * implement MCS
+    * indicate indicator species analysis 
+    * check if ICC usage is appropriate
     
