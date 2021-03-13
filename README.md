@@ -348,10 +348,14 @@
     * implemented BRIUV vs eDNA comparison - **drafted**
     * implemented NMDS on Jaccards - **started**
     * commit `d3f766a72163f746394092c583c4cad437ea21fd`
-    * improve NMDS plot to GGplot
-    * implements indicator species analysis 
-  * **next**
-    * implement MCS
+    * improvef NMDS plot to GGplot
+    * commit `1bc5379ca2d37ed7d042f9d95026fc07b639a7d1`
+* **13-Mar-2021** - worked on results recode
+    * implements indicator species analysis  - as outlined
+    * implement MCS - across SET.ID to complement smallish plot
+    * commit `foo`
     
+  * **next**
+    * complete ANOSIM  analysis - as outlined
     * check if ICC usage is appropriate
     

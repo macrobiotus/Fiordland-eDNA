@@ -9,12 +9,20 @@
 # ================
 
 library("tidyverse") # because we can't stop using it anymore
-library("data.table")   # faster handling of large tables
-library("future.apply") # faster handling of large tables
-library("irr")
+library("ggrepel")   # to improve plot labels
 
-library("vegan")
-library("ggrepel")
+library("future.apply") # faster handling of large tables
+library("data.table")   # faster handling of large tables
+
+library("irr")          # to calculate ICCs between BRIUV and eDNA - see refs below
+library("vegan")        # for NMDS 
+library("indicspecies") # indicator species  - see citation below
+
+library("FactoMineR") # MCA
+library("explor")     # check MCA results in browser
+library("factoextra") # get MCA results summaries
+
+library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
 
 
 # library("nVennR")
@@ -102,7 +110,7 @@ iccs <- iccs %>% mutate(across(.cols = c("SUBJECTS", "RATERS", "VALUE", "R0", "F
 #   between 0.75 and 0.9,  good
 #   between 0.5 and 0.75,  moderate
 #   values less than 0.5,  poor
-ggplot(iccs, aes(x = LEVEL, y = VALUE, ymin = LBOUND, ymax = UBOUND)) +
+p_eb <- ggplot(iccs, aes(x = LEVEL, y = VALUE, ymin = LBOUND, ymax = UBOUND)) +
   geom_point() + geom_errorbar(width = 0.1) + 
   geom_hline(yintercept = 0.9, color="gray", linetype="dashed") +
   geom_hline(yintercept = 0.75, color="gray", linetype="dashed") +
@@ -113,13 +121,13 @@ ggplot(iccs, aes(x = LEVEL, y = VALUE, ymin = LBOUND, ymax = UBOUND)) +
   annotate(geom = "text", x = 0.5, y = 0.6, label = "moderate", hjust = 0, color="gray") +
   annotate(geom = "text", x = 0.5, y = 0.4, label = "poor", hjust = 0, color="gray") +
   xlab("Taxonomic level") + 
-  ylab("Intra Class Correlation (BRUV, eDNA)") +
+  ylab("ICC (BRUV, eDNA)") +
   scale_x_discrete(labels=paste0(iccs$LEVEL," (n=", iccs$SUBJECTS, ")" )) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, hjust=1))
 ggsave("210312_998_r_summarize_results_edna_bruv_comp.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 100, height = 100, units = c("mm"),
+         scale = 1, width = 75, height = 75, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
   
 # V. Show RESERVE.GROUP.LOCATION similarity based on GENUS overlap 
@@ -159,22 +167,36 @@ orditorp(long_table_dt_agg_gen_mat_jacc_NMS, display =  "sites", cex = 1.25, air
 
 #extract NMDS scores (x and y coordinates)
 long_table_dt_agg_gen_mat_jacc_NMS.scores <- as_tibble(scores(long_table_dt_agg_gen_mat_jacc_NMS), rownames = "RESERVE.GROUP.LOCATION")
+long_table_dt_agg_gen_mat_jacc_NMS.genus <- as_tibble(scores(long_table_dt_agg_gen_mat_jacc_NMS, "species"), rownames = "GENUS")
 
-ggplot(long_table_dt_agg_gen_mat_jacc_NMS.scores, aes(x = NMDS1, y = NMDS2)) +
+
+p_nmds <- ggplot(long_table_dt_agg_gen_mat_jacc_NMS.scores, aes(x = NMDS1, y = NMDS2)) +
+   geom_point(data=long_table_dt_agg_gen_mat_jacc_NMS.genus, aes(x=NMDS1,y=NMDS2), size=3) +
    geom_point(size = 6, colour = "red", shape = c(16,16,17,17,18,18)) +
    geom_point(size = 6, colour = "red", shape = c(16,16,17,17,18,18)) +
    geom_label_repel(aes(label=RESERVE.GROUP.LOCATION), point.padding = 0.5) +
    theme_bw()
 ggsave("210312_998_r_summarize_results_jaccard.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 100, height = 100, units = c("mm"),
+         scale = 1, width = 75, height = 75, units = c("mm"),
          dpi = 500, limitsize = TRUE)     
 
 
-# VI. ANOSIM Test show that RESERVE.GROUP.LOCATIONs are significantly different
-# ==================================================================================
+# VI. ANOSIM to test wether or not genus composition based on factors are significantly different
+# ==========================================================================================
 
-# A. Show that RESERVE.GROUP.LOCATIONs are significantly different 
+# On Anosim: 
+# 1. CLARKE, K. R. 1993 Non-parametric multivariate analyses of changes in
+# community structure. Austral Ecol. 18, 117Ð143.
+# (doi:10.1111/j.1442-9993.1993.tb00438.x)
+# "The ANalysis Of SIMilarity (ANOSIM) test has some similarity to an ANOVA-like
+# hypothesis test, however, it is used to evaluate a dissimilarity matrix rather
+# than raw data (Clarke, 1993). Further, raw (dis)similarities are often ranked 
+# prior to performing an ANOSIM."
+# "...the higher the R value, the more dissimilar [...] groups are in terms of [...] community composition."
+
+
+# A. Test if RESERVE.GROUP.LOCATIONs are significantly different 
 # -----------------------------------------------------------------
 # https://jkzorz.github.io/2019/06/11/ANOSIM-test.html
 # - To test if there is a statistical difference between the fish communities of two or more groups of samples.
@@ -191,7 +213,7 @@ setnames(long_table_dt_agg_gen_sets, "SET.ID", "SET_ID")
 long_table_dt_agg_gen_mat_sets <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_gen_sets), SET_ID~GENUS, value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
 
 # get grouping variable of  RESERVE.GROUP.LOCATION
-groupings <- as_tibble(long_table_dt_agg_gen_sets %>% select( SET_ID, RESERVE.GROUP.LOCATION)) %>% distinct( )
+groupings <- as_tibble(long_table_dt_agg_gen_sets %>% select( SET_ID, RESERVE.GROUP.LOCATION)) %>% distinct()
 
 long_table_dt_agg_gen_mat_sets_ano <-  anosim(long_table_dt_agg_gen_mat_sets, groupings$RESERVE.GROUP.LOCATION, distance = "jaccard", permutations = 9999)
 
@@ -203,10 +225,33 @@ long_table_dt_agg_gen_mat_sets_ano <-  anosim(long_table_dt_agg_gen_mat_sets, gr
 # Permutation: free
 # Number of permutations: 9999
 
-# B. Show that [inside/outside MR] are significantly different 
+# B. Test if inside/outside MR (INSIDE.RESERVE) are significantly different 
 # -----------------------------------------------------------------
 
-# [not done yet]
+# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
+#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+long_table_dt_agg_gen_sets <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("SET.ID", "INSIDE.RESERVE", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+
+# rename SET.ID to circumvent naming snafu with package data.table
+setnames(long_table_dt_agg_gen_sets, "SET.ID", "SET_ID")
+
+# reshape to observation matrix digestible by Vegan, discrete observations will be summed per genus
+long_table_dt_agg_gen_mat_sets <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_gen_sets), SET_ID~GENUS, value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
+
+# get grouping variable of  RESERVE.GROUP.LOCATION
+groupings <- as_tibble(long_table_dt_agg_gen_sets %>% select( SET_ID, INSIDE.RESERVE)) %>% distinct()
+
+long_table_dt_agg_gen_mat_sets_ano <-  anosim(long_table_dt_agg_gen_mat_sets, groupings$INSIDE.RESERVE, distance = "jaccard", permutations = 9999)
+
+# Call:
+# anosim(x = long_table_dt_agg_gen_mat_sets, grouping = groupings$INSIDE.RESERVE,      permutations = 9999, distance = "jaccard") 
+# Dissimilarity: jaccard 
+# 
+# ANOSIM statistic R: -0.06009 
+#       Significance: 0.829 
+# 
+# Permutation: free
+# Number of permutations: 9999
 
 
 # VII. Show indicator genera for inside/outside each/all reserve(s)
@@ -214,26 +259,165 @@ long_table_dt_agg_gen_mat_sets_ano <-  anosim(long_table_dt_agg_gen_mat_sets, gr
 # indicator species analysis
 # https://jkzorz.github.io/2019/07/02/Indicator-species-analysis.html
 
-# A. Show that RESERVE.GROUP.LOCATIONs are significantly different 
+# Using package indicspecies
+# De C‡ceres, M., Legendre, P. & Moretti, M. 2010 Improving indicator species
+# analysis by combining groups of sites. Oikos 119, 1674Ð1684.
+# (doi:10.1111/j.1600-0706.2010.18334.x)
+
+long_table_dt_agg_gen_sets <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("SET.ID", "INSIDE.RESERVE", "RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+
+# rename SET.ID to circumvent naming snafu with package data.table
+setnames(long_table_dt_agg_gen_sets, "SET.ID", "SET_ID")
+
+# reshape to observation matrix digestible by Vegan, discrete observations will be summed per genus
+long_table_dt_agg_gen_mat_sets <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_gen_sets), SET_ID~GENUS, value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
+
+# define grouping vectors 
+group.INSIDE.RESERVE <- as_tibble(long_table_dt_agg_gen_sets %>% select( SET_ID, INSIDE.RESERVE)) %>% distinct() %>% pull(INSIDE.RESERVE)
+group.RESERVE.GROUP.LOCATION <- as_tibble(long_table_dt_agg_gen_sets %>% select(SET_ID, RESERVE.GROUP.LOCATION)) %>% distinct() %>% pull(RESERVE.GROUP.LOCATION)
+
+# A. Find indicator species at each RESERVE.GROUP.LOCATION
 # -----------------------------------------------------------------
 
-# [not done yet]
+ind_rgl = multipatt(long_table_dt_agg_gen_mat_sets, group.RESERVE.GROUP.LOCATION, func = "r.g", control = how(nperm=9999))
+summary(ind_rgl)
 
-# B. Show that [inside/outside MR] are significantly different 
-# -----------------------------------------------------------------
+# Multilevel pattern analysis
+#  ---------------------------
+# 
+#  Association function: r.g
+#  Significance level (alpha): 0.05
+# 
+#  Total number of species: 61
+#  Selected number of species: 2 
+#  Number of species associated to 1 group: 2 
+#  Number of species associated to 2 groups: 0 
+#  Number of species associated to 3 groups: 0 
+#  Number of species associated to 4 groups: 0 
+#  Number of species associated to 5 groups: 0 
+# 
+#  List of species associated to each combination: 
+# 
+#  Group FF MR  #sps.  1 
+#                stat p.value   
+# Opistognathus 0.934  0.0032 **
+# 
+#  Group LS MR  #sps.  1 
+#         stat p.value  
+# Banjos 0.775  0.0211 *
+# 
+# Results - add assignmnet quality to Banjos and Opistognathus
+#   stat: higher means the ASV is more strongly associated
+# Discussion: With good reference data we would have a new indicator species
 
-# [not done yet]
+# B.Find indicator species INSIDE.RESERVE
+# ---------------------------------------
+
+ind_ir = multipatt(long_table_dt_agg_gen_mat_sets, group.INSIDE.RESERVE, func = "r.g", control = how(nperm=9999))
+summary(ind_ir)
+
+# Multilevel pattern analysis
+#  ---------------------------
+# 
+#  Association function: r.g
+#  Significance level (alpha): 0.05
+# 
+#  Total number of species: 61
+#  Selected number of species: 1 
+#  Number of species associated to 1 group: 1 
+# 
+#  List of species associated to each combination: 
+# 
+#  Group TRUE  #sps.  1 
+#                stat p.value  
+# Opistognathus 0.442  0.0339 *
+# ---
+# Signif. codes:  0 Ô***Õ 0.001 Ô**Õ 0.01 Ô*Õ 0.05 Ô.Õ 0.1 Ô Õ 1 
+# 
+# Results - add assignmnet quality to Banjos and Opistognathus
+# Discussion: With good reference data we would have a new indicator species
 
 
 # VIII. Multiple Correspondence analysis
 # =======================================
 
-# Construction site: testing venn diagrams
-# -----------------------------------------
+# as per https://rpubs.com/gaston/MCA
 
-# four dimension venn plot
-library("ggVennDiagram")
-genes <- paste("gene",1:1000,sep="")
-set.seed(20190708)
-x <- list(A=sample(genes,300),B=sample(genes,525),C=sample(genes,440),D=sample(genes,350))
-ggVennDiagram(x)
+# select pertinent variables for further analysis
+# long_table_dt_sfct <- long_table_dt[, c("SAMPLE.TYPE", "RESERVE.GROUP", "RESERVE.GROUP.INSIDE", "RESERVE.GROUP.LOCATION", "INSIDE.RESERVE", "BRUV.PRES", "EDNA.PRES", "CLASS", "ORDER", "FAMILY", "GENUS")] %>% unique()
+long_table_dt_sfct <- long_table_dt[, c("RESERVE.GROUP.INSIDE", "RESERVE.GROUP.LOCATION", "GENUS")] %>% unique()
+
+# get genus names in Italics for later plotting 
+# long_table_dt_sfct$GENUS <-  paste0("italic(", long_table_dt_sfct$GENUS,")")
+
+# convert all variables to factors
+long_table_dt_sfct <- long_table_dt_sfct[, lapply(.SD, as.factor)]
+
+# number of categories per variable
+cats <- apply(long_table_dt_sfct, 2, function(x) nlevels(as.factor(x)))
+cats
+
+# apply MCA
+mca1 = MCA(long_table_dt_sfct, graph = FALSE)
+summary(mca1)
+explor(mca1)
+
+
+# table of eigenvalues
+mca1$eig
+
+dim_1_perc <-  signif(mca1$eig[1,3], digits = 2)  
+dim_2_perc <- signif(mca1$eig[2,3] - dim_1_perc, digits = 2)  
+
+
+plot(mca1$eig[ , 2])
+
+# column coordinates
+head(mca1$var$coord)
+
+# row coordinates
+head(mca1$ind$coord)
+
+# data frames for ggplot
+mca1_vars_df = data.frame(mca1$var$coord, Variable = rep(names(cats), cats))
+mca1_obs_df = data.frame(mca1$ind$coord)
+
+# MCA plot of observations and categories
+p_mca <- ggplot(data = mca1_obs_df, aes(x = Dim.1, y = Dim.2)) + 
+    geom_hline(yintercept = 0, colour = "gray70") + 
+    geom_vline(xintercept = 0, colour = "gray70") + 
+    geom_point(colour = "gray50", alpha = 0.7) + 
+    geom_density2d(colour = "gray80") + 
+    geom_label_repel(data = mca1_vars_df, aes(x = Dim.1, y = Dim.2, label = rownames(mca1_vars_df), colour = Variable), max.overlaps = Inf) + 
+    scale_colour_discrete(name = "Variable") +
+    theme_bw() +
+    theme(legend.position = "none") +
+    xlab(paste0("Dim. 1 (", dim_1_perc,"% Variance)")) + 
+    ylab(paste0("Dim. 2 (", dim_2_perc,"% Variance)"))
+ggsave("210312_998_r_summarize_results_mca.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1.5, width = 150, height = 150, units = c("mm"),
+         dpi = 500, limitsize = TRUE)     
+
+# see https://rpkgs.datanovia.com/factoextra/reference/fviz_contrib.html
+p_cntrb <- fviz_contrib(mca1, choice="var", axes = 1, top = 10, fill = "lightgray", color = "grey") + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust=1)) +
+  theme(title = element_blank())
+ggsave("210312_998_r_summarize_results_mca_dim1.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1.3, width = 50, height = 25, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+# IX. Multiple Correspondence analysis
+# =======================================
+
+# arrange plots
+ggarrange(ggarrange(p_eb, p_nmds, p_cntrb, ncol = 3, labels = c("A", "B", "D")),
+          ggarrange(p_mca, ncol = 1, labels = c("C")),
+          nrow = 2, heights = c(3.5, 6.5))
+
+ggsave("210312_998_r_summarize_results_fig2_draft.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 200, height = 225, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
