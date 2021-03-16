@@ -353,9 +353,10 @@
 * **13-Mar-2021** - worked on results recode
     * implements indicator species analysis  - as outlined
     * implement MCS - across SET.ID to complement smallish plot
-    * commit `foo`
-    
+    * commit `d95a49974e3f70a387c1b2b9f468832864429238` 
+* **16-Mar-2021** - worked on results recode
+  * completed ANOSIM  analysis - as outlined
+  * modified figure labels
+  * added asterisk ("*") for non-NZ fish
   * **next**
-    * complete ANOSIM  analysis - as outlined
     * check if ICC usage is appropriate
-    

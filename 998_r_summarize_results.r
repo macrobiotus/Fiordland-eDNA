@@ -56,6 +56,20 @@ long_table <- long_table %>% mutate( EDNA.PRES = case_when(SAMPLE.TYPE == "eDNA"
 long_table <- long_table %>% mutate( BOTH.PRES = case_when(BRUV.PRES == 1 | EDNA.PRES == 1 ~ 1, TRUE ~ 0))
 
 
+# 16-Mar-2021 add asterisks ("*") to non-NZ species, and ("**") to non-fish (mammals and crustaceans)
+#  after checking with list 
+#  Roberts, C., Stewart, A., Struthers, C., Barker, J. & Kortet, S. 2019 Checklist of the Fishes of New Zealand. 
+
+nonnz_fish <- c("Asterropteryx", "Banjos", "Benitochromis", "Bostrychus", "Bovichtus", "Caprodon", "Coptodon", "Engraulis", "Gobiesox", "Gymnoscopelus", "Helcogramma", "Microcanthus", "Opistognathus", "Phoxinus", "Sander", "Scobinichthys")
+nonnz_othr <- c("Macroctopus", "Jasus", "Arctocephalus", "Balaenoptera", "Tursiops")
+
+long_table <- long_table %>% mutate(GENUS = case_when(GENUS %in% nonnz_fish ~ paste0(GENUS, "*"),
+                                        GENUS %in% nonnz_othr ~ paste0(GENUS, "**"),
+                                        TRUE                  ~ GENUS)
+                                        )
+
+long_table$GENUS
+
 # IV. Analyse BRUV vs EDNA 
 # =========================
 
@@ -117,9 +131,10 @@ p_eb <- ggplot(iccs, aes(x = LEVEL, y = VALUE, ymin = LBOUND, ymax = UBOUND)) +
   geom_hline(yintercept = 0.5, color="gray", linetype="dashed") +
   geom_hline(yintercept = 0, color="gray", linetype="dashed") +
   annotate(geom = "text", x = 0.5, y = 1.1, label = "excellent", hjust = 0, color="gray") +
-  annotate(geom = "text", x = 0.5, y = 0.8, label = "good", hjust = 0, color="gray") +
+  annotate(geom = "text", x = 0.5, y = 0.85, label = "good", hjust = 0, color="gray") +
   annotate(geom = "text", x = 0.5, y = 0.6, label = "moderate", hjust = 0, color="gray") +
   annotate(geom = "text", x = 0.5, y = 0.4, label = "poor", hjust = 0, color="gray") +
+  annotate(geom = "text", x = 0.5, y = -0.1, label = "contradictory", hjust = 0, color="gray") +
   xlab("Taxonomic level") + 
   ylab("ICC (BRUV, eDNA)") +
   scale_x_discrete(labels=paste0(iccs$LEVEL," (n=", iccs$SUBJECTS, ")" )) +
@@ -195,6 +210,16 @@ ggsave("210312_998_r_summarize_results_jaccard.pdf", plot = last_plot(),
 # prior to performing an ANOSIM."
 # "...the higher the R value, the more dissimilar [...] groups are in terms of [...] community composition."
 
+# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
+#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+long_table_dt_agg_gen_sets <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("SET.ID", "RESERVE.GROUP.LOCATION", "INSIDE.RESERVE", "RESERVE.GROUP", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+
+# rename SET.ID to circumvent naming snafu with package data.table
+setnames(long_table_dt_agg_gen_sets, "SET.ID", "SET_ID")
+
+# reshape to observation matrix digestible by Vegan, discrete observations will be summed per genus
+long_table_dt_agg_gen_mat_sets <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_gen_sets), SET_ID~GENUS, value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
+
 
 # A. Test if RESERVE.GROUP.LOCATIONs are significantly different 
 # -----------------------------------------------------------------
@@ -202,44 +227,46 @@ ggsave("210312_998_r_summarize_results_jaccard.pdf", plot = last_plot(),
 # - To test if there is a statistical difference between the fish communities of two or more groups of samples.
 # - Null Hypothesis: there is no difference between the microbial communities of your groups of samples.
 
-# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
-#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
-long_table_dt_agg_gen_sets <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("SET.ID", "RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
-
-# rename SET.ID to circumvent naming snafu with package data.table
-setnames(long_table_dt_agg_gen_sets, "SET.ID", "SET_ID")
-
-# reshape to observation matrix digestible by Vegan, discrete observations will be summed per genus
-long_table_dt_agg_gen_mat_sets <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_gen_sets), SET_ID~GENUS, value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
 
 # get grouping variable of  RESERVE.GROUP.LOCATION
-groupings <- as_tibble(long_table_dt_agg_gen_sets %>% select( SET_ID, RESERVE.GROUP.LOCATION)) %>% distinct()
+groupings <- as_tibble(long_table_dt_agg_gen_sets %>% select(SET_ID, RESERVE.GROUP.LOCATION)) %>% distinct()
 
 long_table_dt_agg_gen_mat_sets_ano <-  anosim(long_table_dt_agg_gen_mat_sets, groupings$RESERVE.GROUP.LOCATION, distance = "jaccard", permutations = 9999)
+summary(long_table_dt_agg_gen_mat_sets_ano)
 
 # Dissimilarity: jaccard 
 # 
 # ANOSIM statistic R: 0.1992 
-#       Significance: 0.0244 
+#       Significance: 0.0256 
 # 
 # Permutation: free
 # Number of permutations: 9999
 
+# B. Test if sample locations (RESERVE.GROUP) are significantly different 
+# -----------------------------------------------------------------
+
+# get grouping variable of  RESERVE.GROUP.LOCATION
+groupings <- as_tibble(long_table_dt_agg_gen_sets %>% select(SET_ID, RESERVE.GROUP)) %>% distinct()
+
+long_table_dt_agg_gen_mat_sets_ano <-  anosim(long_table_dt_agg_gen_mat_sets, groupings$RESERVE.GROUP, distance = "jaccard", permutations = 9999)
+summary(long_table_dt_agg_gen_mat_sets_ano)
+
+# Call:
+# anosim(x = long_table_dt_agg_gen_mat_sets, grouping = groupings$RESERVE.GROUP,      permutations = 9999, distance = "jaccard") 
+# Dissimilarity: jaccard 
+# 
+# ANOSIM statistic R: 0.1045 
+#       Significance: 0.0956 
+# 
+# Permutation: free
+# Number of permutations: 9999
+
+
 # B. Test if inside/outside MR (INSIDE.RESERVE) are significantly different 
 # -----------------------------------------------------------------
 
-# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
-#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
-long_table_dt_agg_gen_sets <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("SET.ID", "INSIDE.RESERVE", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
-
-# rename SET.ID to circumvent naming snafu with package data.table
-setnames(long_table_dt_agg_gen_sets, "SET.ID", "SET_ID")
-
-# reshape to observation matrix digestible by Vegan, discrete observations will be summed per genus
-long_table_dt_agg_gen_mat_sets <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_gen_sets), SET_ID~GENUS, value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
-
 # get grouping variable of  RESERVE.GROUP.LOCATION
-groupings <- as_tibble(long_table_dt_agg_gen_sets %>% select( SET_ID, INSIDE.RESERVE)) %>% distinct()
+groupings <- as_tibble(long_table_dt_agg_gen_sets %>% select(SET_ID, INSIDE.RESERVE)) %>% distinct()
 
 long_table_dt_agg_gen_mat_sets_ano <-  anosim(long_table_dt_agg_gen_mat_sets, groupings$INSIDE.RESERVE, distance = "jaccard", permutations = 9999)
 
@@ -264,7 +291,7 @@ long_table_dt_agg_gen_mat_sets_ano <-  anosim(long_table_dt_agg_gen_mat_sets, gr
 # analysis by combining groups of sites. Oikos 119, 1674Ð1684.
 # (doi:10.1111/j.1600-0706.2010.18334.x)
 
-long_table_dt_agg_gen_sets <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("SET.ID", "INSIDE.RESERVE", "RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+long_table_dt_agg_gen_sets <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("SET.ID", "INSIDE.RESERVE", "RESERVE.GROUP.LOCATION", "RESERVE.GROUP", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
 
 # rename SET.ID to circumvent naming snafu with package data.table
 setnames(long_table_dt_agg_gen_sets, "SET.ID", "SET_ID")
@@ -274,47 +301,15 @@ long_table_dt_agg_gen_mat_sets <- as.matrix(data.table::dcast(setDT(long_table_d
 
 # define grouping vectors 
 group.INSIDE.RESERVE <- as_tibble(long_table_dt_agg_gen_sets %>% select( SET_ID, INSIDE.RESERVE)) %>% distinct() %>% pull(INSIDE.RESERVE)
+group.RESERVE.GROUP <- as_tibble(long_table_dt_agg_gen_sets %>% select(SET_ID, RESERVE.GROUP)) %>% distinct() %>% pull(RESERVE.GROUP)
 group.RESERVE.GROUP.LOCATION <- as_tibble(long_table_dt_agg_gen_sets %>% select(SET_ID, RESERVE.GROUP.LOCATION)) %>% distinct() %>% pull(RESERVE.GROUP.LOCATION)
 
-# A. Find indicator species at each RESERVE.GROUP.LOCATION
-# -----------------------------------------------------------------
-
-ind_rgl = multipatt(long_table_dt_agg_gen_mat_sets, group.RESERVE.GROUP.LOCATION, func = "r.g", control = how(nperm=9999))
-summary(ind_rgl)
-
-# Multilevel pattern analysis
-#  ---------------------------
-# 
-#  Association function: r.g
-#  Significance level (alpha): 0.05
-# 
-#  Total number of species: 61
-#  Selected number of species: 2 
-#  Number of species associated to 1 group: 2 
-#  Number of species associated to 2 groups: 0 
-#  Number of species associated to 3 groups: 0 
-#  Number of species associated to 4 groups: 0 
-#  Number of species associated to 5 groups: 0 
-# 
-#  List of species associated to each combination: 
-# 
-#  Group FF MR  #sps.  1 
-#                stat p.value   
-# Opistognathus 0.934  0.0032 **
-# 
-#  Group LS MR  #sps.  1 
-#         stat p.value  
-# Banjos 0.775  0.0211 *
-# 
-# Results - add assignmnet quality to Banjos and Opistognathus
-#   stat: higher means the ASV is more strongly associated
-# Discussion: With good reference data we would have a new indicator species
-
-# B.Find indicator species INSIDE.RESERVE
-# ---------------------------------------
+# A. Find indicator species INSIDE.RESERVE
+# ----------------------------------------
 
 ind_ir = multipatt(long_table_dt_agg_gen_mat_sets, group.INSIDE.RESERVE, func = "r.g", control = how(nperm=9999))
 summary(ind_ir)
+
 
 # Multilevel pattern analysis
 #  ---------------------------
@@ -329,13 +324,74 @@ summary(ind_ir)
 #  List of species associated to each combination: 
 # 
 #  Group TRUE  #sps.  1 
-#                stat p.value  
-# Opistognathus 0.442  0.0339 *
-# ---
-# Signif. codes:  0 Ô***Õ 0.001 Ô**Õ 0.01 Ô*Õ 0.05 Ô.Õ 0.1 Ô Õ 1 
+#                 stat p.value  
+# Opistognathus* 0.442  0.0365 *
+
+
+# B. Find indicator species at each RESERVE.GROUP
+# -----------------------------------------------
+
+ind_rgl = multipatt(long_table_dt_agg_gen_mat_sets, group.RESERVE.GROUP, func = "r.g", control = how(nperm=9999))
+summary(ind_rgl)
+
+# Multilevel pattern analysis
+#  ---------------------------
 # 
-# Results - add assignmnet quality to Banjos and Opistognathus
-# Discussion: With good reference data we would have a new indicator species
+#  Association function: r.g
+#  Significance level (alpha): 0.05
+# 
+#  Total number of species: 61
+#  Selected number of species: 2 
+#  Number of species associated to 1 group: 2 
+#  Number of species associated to 2 groups: 0 
+# 
+#  List of species associated to each combination: 
+# 
+#  Group FF  #sps.  1 
+#              stat p.value  
+# Galeorhinus 0.555  0.0433 *
+# 
+#  Group WJ  #sps.  1 
+#               stat p.value  
+# Forsterygion 0.632  0.0239 *
+# ---
+# Signif. codes:  0 Ô***Õ 0.001 Ô**Õ 0.01 Ô*Õ 0.05 Ô.Õ 0.1 Ô Õ 1
+
+
+# C. Find indicator species at each RESERVE.GROUP.LOCATION
+# ---------------------------------------------------------
+
+ind_rgl = multipatt(long_table_dt_agg_gen_mat_sets, group.RESERVE.GROUP.LOCATION, func = "r.g", control = how(nperm=9999))
+summary(ind_rgl)
+
+# Multilevel pattern analysis
+#  ---------------------------
+# 
+#  Association function: r.g
+#  Significance level (alpha): 0.05
+# 
+#  Total number of species: 61
+#  Selected number of species: 3 
+#  Number of species associated to 1 group: 2 
+#  Number of species associated to 2 groups: 1 
+#  Number of species associated to 3 groups: 0 
+#  Number of species associated to 4 groups: 0 
+#  Number of species associated to 5 groups: 0 
+# 
+#  List of species associated to each combination: 
+# 
+#  Group FF MR  #sps.  1 
+#                 stat p.value   
+# Opistognathus* 0.934  0.0036 **
+# 
+#  Group LS MR  #sps.  1 
+#          stat p.value  
+# Banjos* 0.775  0.0213 *
+# 
+#  Group FF MR+LS CTRL  #sps.  1 
+#                 stat p.value  
+# Scobinichthys* 0.676  0.0462 *
+
 
 
 # VIII. Multiple Correspondence analysis
@@ -409,15 +465,14 @@ ggsave("210312_998_r_summarize_results_mca_dim1.pdf", plot = last_plot(),
          scale = 1.3, width = 50, height = 25, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-# IX. Multiple Correspondence analysis
-# =======================================
+# IX. Combine plots for manuscript 
+# ================================
 
 # arrange plots
-ggarrange(ggarrange(p_eb, p_nmds, p_cntrb, ncol = 3, labels = c("A", "B", "D")),
-          ggarrange(p_mca, ncol = 1, labels = c("C")),
-          nrow = 2, heights = c(3.5, 6.5))
-
+ggarrange(ggarrange(p_eb, p_nmds, p_cntrb, ncol = 3, labels = c("(a)", "(b)", "(d)")),
+          ggarrange(p_mca, ncol = 1, labels = c("(c)")),
+          nrow = 2, heights = c(3, 7))
 ggsave("210312_998_r_summarize_results_fig2_draft.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 200, height = 225, units = c("mm"),
+         scale = 1, width = 250, height = 300, units = c("mm"),
          dpi = 500, limitsize = TRUE)
