@@ -68,7 +68,11 @@ long_table <- long_table %>% mutate(GENUS = case_when(GENUS %in% nonnz_fish ~ pa
                                         TRUE                  ~ GENUS)
                                         )
 
-long_table$GENUS
+# describe ASV  yield per primer
+smpl_eff <- long_table %>% ungroup() %>% select(SET.ID, REP.ID, SAMPLE.TYPE, PRIMER.LABEL, RESERVE.GROUP.LOCATION) %>% filter(SAMPLE.TYPE == "eDNA") %>% arrange(SET.ID, RESERVE.GROUP.LOCATION) %>% print(n = Inf)
+smpl_eff_grp <- smpl_eff %>% mutate(PRIMER.LABEL  = gsub(".*Mi", "", PRIMER.LABEL)) %>% group_by(RESERVE.GROUP.LOCATION, PRIMER.LABEL) %>% summarise(n = n()) %>% ungroup()
+smpl_eff_grp %>% arrange(PRIMER.LABEL, RESERVE.GROUP.LOCATION)
+
 
 # IV. Analyse BRUV vs EDNA 
 # =========================
@@ -162,6 +166,9 @@ long_table_dt_agg_gen <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("RES
 
 # reshape to observation matrix digestible by Vegan, discrete observations will be summed per genus
 long_table_dt_agg_gen_mat <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_gen), RESERVE.GROUP.LOCATION~GENUS, value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
+
+jacc_matrix <- vegdist(long_table_dt_agg_gen_mat, distance="jaccard" )
+summary(jacc_matrix)
 
 # get a Jaccard distance matrix (distance define by overlap between sites)
 #   see https://rpubs.com/CPEL/NMDS
@@ -393,7 +400,6 @@ summary(ind_rgl)
 # Scobinichthys* 0.676  0.0462 *
 
 
-
 # VIII. Multiple Correspondence analysis
 # =======================================
 
@@ -469,8 +475,8 @@ ggsave("210312_998_r_summarize_results_mca_dim1.pdf", plot = last_plot(),
 # ================================
 
 # arrange plots
-ggarrange(ggarrange(p_eb, p_nmds, p_cntrb, ncol = 3, labels = c("(a)", "(b)", "(d)")),
-          ggarrange(p_mca, ncol = 1, labels = c("(c)")),
+ggarrange(ggarrange(p_eb, p_cntrb, p_nmds, ncol = 3, labels = c("(a)", "(c)", "(d)")),
+          ggarrange(p_mca, ncol = 1, labels = c("(b)")),
           nrow = 2, heights = c(3, 7))
 ggsave("210312_998_r_summarize_results_fig2_draft.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
