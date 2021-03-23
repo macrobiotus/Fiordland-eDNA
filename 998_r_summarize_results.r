@@ -15,6 +15,10 @@ library("future.apply") # faster handling of large tables
 library("data.table")   # faster handling of large tables
 
 library("irr")          # to calculate ICCs between BRIUV and eDNA - see refs below
+
+library("eulerr")       # to compare BRIUV and eDNA
+library("ggplotify")
+
 library("vegan")        # for NMDS 
 library("indicspecies") # indicator species  - see citation below
 
@@ -87,11 +91,11 @@ AsvPresByMethd <- long_table %>% select (RESERVE.GROUP, RESERVE.GROUP.LOCATION, 
 SpcPresByMethd <- long_table %>% select (RESERVE.GROUP, RESERVE.GROUP.LOCATION, SET.ID, BOTH.PRES, BRUV.PRES, EDNA.PRES, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) %>% distinct() %>% print(n = Inf)
 
 # isolate Tibbles for ICC calculation
-SpcPresByMethdPhl <- SpcPresByMethd  %>% group_by(PHYLUM) %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
-SpcPresByMethdCls <- SpcPresByMethd  %>% group_by(CLASS) %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
-SpcPresByMethdOrd <- SpcPresByMethd  %>% group_by(ORDER) %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
-SpcPresByMethdFam <- SpcPresByMethd  %>% group_by(FAMILY) %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES))
-SpcPresByMethdGen <- SpcPresByMethd  %>% group_by(GENUS) %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
+SpcPresByMethdPhl <- SpcPresByMethd  %>% group_by(PHYLUM)  %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
+SpcPresByMethdCls <- SpcPresByMethd  %>% group_by(CLASS)   %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
+SpcPresByMethdOrd <- SpcPresByMethd  %>% group_by(ORDER)   %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
+SpcPresByMethdFam <- SpcPresByMethd  %>% group_by(FAMILY)  %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES))
+SpcPresByMethdGen <- SpcPresByMethd  %>% group_by(GENUS)   %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
 SpcPresByMethdSpc <- SpcPresByMethd  %>% group_by(SPECIES) %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
 
 
@@ -102,14 +106,6 @@ IccOrd <- icc(SpcPresByMethdOrd[ , 2:3], model = "twoway", type = "agreement", u
 IccFam <- icc(SpcPresByMethdFam[ , 2:3], model = "twoway", type = "agreement", unit = "single")
 IccGen <- icc(SpcPresByMethdGen[ , 2:3], model = "twoway", type = "agreement", unit = "single")
 IccSpc <- icc(SpcPresByMethdSpc[ , 2:3], model = "twoway", type = "agreement", unit = "single")
-
-# continue this code if Pearson is desirable
-# foo1 <- cor.test(SpcPresByMethdPhl$SPEC.OBSCNT.EDNA,  SpcPresByMethdPhl$SPEC.OBSCNT.BRUV,  method=c("pearson"))
-# foo2 <- cor.test(SpcPresByMethdCls$SPEC.OBSCNT.EDNA,  SpcPresByMethdCls$SPEC.OBSCNT.BRUV,  method=c("pearson"))
-# foo3 <- cor.test(SpcPresByMethdOrd$SPEC.OBSCNT.EDNA,  SpcPresByMethdOrd$SPEC.OBSCNT.BRUV,  method=c("pearson"))
-# foo4 <- cor.test(SpcPresByMethdFam$SPEC.OBSCNT.EDNA,  SpcPresByMethdFam$SPEC.OBSCNT.BRUV,  method=c("pearson"))
-# foo5 <- cor.test(SpcPresByMethdGen$SPEC.OBSCNT.EDNA,  SpcPresByMethdGen$SPEC.OBSCNT.BRUV,  method=c("pearson"))
-# foo6 <- cor.test(SpcPresByMethdSpc$SPEC.OBSCNT.EDNA,  SpcPresByMethdSpc$SPEC.OBSCNT.BRUV,  method=c("pearson"))
 
 # build Tibble from ICC results for plotting
 icc_temp <- do.call(rbind, Map(data.frame, PHYLUM=IccPhl, CLASS=IccCls, ORDER=IccOrd, FAMILY=IccFam, GENUS=IccGen, SPECIES=IccSpc))
@@ -148,7 +144,37 @@ ggsave("210312_998_r_summarize_results_edna_bruv_comp.pdf", plot = last_plot(),
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1, width = 75, height = 75, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
-  
+
+# ICC alternative (still unfinished) 
+# ----------------------------------
+
+SpcPresByMethd <- long_table %>% select (RESERVE.GROUP, RESERVE.GROUP.LOCATION, SET.ID, BOTH.PRES, BRUV.PRES, EDNA.PRES, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) %>% distinct() %>% print(n = Inf)
+
+SpcPresByMethdPhl <- SpcPresByMethd  %>% group_by(PHYLUM)  %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES)))
+SpcPresByMethdCls <- SpcPresByMethd  %>% group_by(CLASS)   %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES))) 
+SpcPresByMethdOrd <- SpcPresByMethd  %>% group_by(ORDER)   %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES))) 
+SpcPresByMethdFam <- SpcPresByMethd  %>% group_by(FAMILY)  %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES)))
+SpcPresByMethdGen <- SpcPresByMethd  %>% group_by(GENUS)   %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES))) 
+SpcPresByMethdSpc <- SpcPresByMethd  %>% group_by(SPECIES) %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES))) 
+
+fitPhl <- euler(SpcPresByMethdPhl[ , 2:3])
+fitCls <- euler(SpcPresByMethdCls[ , 2:3])
+fitOrd <- euler(SpcPresByMethdOrd[ , 2:3])
+fitFam <- euler(SpcPresByMethdFam[ , 2:3])
+fitGen <- euler(SpcPresByMethdGen[ , 2:3])
+fitSpc <- euler(SpcPresByMethdSpc[ , 2:3])
+
+
+pPhl <- as.ggplot(plot(fitPhl, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels = list(font=1, cex=0.8))) + labs(subtitle = "Phylum")
+pCls <- as.ggplot(plot(fitCls, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Class")
+pOrd <- as.ggplot(plot(fitOrd, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Order")
+pFam <- as.ggplot(plot(fitFam, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Family")
+pGen <- as.ggplot(plot(fitGen, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Genus")
+pSpc <- as.ggplot(plot(fitSpc, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Species")
+
+pEuler <- ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc,  ncol = 6, nrow = 1)
+
+
 # V. Show RESERVE.GROUP.LOCATION similarity based on GENUS overlap 
 # ===================================================================
  
@@ -422,7 +448,7 @@ cats
 # apply MCA
 mca1 = MCA(long_table_dt_sfct, graph = FALSE)
 summary(mca1)
-explor(mca1)
+# explor(mca1)
 
 
 # table of eigenvalues
@@ -449,13 +475,14 @@ p_mca <- ggplot(data = mca1_obs_df, aes(x = Dim.1, y = Dim.2)) +
     geom_hline(yintercept = 0, colour = "gray70") + 
     geom_vline(xintercept = 0, colour = "gray70") + 
     geom_point(colour = "gray50", alpha = 0.7) + 
-    geom_density2d(colour = "gray80") + 
-    geom_label_repel(data = mca1_vars_df, aes(x = Dim.1, y = Dim.2, label = rownames(mca1_vars_df), colour = Variable), max.overlaps = Inf) + 
+    geom_density2d(colour = "gray80") +
     scale_colour_discrete(name = "Variable") +
+    geom_label_repel(data = mca1_vars_df, aes(x = Dim.1, y = Dim.2, label = rownames(mca1_vars_df), colour = Variable), max.overlaps = Inf, point.size = NA) +
     theme_bw() +
     theme(legend.position = "none") +
-    xlab(paste0("Dim. 1 (", dim_1_perc,"% Variance)")) + 
-    ylab(paste0("Dim. 2 (", dim_2_perc,"% Variance)"))
+    xlab(paste0("Dim. 1 (", dim_1_perc, "% Variance)")) + 
+    ylab(paste0("Dim. 2 (", dim_2_perc, "% Variance)"))
+    
 ggsave("210312_998_r_summarize_results_mca.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1.5, width = 150, height = 150, units = c("mm"),
@@ -474,11 +501,33 @@ ggsave("210312_998_r_summarize_results_mca_dim1.pdf", plot = last_plot(),
 # IX. Combine plots for manuscript 
 # ================================
 
-# arrange plots
+# arrange plots - version with ICCs
 ggarrange(ggarrange(p_eb, p_cntrb, p_nmds, ncol = 3, labels = c("(a)", "(c)", "(d)")),
           ggarrange(p_mca, ncol = 1, labels = c("(b)")),
           nrow = 2, heights = c(3, 7))
-ggsave("210312_998_r_summarize_results_fig2_draft.pdf", plot = last_plot(), 
+ggsave("210312_998_r_summarize_results_fig2_draft_ICC.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1, width = 250, height = 300, units = c("mm"),
          dpi = 500, limitsize = TRUE)
+
+# arrange plots - version with Venn diagrams - version 1
+ggarrange(ggarrange(ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc, ncol = 3, nrow = 2), p_nmds, p_cntrb, ncol = 3, nrow = 1, labels = c("(a)", "(c)", "(d)")),
+          ggarrange(p_mca, ncol = 1, labels = c("(c)")),
+          nrow = 2, heights = c(3, 7))
+
+# arrange plots - version with Venn diagrams - version 2
+ggarrange(
+  ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc, ncol = 1, nrow = 6, labels = c("(a)")),
+  ggarrange(
+    ggarrange(p_nmds, p_cntrb,  ncol = 2, nrow = 1, labels = c("(b)", "(d)")),
+    ggarrange(p_mca, ncol = 1, nrow = 1, labels = c("(c)")), 
+    nrow = 2, heights = c(3, 7)
+    ), ncol = 2, widths = c(2, 8)
+  )    
+
+
+ggsave("210312_998_r_summarize_results_fig2_draft_Venn.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 250, height = 300, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
