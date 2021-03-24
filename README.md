@@ -363,4 +363,5 @@
   * commit ` 9c2b10d79c3bd28e76527ef6038ddbe34ee36145`
 * **23-Mar-2021** - finding ICC alternative
   * committing unknown changes - `4e4a1207350954a180597a2223eb324cd6daeb16`
-  * omplemneted Venn diagrams and re-arranged figures
+  * implemented Venn diagrams and re-arranged figures
+  * commit `1e77045d533b7e64c7afa00fa14d7eec747286f1`
