@@ -365,3 +365,11 @@
   * committing unknown changes - `4e4a1207350954a180597a2223eb324cd6daeb16`
   * implemented Venn diagrams and re-arranged figures
   * commit `1e77045d533b7e64c7afa00fa14d7eec747286f1`
+* **24-Mar-2021** - started NMDS overhaul - all points, no grouping
+  * committed beforehand: `e668968a27c3e9a5179a2a57855ba0906f47feed`
+  * saved code as scratch `/Users/paul/Documents/OU_eDNA/201126_script_scratch/998_r_summarize_results_more_nmds.r`
+  * and restored above commit
+* **25-Mar-2021** - code checks for doc revision
+  * 
+
+  

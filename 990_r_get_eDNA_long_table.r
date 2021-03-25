@@ -430,6 +430,13 @@ ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered-location-asv-counts.pdf"
 # written summaries
 capture.output(get_molten_ps_description(psob_molten) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-unfiltered_summary.txt")
 
+# revision 25-03-2021: get_molten_ps_description works like so:
+psob_molten %>% group_by(SAMPLE) %>% summarize(n = sum(ABUNDANCE)) %>% pull(n) %>% summary()
+psob_molten %>% group_by(SAMPLE) %>% summarize(n = sum(ABUNDANCE)) %>% pull(n) %>% sd()
+
+psob_molten %>% group_by(ASV) %>% summarize(n = sum(ABUNDANCE)) %>% pull(n) %>% summary()
+psob_molten %>% group_by(ASV) %>% summarize(n = sum(ABUNDANCE)) %>% pull(n) %>% sd()
+
 # plate loadings - chordates only otherwise plotter crashes
 # - asvs
 
@@ -789,6 +796,13 @@ ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-asv-coun
 
 # get text summary
 capture.output(get_molten_ps_description(psob_molten_clean_marine) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_summary.txt")
+
+# revision 25-03-2021: get_molten_ps_description works like so:
+psob_molten_clean_marine %>% group_by(SAMPLE) %>% summarize(n = sum(ABUNDANCE)) %>% pull(n) %>% summary()
+psob_molten_clean_marine %>% group_by(SAMPLE) %>% summarize(n = sum(ABUNDANCE)) %>% pull(n) %>% sd()
+
+psob_molten_clean_marine %>% group_by(ASV) %>% summarize(n = sum(ABUNDANCE)) %>% pull(n) %>% summary()
+psob_molten_clean_marine %>% group_by(ASV) %>% summarize(n = sum(ABUNDANCE)) %>% pull(n) %>% sd()
 
 
 # get text summary with alignment qualities
