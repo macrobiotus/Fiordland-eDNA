@@ -3,7 +3,6 @@
 #  *  Get results from long tables  *
 #  *                                *
 #  **********************************
-#  10-Mar-2022
 
 # I. Load packages
 # ================
@@ -220,8 +219,8 @@ long_table_dt_agg_gen_mat_jacc_NMS.genus <- as_tibble(scores(long_table_dt_agg_g
 
 p_nmds <- ggplot(long_table_dt_agg_gen_mat_jacc_NMS.scores, aes(x = NMDS1, y = NMDS2)) +
    geom_point(data=long_table_dt_agg_gen_mat_jacc_NMS.genus, aes(x=NMDS1,y=NMDS2), size=3) +
-   geom_point(size = 6, colour = "red", shape = c(16,16,17,17,18,18)) +
-   geom_point(size = 6, colour = "red", shape = c(16,16,17,17,18,18)) +
+   geom_point(size = 6, colour = "darkred", shape = c(16,16,17,17,15,15)) +
+   geom_point(size = 5, colour = "red", shape = c(16,16,17,17,15,15)) +
    geom_label_repel(aes(label=RESERVE.GROUP.LOCATION), point.padding = 0.5) +
    theme_bw()
 ggsave("210312_998_r_summarize_results_jaccard.pdf", plot = last_plot(), 
@@ -295,7 +294,7 @@ summary(long_table_dt_agg_gen_mat_sets_ano)
 # Number of permutations: 9999
 
 
-# B. Test if inside/outside MR (INSIDE.RESERVE) are significantly different 
+# C. Test if inside/outside MR (INSIDE.RESERVE) are significantly different 
 # -----------------------------------------------------------------
 
 # get grouping variable of  RESERVE.GROUP.LOCATION
@@ -498,10 +497,174 @@ ggsave("210312_998_r_summarize_results_mca_dim1.pdf", plot = last_plot(),
          scale = 1.3, width = 50, height = 25, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-# IX. Combine plots for manuscript 
+
+# IX. Create a better map for manuscript  
+# =====================================
+
+# ** started 29-03-2021 - not finished **
+
+# following 
+#  https://www.r-spatial.org/r/2018/10/25/ggplot2-sf.html
+#  https://semba-blog.netlify.app/10/20/2018/genetic-connectivity-in-western-indian-ocean-region/
+
+# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
+#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+# https://gis.stackexchange.com/questions/243569/simplify-polygons-of-sf-object
+
+library("sf")          # simple feature objects
+library("rmapshaper")  # simplify shape file layers
+library("ggsflabel")   # label simple feature in ggplot  https://github.com/yutannihilation/ggsflabel - possibly inluded in ggplot
+library("ggsn")        # scale bar in ggplot map
+
+# library("tidyverse")
+# library("rgdal")
+# library("rnaturalearth")
+# library("rnaturalearthdata")
+
+
+# 1.) read the shape file
+# -----------------------
+nzshp_hires = read_sf("/Users/paul/GIS/NZ_coast/NZ_Coast_isl.shp")
+
+
+# 2.) re-project shape file (to simple WGS84)
+# -------------------------------------------
+# https://r-spatial.github.io/sf/reference/st_transform.html
+# https://www.earthdatascience.org/courses/earth-analytics/spatial-data-r/reproject-vector-data/
+# transfrom to simple WGS84, EPSG:4326, "+proj=longlat +datum=WGS84 +no_defs"
+nzshp_hires_WGS84 <- st_transform(nzshp_hires, crs = 4326)
+
+
+# 3.) simplify shape for low resolution map insets
+# -------------------------------------------------
+# https://gis.stackexchange.com/questions/243569/simplify-polygons-of-sf-object
+nzshp_lores_WGS84 <- rmapshaper::ms_simplify(input = as(nzshp_hires_WGS84, 'Spatial')) %>% st_as_sf()
+
+
+# 4.) define a bounding box around the field work area
+# -------------------------------------------------
+# https://geocompr.github.io/post/2019/ggplot2-inset-maps/
+# mins and max of point coordinates, and 0.1 degree added
+bb_fwork = st_as_sfc(st_bbox(c(xmin = (166.5-0.1), xmax = (167.0+0.1), ymax = (-46.04-0.1), ymin = (-45.52+0.1)), crs = st_crs(4326)))
+
+
+# 5.) draw overview map including  bounding box
+# ----------------------------------------
+map_inst <- ggplot(data = nzshp_lores_WGS84) +
+    geom_sf(fill = "grey93", color = "red", lwd = 0.5) +
+    geom_sf(data = bb_fwork, fill = NA, color = "darkred", size = 1) +
+    theme_void()
+    
+
+# 6.) draw location map including and add data
+# --------------------------------------------
+
+# get data to be shown
+# ````````````````````
+long_table_dt_map <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("MH.GPS.LAT", "MH.PPS.LONG", "RESERVE.GROUP", "RESERVE.GROUP.INSIDE", "RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+
+
+# group data for plotting and manuscript detail expansion
+# ```````````````````````````````````````````````````````
+# **** revisit this above - need species observations and genus observations *****
+# sum genus observations for each factor
+dt_genussum_rgl <- long_table_dt[,.(RESERVE.GROUP.LOCATION.GENUS.SUM=sum(BOTH.PRES)),.(RESERVE.GROUP.LOCATION)]
+dt_genussum_rg  <- long_table_dt[,.(RESERVE.GROUP.GENUS.SUM=sum(BOTH.PRES)),.(RESERVE.GROUP)]
+
+# correct genus observation effort for unequal sample effort
+dt_genussum_rgl$RESERVE.GROUP.LOCATION.GENUS.SUM.PS <- dt_genussum_rgl$RESERVE.GROUP.LOCATION.GENUS.SUM / c(4,4,2,3,4,4)
+dt_genussum_rgl
+summary(dt_genussum_rgl$RESERVE.GROUP.LOCATION.GENUS.SUM.PS)
+
+dt_genussum_rg$RESERVE.GROUP.LOCATION.SUM.PS <- dt_genussum_rg$RESERVE.GROUP.GENUS.SUM / c(8,5,8)
+dt_genussum_rg
+summary(dt_genussum_rg$RESERVE.GROUP.LOCATION.SUM.PS)
+
+
+# get bounding boxes
+# ```````````````````
+
+# https://stackoverflow.com/questions/54696440/create-polygons-representing-bounding-boxes-for-subgroups-using-sf
+# function calculates angle with respect to polygon centroid.
+# we need this to order the polygon correctly
+calc_angle <- function(lon,lat) {
+  cent_lon <- mean(lon)
+  cent_lat <- mean(lat)
+  ang <- atan2(lat - cent_lat, lon - cent_lon)
+
+  return(ang)
+}
+
+bbox <- long_table_dt_map %>%
+  group_by(RESERVE.GROUP.LOCATION) %>%
+  summarise(xmin = min(MH.PPS.LONG) -0.01 ,ymin = min(MH.GPS.LAT) -0.01, xmax=max(MH.PPS.LONG) +0.01,  ymax = max(MH.GPS.LAT) +0.01) %>%
+  gather(x,lon,c('xmin','xmax')) %>%
+  gather(y,lat,c('ymin','ymax')) %>%
+  st_as_sf(coords=c('lon','lat'),crs=4326,remove=F) %>%
+  group_by(RESERVE.GROUP.LOCATION) %>%
+  mutate(angle = calc_angle(lon,lat)) %>%
+  arrange(angle) %>%
+  summarise(do_union=FALSE) %>%
+  st_cast('POLYGON')
+
+
+# draw main map
+# ``````````````
+map_main <- ggplot(data = nzshp_lores_WGS84) +
+    geom_sf(fill = "lightgrey") +
+    geom_sf(data=bbox, fill = NA, color = "red", size = 1) + 
+    coord_sf( xlim = c((166.5-0.1), (167.0+0.1)), ylim = c((-46.04-0.1),(-45.52+0.1)), expand = FALSE) +
+    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "darkred", size = 4) +
+    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "red", size = 3) +
+    geom_sf_label(data=bbox, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 0.06, nudge_y = 0.06) + 
+    theme_bw() +
+    theme(legend.title = element_blank(), 
+          legend.position=c(.9,.1), 
+          legend.background = element_blank(), 
+          legend.key=element_blank(),
+          axis.title.x=element_blank(),
+          axis.title.y=element_blank()) +
+    annotation_custom(ggplotGrob(map_inst), xmin = 166.35, xmax = 166.7, ymin = -45.62, ymax = -45.45)
+
+ggsave("210401_998_r_summarize_results_fig1_draft.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 125, height = 175, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
+# draw genus map (not very useful)
+# ````````````````````````````````
+
+map_genera <- ggplot(data = nzshp_lores_WGS84) +
+    geom_sf(fill = "lightgrey") +
+    geom_sf(data=bbox, fill = NA, color = "red", size = 1) + 
+    coord_sf( xlim = c((166.5-0.1), (167.0+0.1)), ylim = c((-46.04-0.1),(-45.52+0.1)), expand = FALSE) +
+    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "darkred", size = 4) +
+    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "red", size = 3) +
+    geom_sf_label(data=bbox, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 0.06, nudge_y = 0.06) + 
+    geom_label_repel(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, label = GENUS), max.overlaps = Inf, point.size = NA) +
+    theme_bw() +
+    theme(legend.title = element_blank(), 
+          legend.position=c(.9,.1), 
+          legend.background = element_blank(), 
+          legend.key=element_blank(),
+          axis.title.x=element_blank(),
+          axis.title.y=element_blank())
+
+ggsave("210401_998_r_summarize_results_map_genara_draft.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 300, height = 500, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
+
+
+
+# X. Combine plots for manuscript 
 # ================================
 
-# arrange plots - version with ICCs
+# arrange plots - version 1 - with ICCs
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ggarrange(ggarrange(p_eb, p_cntrb, p_nmds, ncol = 3, labels = c("(a)", "(c)", "(d)")),
           ggarrange(p_mca, ncol = 1, labels = c("(b)")),
           nrow = 2, heights = c(3, 7))
@@ -515,7 +678,11 @@ ggarrange(ggarrange(ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc, ncol = 3, nrow
           ggarrange(p_mca, ncol = 1, labels = c("(c)")),
           nrow = 2, heights = c(3, 7))
 
-# arrange plots - version with Venn diagrams - version 2
+# arrange plots - version 2 -  with Venn diagrams
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# unifinished
+
 ggarrange(
   ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc, ncol = 1, nrow = 6, labels = c("(a)")),
   ggarrange(
@@ -531,3 +698,11 @@ ggsave("210312_998_r_summarize_results_fig2_draft_Venn.pdf", plot = last_plot(),
          scale = 1, width = 250, height = 300, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
+
+# arrange plots - version 3 -  with maps and Venndiagrams
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ggarrange(
+  ggarrange(map_main, ncol = 1, nrow = 1, labels = c("(a)")),
+  ggarrange(map_inst, p_nmds, ncol = 1, nrow = 2, labels = c("", "(b)"), heights = c(3, 7)),
+  ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc, ncol = 1, nrow = 6, labels = c("(c)")),
+  ncol = 3, nrow = 1)

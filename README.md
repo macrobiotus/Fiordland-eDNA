@@ -370,6 +370,10 @@
   * saved code as scratch `/Users/paul/Documents/OU_eDNA/201126_script_scratch/998_r_summarize_results_more_nmds.r`
   * and restored above commit
 * **25-Mar-2021** - code checks for doc revision
-  * 
-
+  *  commit `74f97bba1a22bf54b8ee939ee65b713d6378ec4`
+* **29-Mar-2021** - started to work on better map
+  * using `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+* **31-Mar-2021** - continued to work on better map
+* **01-Apr-2021** - continued to work on better map
+  * commit ``
   
