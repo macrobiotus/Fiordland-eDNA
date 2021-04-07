@@ -4,19 +4,23 @@
 #  *                                *
 #  **********************************
 
+
 # I. Load packages
 # ================
 
-library("tidyverse") # because we can't stop using it anymore
-library("ggrepel")   # to improve plot labels
+library("tidyverse")   # because we can't stop using it anymore
+library("ggrepel")     # to improve plot labels
 
 library("future.apply") # faster handling of large tables
 library("data.table")   # faster handling of large tables
 
-library("irr")          # to calculate ICCs between BRIUV and eDNA - see refs below
+library("sf")           # simple feature objects
+library("rmapshaper")   # simplify shape file layers
+library("ggsflabel")    # label simple feature in ggplot  https://github.com/yutannihilation/ggsflabel - possibly inluded in ggplot
+
 
 library("eulerr")       # to compare BRIUV and eDNA
-library("ggplotify")
+library("ggplotify")    # base R to Ggplot
 
 library("vegan")        # for NMDS 
 library("indicspecies") # indicator species  - see citation below
@@ -35,6 +39,8 @@ library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-gg
 #                      # 
 #                      # documentation at https://rdrr.io/cran/UpSetR/man/upset.html - hard to follow
 
+
+
 # II. Read in data
 # ================
 
@@ -44,6 +50,8 @@ gc()
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds")
 mdl_specs <- read_csv("/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210309_mdl_tablebyspecies.csv")
 mdl_genus <- read_csv("/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210309_mdl_tablebygenus.csv")
+
+
 
 # III. Format data 
 # ================
@@ -71,81 +79,137 @@ long_table <- long_table %>% mutate(GENUS = case_when(GENUS %in% nonnz_fish ~ pa
                                         TRUE                  ~ GENUS)
                                         )
 
-# describe ASV  yield per primer
-smpl_eff <- long_table %>% ungroup() %>% select(SET.ID, REP.ID, SAMPLE.TYPE, PRIMER.LABEL, RESERVE.GROUP.LOCATION) %>% filter(SAMPLE.TYPE == "eDNA") %>% arrange(SET.ID, RESERVE.GROUP.LOCATION) %>% print(n = Inf)
-smpl_eff_grp <- smpl_eff %>% mutate(PRIMER.LABEL  = gsub(".*Mi", "", PRIMER.LABEL)) %>% group_by(RESERVE.GROUP.LOCATION, PRIMER.LABEL) %>% summarise(n = n()) %>% ungroup()
-smpl_eff_grp %>% arrange(PRIMER.LABEL, RESERVE.GROUP.LOCATION)
+# check data
+print(long_table, n = Inf)
+names(long_table)
+
+# copy data to data table
+long_table_dt <- data.table(long_table)
+setkey(long_table_dt,ASV) 
 
 
-# IV. Analyse BRUV vs EDNA 
-# =========================
 
-# for now using ICC - possibly use something else
-# -----------------------------------------------
+# IV. Create a better map for manuscript  
+# =====================================
+
+# following 
+#  https://www.r-spatial.org/r/2018/10/25/ggplot2-sf.html
+#  https://semba-blog.netlify.app/10/20/2018/genetic-connectivity-in-western-indian-ocean-region/
+
+# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
+#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+# https://gis.stackexchange.com/questions/243569/simplify-polygons-of-sf-object
+
+
+# library("tidyverse")
+# library("rgdal")
+# library("rnaturalearth")
+# library("rnaturalearthdata")
+
+
+# 1.) read the shape file
+# -----------------------
+nzshp_hires = read_sf("/Users/paul/GIS/NZ_coast/NZ_Coast_isl.shp")
+
+
+# 2.) re-project shape file (to simple WGS84)
+# -------------------------------------------
+# https://r-spatial.github.io/sf/reference/st_transform.html
+# https://www.earthdatascience.org/courses/earth-analytics/spatial-data-r/reproject-vector-data/
+# transfrom to simple WGS84, EPSG:4326, "+proj=longlat +datum=WGS84 +no_defs"
+nzshp_hires_WGS84 <- st_transform(nzshp_hires, crs = 4326)
+
+
+# 3.) simplify shape for low resolution map insets
+# -------------------------------------------------
+# https://gis.stackexchange.com/questions/243569/simplify-polygons-of-sf-object
+nzshp_lores_WGS84 <- rmapshaper::ms_simplify(input = as(nzshp_hires_WGS84, 'Spatial')) %>% st_as_sf()
+
+
+# 4.) define a bounding box around the field work area
+# -------------------------------------------------
+# https://geocompr.github.io/post/2019/ggplot2-inset-maps/
+# mins and max of point coordinates, and 0.1 degree added
+bb_fwork <- st_as_sfc(st_bbox(c(xmin = (166.5-0.1), xmax = (167.0+0.1), ymax = (-46.04-0.1), ymin = (-45.52+0.1)), crs = st_crs(4326)))
+
+
+# 5.) draw overview map including bounding box
+# ----------------------------------------
+map_inst <- ggplot(data = nzshp_lores_WGS84) +
+    geom_sf(fill = "grey93", color = "red", lwd = 0.5) +
+    geom_sf(data = bb_fwork, fill = NA, color = "darkred", size = 1) +
+    theme_void()
+    
+
+# 6.) draw location map including and add data
+# --------------------------------------------
+
+# get data to be shown
+# ````````````````````
+long_table_dt_map <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("MH.GPS.LAT", "MH.PPS.LONG", "RESERVE.GROUP", "RESERVE.GROUP.INSIDE", "RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+
+
+# get bounding boxes
+# ```````````````````
+
+# https://stackoverflow.com/questions/54696440/create-polygons-representing-bounding-boxes-for-subgroups-using-sf
+# function calculates angle with respect to polygon centroid.
+# we need this to order the polygon correctly
+calc_angle <- function(lon,lat) {
+  cent_lon <- mean(lon)
+  cent_lat <- mean(lat)
+  ang <- atan2(lat - cent_lat, lon - cent_lon)
+
+  return(ang)
+}
+
+bbox <- long_table_dt_map %>%
+  group_by(RESERVE.GROUP.LOCATION) %>%
+  summarise(xmin = min(MH.PPS.LONG) -0.01 ,ymin = min(MH.GPS.LAT) -0.01, xmax=max(MH.PPS.LONG) +0.01,  ymax = max(MH.GPS.LAT) +0.01) %>%
+  gather(x,lon,c('xmin','xmax')) %>%
+  gather(y,lat,c('ymin','ymax')) %>%
+  st_as_sf(coords=c('lon','lat'),crs=4326,remove=F) %>%
+  group_by(RESERVE.GROUP.LOCATION) %>%
+  mutate(angle = calc_angle(lon,lat)) %>%
+  arrange(angle) %>%
+  summarise(do_union=FALSE) %>%
+  st_cast('POLYGON')
+
+
+# draw main map
+# ``````````````
+map_main <- ggplot(data = nzshp_lores_WGS84) +
+    geom_sf(fill = "lightgrey") +
+    geom_sf(data=bbox, fill = NA, color = "red", size = 1) + 
+    coord_sf( xlim = c((166.5-0.1), (167.0+0.1)), ylim = c((-46.04-0.1),(-45.52+0.1)), expand = FALSE) +
+    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "darkred", size = 4) +
+    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "red", size = 3) +
+    geom_sf_label(data=bbox, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 0.06, nudge_y = 0.06) + 
+    theme_bw() +
+    theme(legend.title = element_blank(), 
+          legend.position=c(.9,.1), 
+          legend.background = element_blank(), 
+          legend.key=element_blank(),
+          axis.title.x=element_blank(),
+          axis.title.y=element_blank()) +
+    annotation_custom(ggplotGrob(map_inst), xmin = 166.35, xmax = 166.7, ymin = -45.62, ymax = -45.45)
+
+ggsave("210401_998_r_summarize_results_fig1_draft.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 125, height = 175, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
+
+
+# V. Analyse BRUV vs EDNA (Euler diagrams)
+# =======================================
 
 # show ASV level observations for eDNA and BRUV 
 AsvPresByMethd <- long_table %>% select (RESERVE.GROUP, RESERVE.GROUP.LOCATION, SET.ID, BOTH.PRES, BRUV.PRES, EDNA.PRES, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) 
 
 # show species level observations for eDNA and BRUV - loosing ASV level observation
 SpcPresByMethd <- long_table %>% select (RESERVE.GROUP, RESERVE.GROUP.LOCATION, SET.ID, BOTH.PRES, BRUV.PRES, EDNA.PRES, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) %>% distinct() %>% print(n = Inf)
-
-# isolate Tibbles for ICC calculation
-SpcPresByMethdPhl <- SpcPresByMethd  %>% group_by(PHYLUM)  %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
-SpcPresByMethdCls <- SpcPresByMethd  %>% group_by(CLASS)   %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
-SpcPresByMethdOrd <- SpcPresByMethd  %>% group_by(ORDER)   %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
-SpcPresByMethdFam <- SpcPresByMethd  %>% group_by(FAMILY)  %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES))
-SpcPresByMethdGen <- SpcPresByMethd  %>% group_by(GENUS)   %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
-SpcPresByMethdSpc <- SpcPresByMethd  %>% group_by(SPECIES) %>% summarise(SPEC.OBSCNT.EDNA = sum(EDNA.PRES), SPEC.OBSCNT.BRUV = sum(BRUV.PRES)) 
-
-
-# calculate ICCS - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4913118/
-IccPhl <- icc(SpcPresByMethdPhl[ , 2:3], model = "twoway", type = "agreement", unit = "single")
-IccCls <- icc(SpcPresByMethdCls[ , 2:3], model = "twoway", type = "agreement", unit = "single")
-IccOrd <- icc(SpcPresByMethdOrd[ , 2:3], model = "twoway", type = "agreement", unit = "single")
-IccFam <- icc(SpcPresByMethdFam[ , 2:3], model = "twoway", type = "agreement", unit = "single")
-IccGen <- icc(SpcPresByMethdGen[ , 2:3], model = "twoway", type = "agreement", unit = "single")
-IccSpc <- icc(SpcPresByMethdSpc[ , 2:3], model = "twoway", type = "agreement", unit = "single")
-
-# build Tibble from ICC results for plotting
-icc_temp <- do.call(rbind, Map(data.frame, PHYLUM=IccPhl, CLASS=IccCls, ORDER=IccOrd, FAMILY=IccFam, GENUS=IccGen, SPECIES=IccSpc))
-icc_temp_t <- data.table::transpose(icc_temp)
-colnames(icc_temp_t ) <- rownames(icc_temp)
-rownames(icc_temp_t ) <- colnames(icc_temp)
-colnames(icc_temp_t) <- toupper(colnames(icc_temp_t))
-iccs <- icc_temp_t %>% rownames_to_column("LEVEL") %>% as_tibble()
-iccs <- iccs %>% mutate(LEVEL=factor(LEVEL, levels=LEVEL)) %>% mutate(LEVEL = factor(LEVEL, levels=c("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES")))
-iccs <- iccs %>% mutate(across(.cols = c("SUBJECTS", "RATERS", "VALUE", "R0", "FVALUE", "DF1", "DF2", "P.VALUE", 
-                        "P.VALUE", "CONF.LEVEL", "LBOUND", "UBOUND") , .fns = as.numeric ))
-
-# plot results
-#  rating lines https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4913118/
-#   greater than 0.90      excellent 
-#   between 0.75 and 0.9,  good
-#   between 0.5 and 0.75,  moderate
-#   values less than 0.5,  poor
-p_eb <- ggplot(iccs, aes(x = LEVEL, y = VALUE, ymin = LBOUND, ymax = UBOUND)) +
-  geom_point() + geom_errorbar(width = 0.1) + 
-  geom_hline(yintercept = 0.9, color="gray", linetype="dashed") +
-  geom_hline(yintercept = 0.75, color="gray", linetype="dashed") +
-  geom_hline(yintercept = 0.5, color="gray", linetype="dashed") +
-  geom_hline(yintercept = 0, color="gray", linetype="dashed") +
-  annotate(geom = "text", x = 0.5, y = 1.1, label = "excellent", hjust = 0, color="gray") +
-  annotate(geom = "text", x = 0.5, y = 0.85, label = "good", hjust = 0, color="gray") +
-  annotate(geom = "text", x = 0.5, y = 0.6, label = "moderate", hjust = 0, color="gray") +
-  annotate(geom = "text", x = 0.5, y = 0.4, label = "poor", hjust = 0, color="gray") +
-  annotate(geom = "text", x = 0.5, y = -0.1, label = "contradictory", hjust = 0, color="gray") +
-  xlab("Taxonomic level") + 
-  ylab("ICC (BRUV, eDNA)") +
-  scale_x_discrete(labels=paste0(iccs$LEVEL," (n=", iccs$SUBJECTS, ")" )) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust=1))
-ggsave("210312_998_r_summarize_results_edna_bruv_comp.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 75, height = 75, units = c("mm"),
-         dpi = 500, limitsize = TRUE)  
-
-# ICC alternative (still unfinished) 
-# ----------------------------------
 
 SpcPresByMethd <- long_table %>% select (RESERVE.GROUP, RESERVE.GROUP.LOCATION, SET.ID, BOTH.PRES, BRUV.PRES, EDNA.PRES, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) %>% distinct() %>% print(n = Inf)
 
@@ -171,20 +235,94 @@ pFam <- as.ggplot(plot(fitFam, quantities = list(type = c("counts", "percent"), 
 pGen <- as.ggplot(plot(fitGen, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Genus")
 pSpc <- as.ggplot(plot(fitSpc, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Species")
 
-pEuler <- ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc,  ncol = 6, nrow = 1)
+pEuler <- ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc,  ncol = 1, nrow = 6)
+
+ggsave("210312_998_r_summarize_results_edna_bruv_comp.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 75, height = 175, units = c("mm"),
+         dpi = 500, limitsize = TRUE)  
 
 
-# V. Show RESERVE.GROUP.LOCATION similarity based on GENUS overlap 
+
+
+# VI. Compare raw observations - radar chart and numerical summaries of observations
+# ==================================================================================
+
+# 1.) Get a simple barplot
+# ------------------------
+
+# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
+#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+long_table_dt_agg_gen <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+
+RESERVE.GROUP.LOCATION.LABS <- list(
+  "LS MR"   = "LS MR\n (n = 4)",
+  "LS CTRL" = "LS CTRL\n (n = 4)",
+  "FF MR"   = "FF MR\n (n = 2)",
+  "FF CTRL" = "FF CTRL\n (n = 3)",
+  "WJ MR"   = "WJ MR\n (n = 4)",
+  "WJ CTRL" = "WJ CTRL\n (n = 4)"
+)
+
+get_label <- function(variable,value){
+  return(RESERVE.GROUP.LOCATION.LABS[value])
+}
+
+p_barobs <- ggplot(long_table_dt_agg_gen, aes_string(x =  "BOTH.PRES", y = reorder(long_table_dt_agg_gen$GENUS, desc(long_table_dt_agg_gen$GENUS)), fill = "BOTH.PRES")) +
+    geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
+    scale_fill_gradient(low="black", high="red") +
+    facet_grid(.~RESERVE.GROUP.LOCATION, shrink = TRUE, scales = "fixed", labeller=get_label) +
+    theme_bw() +
+    theme(legend.position = "none") +
+    theme(strip.text.y = element_text(angle=0)) + 
+    theme(axis.text.x = element_text(angle = 0, hjust = 0.5, size = 8),
+          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7, face = "italic"), 
+          axis.ticks.y = element_blank()) +
+    labs(title = "Sampling Locations") + xlab("Unique Observations") + ylab("Genus")
+
+ggsave("210407_998_r_summarize_results_observations.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 120, height = 150, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
+# 2.) Get numerical summaries for main text
+# -----------------------------------------
+
+# summary plain numbers
+# ---------------------
+
+# ...(not done yet)...
+
+# summary corrected for sampling effort
+# -------------------------------------
+
+# ...(not done yet)...
+
+# describe ASV  yield per primer
+smpl_eff <- long_table %>% ungroup() %>% select(SET.ID, REP.ID, SAMPLE.TYPE, PRIMER.LABEL, RESERVE.GROUP.LOCATION) %>% filter(SAMPLE.TYPE == "eDNA") %>% arrange(SET.ID, RESERVE.GROUP.LOCATION) %>% print(n = Inf)
+smpl_eff_grp <- smpl_eff %>% mutate(PRIMER.LABEL  = gsub(".*Mi", "", PRIMER.LABEL)) %>% group_by(RESERVE.GROUP.LOCATION, PRIMER.LABEL) %>% summarise(n = n()) %>% ungroup()
+smpl_eff_grp %>% arrange(PRIMER.LABEL, RESERVE.GROUP.LOCATION)
+
+
+# **** revisit this above - need species observations and genus observations *****
+# sum genus observations for each factor
+dt_genussum_rgl <- long_table_dt[,.(RESERVE.GROUP.LOCATION.GENUS.SUM=sum(BOTH.PRES)),.(RESERVE.GROUP.LOCATION)]
+dt_genussum_rg  <- long_table_dt[,.(RESERVE.GROUP.GENUS.SUM=sum(BOTH.PRES)),.(RESERVE.GROUP)]
+
+# correct genus observation effort for unequal sample effort
+dt_genussum_rgl$RESERVE.GROUP.LOCATION.GENUS.SUM.PS <- dt_genussum_rgl$RESERVE.GROUP.LOCATION.GENUS.SUM / c(4,4,2,3,4,4)
+dt_genussum_rgl
+summary(dt_genussum_rgl$RESERVE.GROUP.LOCATION.GENUS.SUM.PS)
+
+dt_genussum_rg$RESERVE.GROUP.LOCATION.SUM.PS <- dt_genussum_rg$RESERVE.GROUP.GENUS.SUM / c(8,5,8)
+dt_genussum_rg
+summary(dt_genussum_rg$RESERVE.GROUP.LOCATION.SUM.PS)
+
+
+# VII. Show RESERVE.GROUP.LOCATION similarity based on GENUS overlap 
 # ===================================================================
  
-# check data
-print(long_table, n = Inf)
-names(long_table)
-
-# copy data to data table
-long_table_dt <- data.table(long_table)
-setkey(long_table_dt,ASV) 
-
 # aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
 #   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
 long_table_dt_agg_gen <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
@@ -229,7 +367,8 @@ ggsave("210312_998_r_summarize_results_jaccard.pdf", plot = last_plot(),
          dpi = 500, limitsize = TRUE)     
 
 
-# VI. ANOSIM to test wether or not genus composition based on factors are significantly different
+
+# VIII. ANOSIM to test wether or not genus composition based on factors are significantly different
 # ==========================================================================================
 
 # On Anosim: 
@@ -313,7 +452,7 @@ long_table_dt_agg_gen_mat_sets_ano <-  anosim(long_table_dt_agg_gen_mat_sets, gr
 # Number of permutations: 9999
 
 
-# VII. Show indicator genera for inside/outside each/all reserve(s)
+# IX. Show indicator genera for inside/outside each/all reserve(s)
 # ============================================================================
 # indicator species analysis
 # https://jkzorz.github.io/2019/07/02/Indicator-species-analysis.html
@@ -425,7 +564,7 @@ summary(ind_rgl)
 # Scobinichthys* 0.676  0.0462 *
 
 
-# VIII. Multiple Correspondence analysis
+# X. Multiple Correspondence analysis
 # =======================================
 
 # as per https://rpubs.com/gaston/MCA
@@ -498,191 +637,13 @@ ggsave("210312_998_r_summarize_results_mca_dim1.pdf", plot = last_plot(),
          dpi = 500, limitsize = TRUE)
 
 
-# IX. Create a better map for manuscript  
-# =====================================
-
-# ** started 29-03-2021 - not finished **
-
-# following 
-#  https://www.r-spatial.org/r/2018/10/25/ggplot2-sf.html
-#  https://semba-blog.netlify.app/10/20/2018/genetic-connectivity-in-western-indian-ocean-region/
-
-# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
-#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
-# https://gis.stackexchange.com/questions/243569/simplify-polygons-of-sf-object
-
-library("sf")          # simple feature objects
-library("rmapshaper")  # simplify shape file layers
-library("ggsflabel")   # label simple feature in ggplot  https://github.com/yutannihilation/ggsflabel - possibly inluded in ggplot
-library("ggsn")        # scale bar in ggplot map
-
-# library("tidyverse")
-# library("rgdal")
-# library("rnaturalearth")
-# library("rnaturalearthdata")
-
-
-# 1.) read the shape file
-# -----------------------
-nzshp_hires = read_sf("/Users/paul/GIS/NZ_coast/NZ_Coast_isl.shp")
-
-
-# 2.) re-project shape file (to simple WGS84)
-# -------------------------------------------
-# https://r-spatial.github.io/sf/reference/st_transform.html
-# https://www.earthdatascience.org/courses/earth-analytics/spatial-data-r/reproject-vector-data/
-# transfrom to simple WGS84, EPSG:4326, "+proj=longlat +datum=WGS84 +no_defs"
-nzshp_hires_WGS84 <- st_transform(nzshp_hires, crs = 4326)
-
-
-# 3.) simplify shape for low resolution map insets
-# -------------------------------------------------
-# https://gis.stackexchange.com/questions/243569/simplify-polygons-of-sf-object
-nzshp_lores_WGS84 <- rmapshaper::ms_simplify(input = as(nzshp_hires_WGS84, 'Spatial')) %>% st_as_sf()
-
-
-# 4.) define a bounding box around the field work area
-# -------------------------------------------------
-# https://geocompr.github.io/post/2019/ggplot2-inset-maps/
-# mins and max of point coordinates, and 0.1 degree added
-bb_fwork = st_as_sfc(st_bbox(c(xmin = (166.5-0.1), xmax = (167.0+0.1), ymax = (-46.04-0.1), ymin = (-45.52+0.1)), crs = st_crs(4326)))
-
-
-# 5.) draw overview map including  bounding box
-# ----------------------------------------
-map_inst <- ggplot(data = nzshp_lores_WGS84) +
-    geom_sf(fill = "grey93", color = "red", lwd = 0.5) +
-    geom_sf(data = bb_fwork, fill = NA, color = "darkred", size = 1) +
-    theme_void()
-    
-
-# 6.) draw location map including and add data
-# --------------------------------------------
-
-# get data to be shown
-# ````````````````````
-long_table_dt_map <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("MH.GPS.LAT", "MH.PPS.LONG", "RESERVE.GROUP", "RESERVE.GROUP.INSIDE", "RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
-
-
-# group data for plotting and manuscript detail expansion
-# ```````````````````````````````````````````````````````
-# **** revisit this above - need species observations and genus observations *****
-# sum genus observations for each factor
-dt_genussum_rgl <- long_table_dt[,.(RESERVE.GROUP.LOCATION.GENUS.SUM=sum(BOTH.PRES)),.(RESERVE.GROUP.LOCATION)]
-dt_genussum_rg  <- long_table_dt[,.(RESERVE.GROUP.GENUS.SUM=sum(BOTH.PRES)),.(RESERVE.GROUP)]
-
-# correct genus observation effort for unequal sample effort
-dt_genussum_rgl$RESERVE.GROUP.LOCATION.GENUS.SUM.PS <- dt_genussum_rgl$RESERVE.GROUP.LOCATION.GENUS.SUM / c(4,4,2,3,4,4)
-dt_genussum_rgl
-summary(dt_genussum_rgl$RESERVE.GROUP.LOCATION.GENUS.SUM.PS)
-
-dt_genussum_rg$RESERVE.GROUP.LOCATION.SUM.PS <- dt_genussum_rg$RESERVE.GROUP.GENUS.SUM / c(8,5,8)
-dt_genussum_rg
-summary(dt_genussum_rg$RESERVE.GROUP.LOCATION.SUM.PS)
-
-
-# get bounding boxes
-# ```````````````````
-
-# https://stackoverflow.com/questions/54696440/create-polygons-representing-bounding-boxes-for-subgroups-using-sf
-# function calculates angle with respect to polygon centroid.
-# we need this to order the polygon correctly
-calc_angle <- function(lon,lat) {
-  cent_lon <- mean(lon)
-  cent_lat <- mean(lat)
-  ang <- atan2(lat - cent_lat, lon - cent_lon)
-
-  return(ang)
-}
-
-bbox <- long_table_dt_map %>%
-  group_by(RESERVE.GROUP.LOCATION) %>%
-  summarise(xmin = min(MH.PPS.LONG) -0.01 ,ymin = min(MH.GPS.LAT) -0.01, xmax=max(MH.PPS.LONG) +0.01,  ymax = max(MH.GPS.LAT) +0.01) %>%
-  gather(x,lon,c('xmin','xmax')) %>%
-  gather(y,lat,c('ymin','ymax')) %>%
-  st_as_sf(coords=c('lon','lat'),crs=4326,remove=F) %>%
-  group_by(RESERVE.GROUP.LOCATION) %>%
-  mutate(angle = calc_angle(lon,lat)) %>%
-  arrange(angle) %>%
-  summarise(do_union=FALSE) %>%
-  st_cast('POLYGON')
-
-
-# draw main map
-# ``````````````
-map_main <- ggplot(data = nzshp_lores_WGS84) +
-    geom_sf(fill = "lightgrey") +
-    geom_sf(data=bbox, fill = NA, color = "red", size = 1) + 
-    coord_sf( xlim = c((166.5-0.1), (167.0+0.1)), ylim = c((-46.04-0.1),(-45.52+0.1)), expand = FALSE) +
-    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "darkred", size = 4) +
-    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "red", size = 3) +
-    geom_sf_label(data=bbox, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 0.06, nudge_y = 0.06) + 
-    theme_bw() +
-    theme(legend.title = element_blank(), 
-          legend.position=c(.9,.1), 
-          legend.background = element_blank(), 
-          legend.key=element_blank(),
-          axis.title.x=element_blank(),
-          axis.title.y=element_blank()) +
-    annotation_custom(ggplotGrob(map_inst), xmin = 166.35, xmax = 166.7, ymin = -45.62, ymax = -45.45)
-
-ggsave("210401_998_r_summarize_results_fig1_draft.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 125, height = 175, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-
-# draw genus map (not very useful)
-# ````````````````````````````````
-
-map_genera <- ggplot(data = nzshp_lores_WGS84) +
-    geom_sf(fill = "lightgrey") +
-    geom_sf(data=bbox, fill = NA, color = "red", size = 1) + 
-    coord_sf( xlim = c((166.5-0.1), (167.0+0.1)), ylim = c((-46.04-0.1),(-45.52+0.1)), expand = FALSE) +
-    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "darkred", size = 4) +
-    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "red", size = 3) +
-    geom_sf_label(data=bbox, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 0.06, nudge_y = 0.06) + 
-    geom_label_repel(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, label = GENUS), max.overlaps = Inf, point.size = NA) +
-    theme_bw() +
-    theme(legend.title = element_blank(), 
-          legend.position=c(.9,.1), 
-          legend.background = element_blank(), 
-          legend.key=element_blank(),
-          axis.title.x=element_blank(),
-          axis.title.y=element_blank())
-
-ggsave("210401_998_r_summarize_results_map_genara_draft.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 300, height = 500, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-
-
-
-
-# X. Combine plots for manuscript 
+# XI. Combine plots for manuscript 
 # ================================
 
-# arrange plots - version 1 - with ICCs
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ggarrange(ggarrange(p_eb, p_cntrb, p_nmds, ncol = 3, labels = c("(a)", "(c)", "(d)")),
-          ggarrange(p_mca, ncol = 1, labels = c("(b)")),
-          nrow = 2, heights = c(3, 7))
-ggsave("210312_998_r_summarize_results_fig2_draft_ICC.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 250, height = 300, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
+# 7-Apr-2021: needs revisions once imagery is received and completed above
 
-# arrange plots - version with Venn diagrams - version 1
-ggarrange(ggarrange(ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc, ncol = 3, nrow = 2), p_nmds, p_cntrb, ncol = 3, nrow = 1, labels = c("(a)", "(c)", "(d)")),
-          ggarrange(p_mca, ncol = 1, labels = c("(c)")),
-          nrow = 2, heights = c(3, 7))
-
-# arrange plots - version 2 -  with Venn diagrams
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# unifinished
-
+# 1.) plot arrangement 1: Venn - NMDS - MCA
+# -----------------------------------------
 ggarrange(
   ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc, ncol = 1, nrow = 6, labels = c("(a)")),
   ggarrange(
@@ -692,17 +653,20 @@ ggarrange(
     ), ncol = 2, widths = c(2, 8)
   )    
 
-
 ggsave("210312_998_r_summarize_results_fig2_draft_Venn.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1, width = 250, height = 300, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-
-# arrange plots - version 3 -  with maps and Venndiagrams
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# 2.) plot arrangement 2: Venn - barplot - NMDS
+# ---------------------------------------------
 ggarrange(
-  ggarrange(map_main, ncol = 1, nrow = 1, labels = c("(a)")),
-  ggarrange(map_inst, p_nmds, ncol = 1, nrow = 2, labels = c("", "(b)"), heights = c(3, 7)),
-  ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc, ncol = 1, nrow = 6, labels = c("(c)")),
-  ncol = 3, nrow = 1)
+  ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc, ncol = 1, nrow = 6, labels = c("(a)")),
+  ggarrange(p_barobs, ncol = 1, nrow = 1, labels = c("(b)")),
+  ggarrange(p_nmds, ncol = 1, nrow = 1, labels = c("(c)")),
+  ncol = 3, nrow = 1, widths = c(1, 2, 2))
+
+ggsave("210407_998_r_summarize_results_fig2_draft_Venn.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 295, height = 150, units = c("mm"),
+         dpi = 500, limitsize = TRUE)

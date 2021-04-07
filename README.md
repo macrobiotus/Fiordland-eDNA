@@ -375,5 +375,12 @@
   * using `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
 * **31-Mar-2021** - continued to work on better map
 * **01-Apr-2021** - continued to work on better map
+  * commit `3f5d2ad4a60600cf5850cfaecd42158da595431f`
+* **07-Apr-2021** - working on MCA replacement
+  * removed genus map from code in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+  * removed depreciated ICC code in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+  * encoded new barplot and new figure arrangement in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+  * **next** - get better numerical summaries
   * commit ``
+
   
