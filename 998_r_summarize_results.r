@@ -245,8 +245,8 @@ ggsave("210312_998_r_summarize_results_edna_bruv_comp.pdf", plot = last_plot(),
 
 
 
-# VI. Compare raw observations - radar chart and numerical summaries of observations
-# ==================================================================================
+# VI. Present raw observations 
+# =============================
 
 # 1.) Get a simple barplot
 # ------------------------
@@ -292,6 +292,10 @@ ggsave("210407_998_r_summarize_results_observations.pdf", plot = last_plot(),
 # summary plain numbers
 # ---------------------
 
+# summary of BRUV depth
+summary(long_table_dt$MH.BRUV.DEPTH[!is.na(long_table_dt$MH.BRUV.DEPTH)])
+sd(long_table_dt$MH.BRUV.DEPTH[!is.na(long_table_dt$MH.BRUV.DEPTH)])
+
 # ...(not done yet)...
 
 # summary corrected for sampling effort
@@ -320,6 +324,7 @@ dt_genussum_rg
 summary(dt_genussum_rg$RESERVE.GROUP.LOCATION.SUM.PS)
 
 
+
 # VII. Show RESERVE.GROUP.LOCATION similarity based on GENUS overlap 
 # ===================================================================
  
@@ -341,7 +346,9 @@ summary(jacc_matrix)
 
 
 # run metaMDS - at pressence does just use the presence absence matrix (to keep genus scrores), but distance matrix is possible as well
-long_table_dt_agg_gen_mat_jacc_NMS <-  metaMDS(long_table_dt_agg_gen_mat, distance="jaccard",  k = 2, maxit = 5000,  trymax = 5000, wascores = TRUE, shrink = TRUE)
+long_table_dt_agg_gen_mat_jacc_NMS <-  metaMDS(long_table_dt_agg_gen_mat, distance="jaccard",  noshare = FALSE, k = 2, maxit = 5000,  trymax = 5000, wascores = TRUE, shrink = FALSE)
+long_table_dt_agg_gen_mat_jacc_NMS
+stressplot(long_table_dt_agg_gen_mat_jacc_NMS)
 
 # basic plots - variant A
 ordiplot(long_table_dt_agg_gen_mat_jacc_NMS, type = "none") 
@@ -360,6 +367,7 @@ p_nmds <- ggplot(long_table_dt_agg_gen_mat_jacc_NMS.scores, aes(x = NMDS1, y = N
    geom_point(size = 6, colour = "darkred", shape = c(16,16,17,17,15,15)) +
    geom_point(size = 5, colour = "red", shape = c(16,16,17,17,15,15)) +
    geom_label_repel(aes(label=RESERVE.GROUP.LOCATION), point.padding = 0.5) +
+   coord_cartesian(xlim =c(-0.5, +0.5), ylim = c(-0.5, +0.5)) +
    theme_bw()
 ggsave("210312_998_r_summarize_results_jaccard.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
@@ -608,6 +616,19 @@ head(mca1$ind$coord)
 mca1_vars_df = data.frame(mca1$var$coord, Variable = rep(names(cats), cats))
 mca1_obs_df = data.frame(mca1$ind$coord)
 
+     
+
+# see https://rpkgs.datanovia.com/factoextra/reference/fviz_contrib.html
+p_cntrb <- fviz_contrib(mca1, choice="var", axes = 1, top = 10, fill = "lightgray", color = "grey") + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust=1)) +
+  theme(title = element_blank()) +
+  theme(plot.background = element_rect(colour = "black"))
+ggsave("210312_998_r_summarize_results_mca_dim1.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1.3, width = 50, height = 25, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
 # MCA plot of observations and categories
 p_mca <- ggplot(data = mca1_obs_df, aes(x = Dim.1, y = Dim.2)) + 
     geom_hline(yintercept = 0, colour = "gray70") + 
@@ -619,21 +640,12 @@ p_mca <- ggplot(data = mca1_obs_df, aes(x = Dim.1, y = Dim.2)) +
     theme_bw() +
     theme(legend.position = "none") +
     xlab(paste0("Dim. 1 (", dim_1_perc, "% Variance)")) + 
-    ylab(paste0("Dim. 2 (", dim_2_perc, "% Variance)"))
+    ylab(paste0("Dim. 2 (", dim_2_perc, "% Variance)")) +
+    annotation_custom(ggplotGrob(p_cntrb), xmin = -1.3, xmax = -0.4, ymin = 1.2, ymax = 2.3)
     
-ggsave("210312_998_r_summarize_results_mca.pdf", plot = last_plot(), 
+ggsave("210408_998_r_summarize_results_mca.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1.5, width = 150, height = 150, units = c("mm"),
-         dpi = 500, limitsize = TRUE)     
-
-# see https://rpkgs.datanovia.com/factoextra/reference/fviz_contrib.html
-p_cntrb <- fviz_contrib(mca1, choice="var", axes = 1, top = 10, fill = "lightgray", color = "grey") + 
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust=1)) +
-  theme(title = element_blank())
-ggsave("210312_998_r_summarize_results_mca_dim1.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1.3, width = 50, height = 25, units = c("mm"),
+         scale = 1, width = 250, height = 250, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 

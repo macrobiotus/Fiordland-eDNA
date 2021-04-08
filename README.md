@@ -380,7 +380,13 @@
   * removed genus map from code in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
   * removed depreciated ICC code in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
   * encoded new barplot and new figure arrangement in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
-  * **next** - get better numerical summaries
-  * commit ``
-
+  * commit `017aedd5bdb61db66bc97057ce259eb33e8896c2`
+* **08-Apr-2021** - working on MCA replacement
+  * revised NMFDS code
+  * started on numerical summaries
+  * commit `foo`
+  * **next** 
+    * redo figure 2 with better axis extents
+    * get better numerical summaries, using distance matrix input
+  
   
