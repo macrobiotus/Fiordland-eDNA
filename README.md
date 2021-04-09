@@ -384,9 +384,13 @@
 * **08-Apr-2021** - working on MCA replacement
   * revised NMFDS code
   * started on numerical summaries
-  * commit `foo`
+  * commit `bce2874a613beeaf8ec134d5f10a03c78df8bf95`
+* **09-Apr-2021** - working on heat-map as component of Fig. 2
+  * created heat-map
+  * added margin sums in the best possible way
   * **next** 
-    * redo figure 2 with better axis extents
-    * get better numerical summaries, using distance matrix input
+    * re-export plot with heat map
+    * finish numerical summaries using margin calculations in heat-map code
+    * expand text
   
   

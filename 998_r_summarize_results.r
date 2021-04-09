@@ -5,8 +5,8 @@
 #  **********************************
 
 
-# I. Load packages
-# ================
+# I. Load packages and define functions
+# =====================================
 
 library("tidyverse")   # because we can't stop using it anymore
 library("ggrepel")     # to improve plot labels
@@ -39,6 +39,26 @@ library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-gg
 #                      # 
 #                      # documentation at https://rdrr.io/cran/UpSetR/man/upset.html - hard to follow
 
+# aggregate discrete observation of either method ("BOTH.PRES") per sampling area (e.g.: "RESERVE.GROUP.LOCATION") on "GENUS" or species  level  
+#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+#   used to get distance matrices in vegan and for numerical summaries
+get_taxon_matrix <- function(long_dt = long_table_dt , group_var = "RESERVE.GROUP.LOCATION", level = "GENUS") {
+
+  if (level == "GENUS") {
+    # aggregate dt for provided grouping variable
+    long_table_dt_agg_group_var_level <- long_dt[, lapply(.SD, sum, na.rm=TRUE), by=c(group_var, "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+  } else if (level == "SPECIES") {
+    # aggregate dt for provided grouping variable
+    long_table_dt_agg_group_var_level <- long_dt[, lapply(.SD, sum, na.rm=TRUE), by=c(group_var, "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), .SDcols=c("BOTH.PRES") ]
+  } else {
+    stop("Level needs to be set to either \"GENUS\" or \"SPECIES\"")
+  }
+  
+  # cast matrix
+  taxon_matrix <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_group_var_level), get(group_var)~get(level), value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
+  return(taxon_matrix)
+
+}
 
 
 # II. Read in data
@@ -296,7 +316,108 @@ ggsave("210407_998_r_summarize_results_observations.pdf", plot = last_plot(),
 summary(long_table_dt$MH.BRUV.DEPTH[!is.na(long_table_dt$MH.BRUV.DEPTH)])
 sd(long_table_dt$MH.BRUV.DEPTH[!is.na(long_table_dt$MH.BRUV.DEPTH)])
 
-# ...(not done yet)...
+# summary of eDNA sampling depth 
+summary(as.numeric(long_table_dt$DEPTH.M[!is.na(long_table_dt$DEPTH.M)]))
+sd(as.numeric(long_table_dt$DEPTH.M[!is.na(long_table_dt$DEPTH.M)]))
+
+# summery of genus observations
+mat_rgl_spc <- get_taxon_matrix(long_table_dt, "RESERVE.GROUP.LOCATION", "SPECIES")
+mat_rgl_gen <- get_taxon_matrix(long_table_dt, "RESERVE.GROUP.LOCATION", "GENUS")
+
+summary(colSums(mat_rgl_spc))
+summary(colSums(mat_rgl_gen))
+
+# genus names with maximum observations in each location 
+apply(mat_rgl_gen, 1, which.max)
+colnames(mat_rgl_gen)[apply(mat_rgl_gen, 1, which.max)]
+
+# species names with maximum observations in each location 
+apply(mat_rgl_spc, 1, which.max)
+colnames(mat_rgl_spc)[apply(mat_rgl_spc, 1, which.max)]
+
+# most frequent genus observation
+which(mat_rgl_gen == max(mat_rgl_gen), arr.ind = TRUE)
+colnames(mat_rgl_gen)[which(mat_rgl_gen == max(mat_rgl_gen), arr.ind = TRUE)[2]]
+mat_rgl_gen[which(mat_rgl_gen == max(mat_rgl_gen), arr.ind = TRUE)]
+
+# most frequent species observation: what, where, how many
+which(mat_rgl_spc == max(mat_rgl_spc), arr.ind = TRUE)
+colnames(mat_rgl_spc)[which(mat_rgl_spc == max(mat_rgl_spc), arr.ind = TRUE)[2]]
+mat_rgl_spc[which(mat_rgl_spc == max(mat_rgl_spc), arr.ind = TRUE)]
+
+
+
+# heat maps
+# ---------
+
+# base heat maps 
+#   https://cran.r-project.org/web/packages/plot.matrix/vignettes/plot.matrix.html
+#   https://www.r-graph-gallery.com/74-margin-and-oma-cheatsheet.html
+
+library(plot.matrix)
+par(mar=c(5.1, 10, 4.1, 4.1))
+plot(t(mat_rgl_gen), axis.col=list(side=1, las=1), axis.row = list(side=2, las=1), ann = FALSE, digits = 1, fmt.cell='%.0f')
+
+
+
+# ggplot heat map with margin totals
+#   as per check https://stackoverflow.com/questions/55787412/adding-marginal-totals-to-ggplot-heatmap-in-r
+
+# get margin sums 
+h_total <- long_table_dt_agg_gen %>% 
+  group_by(GENUS) %>% 
+  summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
+  mutate(RESERVE.GROUP.LOCATION = 'TOTAL')
+
+
+v_total <- long_table_dt_agg_gen %>% 
+  group_by(RESERVE.GROUP.LOCATION) %>% 
+  summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
+  mutate(GENUS = 'TOTAL')
+  
+# add margin sums column for merging
+v_total <- v_total %>% mutate(GENUS.SUM = BOTH.PRES) %>% select(RESERVE.GROUP.LOCATION, GENUS.SUM)
+h_total <- h_total %>% mutate(RESERVE.GROUP.LOCATION.SUM = BOTH.PRES) %>% select(GENUS, RESERVE.GROUP.LOCATION.SUM)
+
+long_table_dt_agg_gen_plot <- long_table_dt_agg_gen
+long_table_dt_agg_gen_plot <- left_join(long_table_dt_agg_gen_plot, v_total, by = c("RESERVE.GROUP.LOCATION"), keep = FALSE  )
+long_table_dt_agg_gen_plot <- left_join(long_table_dt_agg_gen_plot, h_total, by = c("GENUS"), keep = FALSE )
+
+long_table_dt_agg_gen_plot <- long_table_dt_agg_gen_plot %>% mutate( RESERVE.GROUP.LOCATION = paste0(RESERVE.GROUP.LOCATION, " (", GENUS.SUM, ")"))
+long_table_dt_agg_gen_plot <- long_table_dt_agg_gen_plot %>% mutate( GENUS = paste0(GENUS, " (", RESERVE.GROUP.LOCATION.SUM, ")"))
+
+
+# expand margin to to be compatible with long dt used below - doesn't work 
+# 
+# h_total_long <- as_tibble(long_table_dt_agg_gen$GENUS) %>% arrange(value) %>% rename(GENUS = value)
+# h_total_long <- left_join(h_total_long, h_total, by = "GENUS")
+# 
+# v_total_long <- as_tibble(long_table_dt_agg_gen$RESERVE.GROUP.LOCATION) %>% rename(RESERVE.GROUP.LOCATION = value)
+# v_total_long <- left_join(v_total_long, v_total, by = "RESERVE.GROUP.LOCATION")
+# get heat map
+
+# add margin sums to new version of long data frame - looks crap
+# long_table_dt_agg_gen_plot <- bind_rows(long_table_dt_agg_gen, h_total) 
+# long_table_dt_agg_gen_plot <- bind_rows(long_table_dt_agg_gen_plot, v_total) 
+
+p_heatobs <- ggplot(long_table_dt_agg_gen_plot, aes_string(x = "RESERVE.GROUP.LOCATION", y = reorder(long_table_dt_agg_gen_plot$GENUS, desc(long_table_dt_agg_gen_plot$GENUS)))) +
+    geom_tile(aes(fill = BOTH.PRES) ) +
+    scale_fill_gradient(low="black", high="red") +
+    geom_text(size = 2, aes(label = BOTH.PRES, color = "white")) +
+    theme_bw() +
+    theme(legend.position = "none", 
+          strip.text.y = element_text(angle=0), 
+          axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7, face = "italic"), 
+          axis.ticks.y = element_blank()
+          ) +
+    xlab("Sampling Locations") + ylab("Genus Observations")
+
+ggsave("210407_998_r_summarize_results_observations_heat.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 75, height = 165, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
 
 # summary corrected for sampling effort
 # -------------------------------------
@@ -328,12 +449,8 @@ summary(dt_genussum_rg$RESERVE.GROUP.LOCATION.SUM.PS)
 # VII. Show RESERVE.GROUP.LOCATION similarity based on GENUS overlap 
 # ===================================================================
  
-# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
-#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
-long_table_dt_agg_gen <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
-
 # reshape to observation matrix digestible by Vegan, discrete observations will be summed per genus
-long_table_dt_agg_gen_mat <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_gen), RESERVE.GROUP.LOCATION~GENUS, value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
+long_table_dt_agg_gen_mat <- get_taxon_matrix(long_table_dt, "RESERVE.GROUP.LOCATION", "GENUS")
 
 jacc_matrix <- vegdist(long_table_dt_agg_gen_mat, distance="jaccard" )
 summary(jacc_matrix)
