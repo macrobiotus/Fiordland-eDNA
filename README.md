@@ -392,5 +392,8 @@
     * re-export plot with heat map
     * finish numerical summaries using margin calculations in heat-map code
     * expand text
-  
-  
+* **10-Apr-2021** - working on figure assembly and numerical summary 
+  * working on `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+  * temp blue whale image credits: `By NOAA Photo Library - anim1754, Public Domain, https://commons.wikimedia.org/w/index.php?curid=17942391`
+  * temp dolphin image credits `By NASA - http://mediaarchive.ksc.nasa.gov/detail.cfm?mediaid=21807, Public Domain, https://commons.wikimedia.org/w/index.php?curid=112006`
+  * git commit ``

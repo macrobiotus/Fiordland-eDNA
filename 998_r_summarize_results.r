@@ -264,7 +264,6 @@ ggsave("210312_998_r_summarize_results_edna_bruv_comp.pdf", plot = last_plot(),
 
 
 
-
 # VI. Present raw observations 
 # =============================
 
@@ -345,8 +344,6 @@ which(mat_rgl_spc == max(mat_rgl_spc), arr.ind = TRUE)
 colnames(mat_rgl_spc)[which(mat_rgl_spc == max(mat_rgl_spc), arr.ind = TRUE)[2]]
 mat_rgl_spc[which(mat_rgl_spc == max(mat_rgl_spc), arr.ind = TRUE)]
 
-
-
 # heat maps
 # ---------
 
@@ -359,7 +356,6 @@ par(mar=c(5.1, 10, 4.1, 4.1))
 plot(t(mat_rgl_gen), axis.col=list(side=1, las=1), axis.row = list(side=2, las=1), ann = FALSE, digits = 1, fmt.cell='%.0f')
 
 
-
 # ggplot heat map with margin totals
 #   as per check https://stackoverflow.com/questions/55787412/adding-marginal-totals-to-ggplot-heatmap-in-r
 
@@ -368,7 +364,6 @@ h_total <- long_table_dt_agg_gen %>%
   group_by(GENUS) %>% 
   summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
   mutate(RESERVE.GROUP.LOCATION = 'TOTAL')
-
 
 v_total <- long_table_dt_agg_gen %>% 
   group_by(RESERVE.GROUP.LOCATION) %>% 
@@ -423,6 +418,42 @@ ggsave("210407_998_r_summarize_results_observations_heat.pdf", plot = last_plot(
 # -------------------------------------
 
 # ...(not done yet)...
+
+
+# numerical summaries from margin totals
+# --------------------------------------
+
+# combined Genus observations
+h_total <- long_table_dt_agg_gen %>% 
+  group_by(GENUS) %>% 
+  summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
+  mutate(RESERVE.GROUP.LOCATION = 'TOTAL')
+
+summary(h_total$BOTH.PRES)
+# summary(h_total$BOTH.PRES)
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#   1.000   1.000   2.000   4.377   5.000  31.000 
+
+
+h_total %>% filter(BOTH.PRES == max(BOTH.PRES))
+# Parapercis - sand perches
+
+
+# combined location observations
+v_total <- long_table_dt_agg_gen %>% 
+  group_by(RESERVE.GROUP.LOCATION) %>% 
+  summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
+  mutate(GENUS = 'TOTAL')
+
+summary(v_total$BOTH.PRES)
+
+#     Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#    22.0    39.5    51.0    44.5    52.0    55.0 
+
+v_total %>% filter(BOTH.PRES == max(BOTH.PRES))
+# WJ MR                         55 TOTAL
+
+
 
 # describe ASV  yield per primer
 smpl_eff <- long_table %>% ungroup() %>% select(SET.ID, REP.ID, SAMPLE.TYPE, PRIMER.LABEL, RESERVE.GROUP.LOCATION) %>% filter(SAMPLE.TYPE == "eDNA") %>% arrange(SET.ID, RESERVE.GROUP.LOCATION) %>% print(n = Inf)
@@ -799,3 +830,34 @@ ggsave("210407_998_r_summarize_results_fig2_draft_Venn.pdf", plot = last_plot(),
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1, width = 295, height = 150, units = c("mm"),
          dpi = 500, limitsize = TRUE)
+
+
+# 3.) plot arrangement 3: Venn - heatmap - NMDS - imagery
+# -------------------------------------------------------
+
+# read in imagery - now public domain (see REDME for credits) - later original artwork 
+img1 <- readPNG("~/Personal/Wallpapers/375501.png")
+img2 <- readPNG("~/Personal/Wallpapers/665150.png")
+
+require("jpeg")
+img_bw <- readJPEG("/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210410_wikpedia_blue_whale.jpg")
+img_bd <- readJPEG("/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210410_wikpedia_bottlenose_dolphin.jpg")
+
+# get ggplot items and fix aspect rations
+p_img_bd <- ggplot() + background_image(img_bd) + theme(plot.margin = margin(t=0.0, l=0.25, r=0.25, b=0.0, unit = "cm")) + coord_fixed(ratio=0.75)
+p_img_bw <- ggplot() + background_image(img_bw) + theme(plot.margin = margin(t=0.0, l=0.25, r=0.25, b=0.0, unit = "cm")) + coord_fixed(ratio=0.75)
+
+ggarrange(
+  ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc, ncol = 1, nrow = 6, labels = c("(a)")),
+  ggarrange(p_heatobs, ncol = 1, nrow = 1, labels = c("(b)")),
+  ggarrange(p_nmds,  p_img_bd, p_img_bw, ncol = 1, nrow = 3, labels = c("(c)", "(d)", "(e)")),
+  ncol = 3, nrow = 1, widths = c(1, 2, 2))
+
+ggsave("210407_998_r_summarize_results_fig2_draft_Venn_heat.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 200, height = 200, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
+
+
