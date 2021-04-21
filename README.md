@@ -396,4 +396,12 @@
   * working on `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
   * temp blue whale image credits: `By NOAA Photo Library - anim1754, Public Domain, https://commons.wikimedia.org/w/index.php?curid=17942391`
   * temp dolphin image credits `By NASA - http://mediaarchive.ksc.nasa.gov/detail.cfm?mediaid=21807, Public Domain, https://commons.wikimedia.org/w/index.php?curid=112006`
-  * git commit ``
+  * git commit `92e74fb25446c3be931402de3b2a29fa36c6caaa`
+* **21-Apr-2021** - working on manuscript revision
+  * in silico PCR and plots
+  * advancing numerical summaries
+  * modified
+    * `000_r_in_silico_pcr.R`
+    * `990_r_get_eDNA_long_table.r`
+    * `998_r_summarize_results.r`
+  * commit ``

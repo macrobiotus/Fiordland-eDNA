@@ -704,6 +704,15 @@ capture.output(get_molten_ps_description(possible_cc) , file = "/Users/paul/Docu
 # subtract possible cross contamination (by abundance) and inspect again 
 psob_molten_clean_new <- anti_join(psob_molten_clean, possible_cc, by = "ASV", copy = FALSE)
 
+
+# 21.04.2021 confrim that the following are not in eDNA data: 
+# Jasus edwardsi (southern rock lobster) phylum Arthropoda
+# Eptatretus cirrhatus (broadgilled hagfish) class Myxini
+# Macroctopus maorum (Maori octopus) phylum Mollusca
+
+psob_molten_clean_new %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES) %>% 
+  filter(PHYLUM == "Arthropoda" | PHYLUM == "Mollusca" | CLASS == "Myxini")
+
 # get a full species list with Chordates at the top
 psob_molten_clean_chordates_top <- psob_molten_clean_new %>% mutate(ABUNDANCE = ifelse(PHYLUM %in% c("Chordata"), ABUNDANCE, 0))
 

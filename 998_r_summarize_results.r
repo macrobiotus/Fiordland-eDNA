@@ -30,6 +30,7 @@ library("explor")     # check MCA results in browser
 library("factoextra") # get MCA results summaries
 
 library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
+library("jpeg")   # read in jpeg images - see line ~840
 
 
 # library("nVennR")
@@ -310,6 +311,25 @@ ggsave("210407_998_r_summarize_results_observations.pdf", plot = last_plot(),
 
 # summary plain numbers
 # ---------------------
+# summary of observations (added 21.04.2021)
+
+nrow(long_table_dt) # number of all obesrvations
+
+long_table_dt %>% select(EDNA.PRES, SUPERKINGDOM, PHYLUM, CLASS, ORDER, FAMILY, GENUS) %>% 
+  filter(EDNA.PRES ==1)
+  
+long_table_dt %>% select(BRUV.PRES, SUPERKINGDOM, PHYLUM, CLASS, ORDER, FAMILY, GENUS) %>% 
+  filter(BRUV.PRES ==1) 
+  
+
+long_table_dt %>% select(BRUV.PRES, SUPERKINGDOM, PHYLUM, CLASS, ORDER, FAMILY, GENUS) %>% 
+  filter(BRUV.PRES ==1) %>% distinct()
+
+long_table_dt %>% select(EDNA.PRES, SUPERKINGDOM, PHYLUM, CLASS, ORDER, FAMILY, GENUS) %>% 
+  filter(EDNA.PRES ==1) %>% distinct()
+  
+long_table_dt %>% select(EDNA.PRES, SUPERKINGDOM, PHYLUM, CLASS, ORDER, FAMILY, GENUS) %>% print(n = Inf)
+
 
 # summary of BRUV depth
 summary(long_table_dt$MH.BRUV.DEPTH[!is.na(long_table_dt$MH.BRUV.DEPTH)])
@@ -515,8 +535,9 @@ p_nmds <- ggplot(long_table_dt_agg_gen_mat_jacc_NMS.scores, aes(x = NMDS1, y = N
    geom_point(size = 6, colour = "darkred", shape = c(16,16,17,17,15,15)) +
    geom_point(size = 5, colour = "red", shape = c(16,16,17,17,15,15)) +
    geom_label_repel(aes(label=RESERVE.GROUP.LOCATION), point.padding = 0.5) +
-   coord_cartesian(xlim =c(-0.5, +0.5), ylim = c(-0.5, +0.5)) +
+   coord_flip(xlim =c(-0.5, +0.5), ylim = c(-0.5, +0.5)) +
    theme_bw()
+   
 ggsave("210312_998_r_summarize_results_jaccard.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1, width = 75, height = 75, units = c("mm"),
@@ -836,12 +857,12 @@ ggsave("210407_998_r_summarize_results_fig2_draft_Venn.pdf", plot = last_plot(),
 # -------------------------------------------------------
 
 # read in imagery - now public domain (see REDME for credits) - later original artwork 
-img1 <- readPNG("~/Personal/Wallpapers/375501.png")
-img2 <- readPNG("~/Personal/Wallpapers/665150.png")
+# img_bw <- readJPEG("/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210410_wikpedia_blue_whale.jpg")
+# img_bd <- readJPEG("/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210410_wikpedia_bottlenose_dolphin.jpg")
+img_bw <- readJPEG("/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210421_original_blue_whale.jpg")
+img_bd <- readJPEG("/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210421_original_bottlenose_dolphin.jpg")
 
-require("jpeg")
-img_bw <- readJPEG("/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210410_wikpedia_blue_whale.jpg")
-img_bd <- readJPEG("/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210410_wikpedia_bottlenose_dolphin.jpg")
+
 
 # get ggplot items and fix aspect rations
 p_img_bd <- ggplot() + background_image(img_bd) + theme(plot.margin = margin(t=0.0, l=0.25, r=0.25, b=0.0, unit = "cm")) + coord_fixed(ratio=0.75)
