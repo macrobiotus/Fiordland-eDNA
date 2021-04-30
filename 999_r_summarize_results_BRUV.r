@@ -165,7 +165,7 @@ print(long_table, n = Inf)
 names(long_table)
 
 # keep only eDNA observations
-long_table <- long_table %>% filter(SAMPLE.TYPE == "eDNA")
+long_table <- long_table %>% filter(SAMPLE.TYPE == "BRUV")
 
 # copy data to data table
 long_table_dt <- data.table(long_table)
