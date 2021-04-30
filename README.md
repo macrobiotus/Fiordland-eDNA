@@ -404,4 +404,17 @@
     * `000_r_in_silico_pcr.R`
     * `990_r_get_eDNA_long_table.r`
     * `998_r_summarize_results.r`
+  * commit `75a1b1d669632ee10677954f06e8e285f0ea5c51`
+* **29-Apr-2021** - working on manuscript revision: final analysis code again, also separately for eDNA and BRUV
+  * adjusted and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+    * output saved to `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
+    * report at `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/code_reports`
+  * adjusted and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_eDNA.r`
+    * output saved to `/Users/paul/Documents/OU_eDNA/200403_manuscript/7_si_auxillary_files/*eDNAonly.pdf`
+    * report at `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/code_reports`
+  * adjusted and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_BRUV.r`
+    * output saved to `/Users/paul/Documents/OU_eDNA/200403_manuscript/7_si_auxillary_files/*BRUVonly.pdf`
+    * report at `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/code_reports`
   * commit ``
+
+

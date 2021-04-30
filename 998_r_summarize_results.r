@@ -8,6 +8,9 @@
 # I. Load packages and define functions
 # =====================================
 
+rm(list = ls(all.names = TRUE))
+gc()
+
 library("tidyverse")   # because we can't stop using it anymore
 library("ggrepel")     # to improve plot labels
 
@@ -17,7 +20,6 @@ library("data.table")   # faster handling of large tables
 library("sf")           # simple feature objects
 library("rmapshaper")   # simplify shape file layers
 library("ggsflabel")    # label simple feature in ggplot  https://github.com/yutannihilation/ggsflabel - possibly inluded in ggplot
-
 
 library("eulerr")       # to compare BRIUV and eDNA
 library("ggplotify")    # base R to Ggplot
@@ -32,11 +34,10 @@ library("factoextra") # get MCA results summaries
 library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
 library("jpeg")   # read in jpeg images - see line ~840
 
-
 # library("nVennR")
 # library("UpSetR")    # Conway, J. R., Lex, A. & Gehlenborg, N. 2017 UpSetR: an R package for the
 #                      # visualization of intersecting sets and their properties. Bioinformatics 33,
-#                      # 2938Ð2940. (doi:10.1093/bioinformatics/btx364)
+#                      # 2938?2940. (doi:10.1093/bioinformatics/btx364)
 #                      # 
 #                      # documentation at https://rdrr.io/cran/UpSetR/man/upset.html - hard to follow
 
@@ -64,9 +65,6 @@ get_taxon_matrix <- function(long_dt = long_table_dt , group_var = "RESERVE.GROU
 
 # II. Read in data
 # ================
-
-rm(list = ls(all.names = TRUE))
-gc()
 
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds")
 mdl_specs <- read_csv("/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210309_mdl_tablebyspecies.csv")
@@ -550,7 +548,7 @@ ggsave("210312_998_r_summarize_results_jaccard.pdf", plot = last_plot(),
 
 # On Anosim: 
 # 1. CLARKE, K. R. 1993 Non-parametric multivariate analyses of changes in
-# community structure. Austral Ecol. 18, 117Ð143.
+# community structure. Austral Ecol. 18, 117?143.
 # (doi:10.1111/j.1442-9993.1993.tb00438.x)
 # "The ANalysis Of SIMilarity (ANOSIM) test has some similarity to an ANOVA-like
 # hypothesis test, however, it is used to evaluate a dissimilarity matrix rather
@@ -635,8 +633,8 @@ long_table_dt_agg_gen_mat_sets_ano <-  anosim(long_table_dt_agg_gen_mat_sets, gr
 # https://jkzorz.github.io/2019/07/02/Indicator-species-analysis.html
 
 # Using package indicspecies
-# De C‡ceres, M., Legendre, P. & Moretti, M. 2010 Improving indicator species
-# analysis by combining groups of sites. Oikos 119, 1674Ð1684.
+# De C?ceres, M., Legendre, P. & Moretti, M. 2010 Improving indicator species
+# analysis by combining groups of sites. Oikos 119, 1674?1684.
 # (doi:10.1111/j.1600-0706.2010.18334.x)
 
 long_table_dt_agg_gen_sets <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("SET.ID", "INSIDE.RESERVE", "RESERVE.GROUP.LOCATION", "RESERVE.GROUP", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
@@ -703,7 +701,7 @@ summary(ind_rgl)
 #               stat p.value  
 # Forsterygion 0.632  0.0239 *
 # ---
-# Signif. codes:  0 Ô***Õ 0.001 Ô**Õ 0.01 Ô*Õ 0.05 Ô.Õ 0.1 Ô Õ 1
+# Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
 
 
 # C. Find indicator species at each RESERVE.GROUP.LOCATION
