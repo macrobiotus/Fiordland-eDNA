@@ -415,6 +415,19 @@
   * adjusted and ran `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_BRUV.r`
     * output saved to `/Users/paul/Documents/OU_eDNA/200403_manuscript/7_si_auxillary_files/*BRUVonly.pdf`
     * report at `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/code_reports`
-  * commit `7bf83d82f7b81d351eb464fb047e59c84b68fde6`
+  * commit ` fbeb26f5dd58d7f1df59f284a6b9dcb83425a278`
+    * revising manuscript files using report
+      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/210430_210421_main_text_changes_accepted_WR_ML_mod-while-withMK.docx`
+      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/210430_key_numbers_by_dataset_for_SI.xlsx`
+      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/210430_si.lyx`
+* **04-May-2021** - working on manuscript revision: final analysis code again, also separately for eDNA and BRUV
+  * finished re-running:
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_BRUV.r`
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_eDNA.r`
+  * updated SI
+  * commit 
+  
+ 
+
 
 
