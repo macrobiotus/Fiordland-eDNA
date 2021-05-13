@@ -425,7 +425,16 @@
     * `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_BRUV.r`
     * `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_eDNA.r`
   * updated SI
-  * commit 
+  * commit `f7a40a484b0ec6a120484373e326367cc3d41cd`
+* **13-May-2021** - working on manuscript revision: **include OBIS data**
+  * started trails with `~/Documents/OU_eDNA/200901_scripts/001_fetch_format_obis.R`
+  * steps
+    * fetch OBIS data
+    * adjust pipeline design and analysis
+    * re-create imagery
+    * re-outline text
+  * pre-alteration commit
+    
   
  
 
