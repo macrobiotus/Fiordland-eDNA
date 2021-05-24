@@ -433,10 +433,16 @@
     * adjust pipeline design and analysis
     * re-create imagery
     * re-outline text
-  * pre-alteration commit
-    
-  
- 
+  * pre-alteration commit `0e9513088fa9d2257b41c936ddd1067777b0a610`
+* **14-May-2021** - working on manuscript revision: **include OBIS data**
+ * use `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_get_OBIS_long_table.R`
+   * as drop-in replacement for `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
+* **24-May-2021** - working on manuscript revision - preparing manuscript for Ecography
+  * for higher impacte or if rejected include OBIS data at a later stage
+  * moving file to scratch scripts:  `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_get_OBIS_long_table.R`
 
-
-
+* **todo if rejected or if more time becomes available:**
+  * save and revise `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
+  * save and revise `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+  * save and revise `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_BRUV.r`
+  * save and revise `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_eDNA.r`
