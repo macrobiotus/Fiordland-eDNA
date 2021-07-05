@@ -9,9 +9,13 @@
 rm(list = ls(all.names = TRUE))
 gc()
 
+library("tidyverse")   # tibbles, pipes, and more
+library("magrittr") # more pipes
+
+library("robis")       # access OBIS data
+
 library("readxl")      # read Excel files
 library("openxlsx")    # write Excel tables
-library("tidyverse")   # tibbles, pipes, and more
 
 # II. Functions
 # =============
@@ -67,7 +71,7 @@ stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% fill(MH.GPS.LAT, .
 stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% fill(MH.PPS.LONG, .direction = c("downup")) %>% print(n = Inf)
 
 
-# IV. Redefine areas inside and out side marine reserves
+# V. Redefine areas inside and out side marine reserves
 # ========================================================
 # done using GID externally - check `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/210301_sample_map_overview.pdf`
 # see subsequent script for site assignments - but not run here to maintain compatibility with MdL scripts
@@ -126,14 +130,17 @@ long_table <-  long_table %>% relocate(SET.ID,	REP.ID, SAMPLE.TYPE, LOC.NAME, MH
 
 print(long_table, n = Inf)
 
-# V. write final file 
-# ===================
+# VI. write intermediate file 
+# ===========================
 
+# Workspce
 save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input__image.Rdata")
-# for analysis by MDL
-saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input.Rds")
-saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds")
+
 # for verbosity
 write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx", asTable = FALSE)
-# for mapping in /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz
+# for superseded QGIS mapping in /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz
 write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210301_997_r_format_longtables__analysis_input.csv")
+
+# for previous analysis by MDL
+saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input.Rds")
+saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds")

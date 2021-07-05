@@ -440,6 +440,26 @@
 * **24-May-2021** - working on manuscript revision - preparing manuscript for Ecography
   * for higher impacte or if rejected include OBIS data at a later stage
   * moving file to scratch scripts:  `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_get_OBIS_long_table.R`
+* **05-July-2021** - working on manuscript revision - adding OBIS data to analysis
+  * edited, but keeping old functionality in `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
+  * started on `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
+    * fetches OBIS data
+    * **next** - re-implement mapping from `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_BRUV.r`
+    * **next** - save OBIS data and thin out and add to long table
+  * edited `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_BRUV.r`
+    * **next** - remove code duplicated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
+      * some table formatting code
+      * mapping code
+  * commit 
+  
+  
+  
+  * created `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_get_OBIS_long_table.r`
+    * copied in upper code section from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+
+
+
+
 
 * **todo if rejected or if more time becomes available:**
   * save and revise `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`

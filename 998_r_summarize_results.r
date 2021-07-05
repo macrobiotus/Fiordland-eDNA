@@ -80,7 +80,7 @@ cols <- c("a.in", "a.out", "b.in", "b.out", "c.in", "c.out")
 mdl_specs[cols] <- lapply(mdl_specs[cols], factor) 
 mdl_genus[cols] <- lapply(mdl_genus[cols], factor) 
 
-# define BRUV.PRES and set EDNA.PRES and BOTH.PRES
+# define BRUV.PRES and set EDNA.PRES and BOTH.PRES -possibly already doe in previous script (5-Jul-2021)
 long_table <- long_table %>% mutate( BRUV.PRES = case_when(SAMPLE.TYPE == "BRUV" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
 long_table <- long_table %>% mutate( EDNA.PRES = case_when(SAMPLE.TYPE == "eDNA" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
 long_table <- long_table %>% mutate( BOTH.PRES = case_when(BRUV.PRES == 1 | EDNA.PRES == 1 ~ 1, TRUE ~ 0))
