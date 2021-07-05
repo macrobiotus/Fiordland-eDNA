@@ -460,19 +460,11 @@
     * **next** - remove code duplicated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
       * some table formatting code
       * mapping code
+  * commit `151ea60de34334b5cc7f30d302732230dac200f6`
+  * continued  `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
   * commit ``
-  
-  
-  
-  * created `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_get_OBIS_long_table.r`
-    * copied in upper code section from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
-
-
-
-
-
-* **todo if rejected or if more time becomes available:**
-  * save and revise `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
-  * save and revise `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
-  * save and revise `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_BRUV.r`
-  * save and revise `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_eDNA.r`
+ 
+* **todo:**
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
+    * during stacking consider: need to have three or two UNIQ.REP.IDS, otherwise can't analyse data - also needs new mapping?
+  * for supplement summarize column `bibliographicCitation` in `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210705_998_r_map_and_add_obis__lt_obis_results.Rds`

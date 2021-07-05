@@ -124,8 +124,8 @@ lt_obis_lookup_sf_loc <- lt_obis_lookup_sf %>% st_transform(crs = st_crs("+proj=
 nzshp_hires_WGS84_loc <- nzshp_hires_WGS84 %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
 bbox_loc <- bbox %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
 
-# calculate 1 km buffers
-lt_obis_lookup_sf_buffer_loc <- st_buffer(lt_obis_lookup_sf_loc, 2)
+# calculate 2.5 km buffers
+lt_obis_lookup_sf_buffer_loc <- st_buffer(lt_obis_lookup_sf_loc, 2.5)
 
 # map to check object and for publication - unit is in km
 #  check sf objects  - bounding box as defined per lt_obis_lookup_sf and 10 km in addition
@@ -199,18 +199,35 @@ saveRDS(lt_obis_results, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript
 
 # getting clean taxonomy - look up NCBI taxonomy ids
 #  - look up NCBI strings as for other datasets 
-#  - fill with taxonomy strings
+#  - use first taxonomy strings, if more then one dicovered
 lt_obis_results %<>% mutate(NCBI.TAXID = getId(scientificName ,"/Volumes/HGST1TB/Users/paul/Sequences/References/taxonomizR/accessionTaxa.sql", onlyScientific = TRUE)) 
 lt_obis_results %<>% mutate(NCBI.TAXID = as.numeric(gsub(",.*$", "", NCBI.TAXID)))
 
-# get NCBI taxonomy strings - unfinished
-ncbi_strings <- lt_obis_results %>% pull(NCBI.TAXID) %>% unique() %>%
-  getTaxonomy(. ,"/Volumes/HGST1TB/Users/paul/Sequences/References/taxonomizR/accessionTaxa.sql") %>% 
-  as_tibble() 
-  
-
+# get NCBI taxonomy strings
 get_strng <- function(x) {getTaxonomy(x,"/Volumes/HGST1TB/Users/paul/Sequences/References/taxonomizR/accessionTaxa.sql")}
+ncbi_strings <- as_tibble(get_strng(unique(lt_obis_results$NCBI.TAXID)), rownames = "NCBI.TAXID") %>% 
+                   mutate(NCBI.TAXID= as.numeric(NCBI.TAXID)) %>% filter(!is.na(NCBI.TAXID)) %>% 
+                   rename_all(toupper) 
+# ncbi_strings %>% print(n=Inf)
 
+# add taxonomy strings to OBIS results
+lt_obis_results %<>% left_join(ncbi_strings)
 
-# lt_obis_results_selected <- lt_obis_results %>% select(SET.ID, scientificName)
+# ***continue here after 5-July-2021***
+# save results for merging with other data - set values as in Excel table (unfinished)
 
+lt_obis_truncated <- 
+  lt_obis_results %>% 
+  select(SET.ID, NCBI.TAXID, SUPERKINGDOM, PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES, id, depth ) %>% 
+  filter(rowSums(across(c(SUPERKINGDOM, PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES), ~ !is.na(.))) > 0) %>% 
+  rename(DEPTH.M = depth) %>% mutate(DEPTH.M = ifelse(DEPTH.M < 0, NA,DEPTH.M)) %>% 
+  rename(ASV = id) %>% 
+  add_column(ABUNDANCE = 1) %>% 
+  add_column(REP.ID = 4) %>% 
+  add_column(SAMPLE.TYPE = "OBIS") %>% print(n=Inf)
+  
+# during stacking consider 
+
+# need to have three or two UNIQ.REP.IDS, otherwise can't analyse data - also needs new mapping?
+# stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% mutate(UNIQ.REP.IDS = n_distinct(REP.ID))
+# stack_long_table <- stack_long_table %>% filter(UNIQ.REP.IDS %in% c(2,3))
