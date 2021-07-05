@@ -226,8 +226,6 @@ lt_obis_truncated <-
   add_column(REP.ID = 4) %>% 
   add_column(SAMPLE.TYPE = "OBIS") %>% print(n=Inf)
   
-# during stacking consider 
-
-# need to have three or two UNIQ.REP.IDS, otherwise can't analyse data - also needs new mapping?
+# during stacking consider: need to have three or two UNIQ.REP.IDS, otherwise can't analyse data - also needs new mapping?
 # stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% mutate(UNIQ.REP.IDS = n_distinct(REP.ID))
 # stack_long_table <- stack_long_table %>% filter(UNIQ.REP.IDS %in% c(2,3))
