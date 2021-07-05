@@ -195,8 +195,9 @@ bbox <- long_table_dt_map %>%
   st_cast('POLYGON')
 
 
-# draw main map
-# ``````````````
+# draw main map - now implemneted in 
+#   /Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r
+
 map_main <- ggplot(data = nzshp_lores_WGS84) +
     geom_sf(fill = "lightgrey") +
     geom_sf(data=bbox, fill = NA, color = "red", size = 1) + 

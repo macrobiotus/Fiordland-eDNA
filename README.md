@@ -450,7 +450,17 @@
     * **next** - remove code duplicated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
       * some table formatting code
       * mapping code
-  * commit 
+  * commit `91b4453d2c00881bd15d8eb7ab691a48f387daba`
+  * continued  `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
+    * re-implemented mapping from `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_BRUV.r`
+    * save OBIS data 
+      * **next** thin out data and add to long table - with taxon lookup
+      * **next** deal with missing data / reselect complete data?
+    * edited `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results_BRUV.r`
+    * **next** - remove code duplicated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
+      * some table formatting code
+      * mapping code
+  * commit ``
   
   
   
