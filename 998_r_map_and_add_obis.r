@@ -188,7 +188,7 @@ lt_obis_results <- unnest(lt_obis_lookup, cols = c(BUFFER.WKT.NST, OBIS))
 saveRDS(lt_obis_results, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_add_obis__lt_obis_results.Rds")
 saveRDS(lt_obis_results, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210705_998_r_map_and_add_obis__lt_obis_results.Rds")
 
-# V. format OBIS data
+# VI. format OBIS data
 # ==================
 # get clean NCBI conform definitions for SUPERKINGDOM PHYLUM CLASS ORDER FAMILY, GENUS, SPECIES, 
 # get a "1" for each ABUNDANCE or count in buffer? / per SET.ID ?
@@ -214,18 +214,29 @@ ncbi_strings <- as_tibble(get_strng(unique(lt_obis_results$NCBI.TAXID)), rowname
 lt_obis_results %<>% left_join(ncbi_strings)
 
 # ***continue here after 5-July-2021***
-# save results for merging with other data - set values as in Excel table (unfinished)
 
-lt_obis_truncated <- 
-  lt_obis_results %>% 
+# save results for merging with other data -
+# set values to match Excel table
+#  "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx"
+lt_obis_truncated <- lt_obis_results %>% 
   select(SET.ID, NCBI.TAXID, SUPERKINGDOM, PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES, id, depth ) %>% 
   filter(rowSums(across(c(SUPERKINGDOM, PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES), ~ !is.na(.))) > 0) %>% 
   rename(DEPTH.M = depth) %>% mutate(DEPTH.M = ifelse(DEPTH.M < 0, NA,DEPTH.M)) %>% 
   rename(ASV = id) %>% 
   add_column(ABUNDANCE = 1) %>% 
   add_column(REP.ID = 4) %>% 
-  add_column(SAMPLE.TYPE = "OBIS") %>% print(n=Inf)
+  add_column(SAMPLE.TYPE = "OBIS") 
+
+# saving workspace manually
+save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210705_998_r_map_and_add_obis.r")
   
-# during stacking consider: need to have three or two UNIQ.REP.IDS, otherwise can't analyse data - also needs new mapping?
+  # %>% print(n=Inf)  %>% pull(SET.ID)  %>% unique
+  
+# during stacking consider: need to have three or two UNIQ.REP.IDS, otherwise can't analyse data
+# - also needs new mapping?
+# - filter sf objects and re-plot?
+unique(lt_obis_results$SET.ID)
+unique(lt_obis_lookup_sf_buffer_d$SET.ID)
+lt_obis_lookup_sf_buffer_d %>% print(n = Inf)
 # stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% mutate(UNIQ.REP.IDS = n_distinct(REP.ID))
 # stack_long_table <- stack_long_table %>% filter(UNIQ.REP.IDS %in% c(2,3))
