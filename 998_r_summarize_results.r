@@ -34,7 +34,7 @@ library("magrittr")    # get the %<>% pipe
 # library("explor")     # check MCA results in browser
 # library("factoextra") # get MCA results summaries
 # 
-# library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
+library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
 # library("jpeg")   # read in jpeg images - see line ~840
 
 # library("nVennR")
@@ -46,7 +46,7 @@ library("magrittr")    # get the %<>% pipe
 
 # Get Euler objects for plotting
 # ------------------------------
-get_euler_object = function(tibl, level){
+get_euler_object = function(level, tibl){
   require("eulerr")
   require("tidyverse")
   require("magrittr")
@@ -68,7 +68,7 @@ get_euler_object = function(tibl, level){
 
 # Get Euler Ggplots 
 # -----------------
-get_euler_ggplot = function(euler_ob, level){
+get_euler_ggplot = function(level, euler_ob, plot_label = TRUE){
   require("tidyverse")
   require ("ggplotify")
 
@@ -78,7 +78,7 @@ get_euler_ggplot = function(euler_ob, level){
   
   euler_ggplot <- as.ggplot(
     plot(euler_ob, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels = list(font=1, cex=0.8))
-    ) + labs(subtitle = level)
+    ) + {if(plot_label == TRUE) labs(subtitle = str_to_sentence(level))}
   
   return(euler_ggplot)
 }
@@ -160,77 +160,35 @@ fish_biodiv <- long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes
 # ==================
 # continue here after 7-Jul-2021 
 
+# get euler analysis results for plotting / plot_label = TRUE shrinks plots a lot
+euler_obs_full_bio <- lapply(list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), get_euler_object, full_biodiv)
+euler_ggp_full_bio <- mapply(get_euler_ggplot, list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"),  euler_obs_full_bio, plot_label = FALSE, SIMPLIFY = FALSE)
 
-expand.grid(list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), list(full_biodiv, fish_biodiv), KEEP.OUT.ATTRS = TRUE, stringsAsFactors = FALSE)
+# plot euler analysis results
+euler_obs_fish_bio <- lapply(list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), get_euler_object, fish_biodiv)
+euler_ggp_fish_bio <- mapply(get_euler_ggplot, list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"),  euler_obs_fish_bio, plot_label = FALSE, SIMPLIFY = FALSE)
 
+# create compound plot with better labels then with plot_label = TRUE above
+ggarrange(
+  ggarrange(plotlist = euler_ggp_full_bio,  ncol = 1, nrow = 6,
+    labels = str_to_sentence(c("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES")),
+    font.label = list(size = 12, color = "black", face = "bold.italic", family = NULL),
+    vjust = 4.5
+    ),
+  ggarrange(plotlist = euler_ggp_fish_bio,  ncol = 1, nrow = 6), ncol = 2,
+    labels = c("a","b")
+  )
 
-str(eg)
-
-pmap(list(eg), get_euler_object)
-
-mapply(get_euler_object, eg[ ,2] , get(eg[ ,1]))
-
-
-euler <- tibble(
-  type   = c("apple", "orange", "apple", "orange", "orange", "orange"),
-  year   = c(2010, 2010, 2012, 2010, 2010, 2012),
-  size
-
-
-euler_ob <- get_euler_object(full_biodiv, level = "SPECIES")
-euler_ob <- get_euler_object(fish_biodiv, level = "SPECIES")
-
-
-euler_ggplot <- get_euler_ggplot(euler_ob, level = "SPECIES")
-
-
-
-
-pPhl <- 
-
-
-
-
-
-# V. Analyse BRUV vs EDNA (Euler diagrams)
-# =======================================
-
-# show ASV level observations for eDNA and BRUV 
-AsvPresByMethd <- long_table %>% select (RESERVE.GROUP, RESERVE.GROUP.LOCATION, SET.ID, BOTH.PRES, BRUV.PRES, EDNA.PRES, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) 
-
-# show species level observations for eDNA and BRUV - loosing ASV level observation
-SpcPresByMethd <- long_table %>% select (RESERVE.GROUP, RESERVE.GROUP.LOCATION, SET.ID, BOTH.PRES, BRUV.PRES, EDNA.PRES, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) %>% distinct() %>% print(n = Inf)
-
-SpcPresByMethd <- long_table %>% select (RESERVE.GROUP, RESERVE.GROUP.LOCATION, SET.ID, BOTH.PRES, BRUV.PRES, EDNA.PRES, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) %>% distinct() %>% print(n = Inf)
-
-SpcPresByMethdPhl <- SpcPresByMethd  %>% group_by(PHYLUM)  %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES)))
-SpcPresByMethdCls <- SpcPresByMethd  %>% group_by(CLASS)   %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES))) 
-SpcPresByMethdOrd <- SpcPresByMethd  %>% group_by(ORDER)   %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES))) 
-SpcPresByMethdFam <- SpcPresByMethd  %>% group_by(FAMILY)  %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES)))
-SpcPresByMethdGen <- SpcPresByMethd  %>% group_by(GENUS)   %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES))) 
-SpcPresByMethdSpc <- SpcPresByMethd  %>% group_by(SPECIES) %>% summarise(eDNA = as.logical(sum(EDNA.PRES)), BRUV = as.logical(sum(BRUV.PRES))) 
-
-fitPhl <- euler(SpcPresByMethdPhl[ , 2:3])
-fitCls <- euler(SpcPresByMethdCls[ , 2:3])
-fitOrd <- euler(SpcPresByMethdOrd[ , 2:3])
-fitFam <- euler(SpcPresByMethdFam[ , 2:3])
-fitGen <- euler(SpcPresByMethdGen[ , 2:3])
-fitSpc <- euler(SpcPresByMethdSpc[ , 2:3])
-
-
-pPhl <- as.ggplot(plot(fitPhl, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels = list(font=1, cex=0.8))) + labs(subtitle = "Phylum")
-pCls <- as.ggplot(plot(fitCls, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Class")
-pOrd <- as.ggplot(plot(fitOrd, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Order")
-pFam <- as.ggplot(plot(fitFam, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Family")
-pGen <- as.ggplot(plot(fitGen, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Genus")
-pSpc <- as.ggplot(plot(fitSpc, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels= FALSE)) + labs(subtitle = "Species")
-
-pEuler <- ggarrange(pPhl, pCls, pOrd, pFam, pGen, pSpc,  ncol = 1, nrow = 6)
-
-ggsave("210312_998_r_summarize_results_edna_bruv_comp.pdf", plot = last_plot(), 
+# save compound plot with better labels then with plot_label = TRUE above
+ggsave("210707_998_r_summarize_results__edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 75, height = 175, units = c("mm"),
+         scale = 1.5, width = 75, height = 175, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
+
+
+
+
+
 
 
 

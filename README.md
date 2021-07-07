@@ -472,11 +472,11 @@
       * `/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds`
       * `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/998_r_map_and_add_obiss__full_data_raw.Rds`
   * starting to work on `~/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
-    * commit before (extensive) edits (for earlier versions check earlier commits before 5-July-2021)
-    * commit `bb6a1342d022e5098e62655fd1ea14ad9a113b3c`
+  * commit before (extensive) edits (for earlier versions check earlier commits before 5-July-2021)
+  * commit `bb6a1342d022e5098e62655fd1ea14ad9a113b3c`
   * wrote functions to get Euler plots
-    * **next:** get Euler plots
-    * commit ``
+  * commit `24481cee30c0d9dcd8cebc2ad6a7f971e41b0b1b`
+  * got Euler plots
 
 
 
