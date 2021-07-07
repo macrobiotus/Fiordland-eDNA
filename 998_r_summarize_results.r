@@ -5,34 +5,37 @@
 #  **********************************
 
 
-# I. Load packages and define functions
-# =====================================
-
+lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
 rm(list = ls(all.names = TRUE))
 gc()
 
+# I. Load packages and define functions
+# =====================================
+
 library("tidyverse")   # because we can't stop using it anymore
-library("ggrepel")     # to improve plot labels
+library("magrittr")    # get the %<>% pipe
 
-library("future.apply") # faster handling of large tables
-library("data.table")   # faster handling of large tables
-
-library("sf")           # simple feature objects
-library("rmapshaper")   # simplify shape file layers
-library("ggsflabel")    # label simple feature in ggplot  https://github.com/yutannihilation/ggsflabel - possibly inluded in ggplot
-
-library("eulerr")       # to compare BRIUV and eDNA
-library("ggplotify")    # base R to Ggplot
-
-library("vegan")        # for NMDS 
-library("indicspecies") # indicator species  - see citation below
-
-library("FactoMineR") # MCA
-library("explor")     # check MCA results in browser
-library("factoextra") # get MCA results summaries
-
-library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
-library("jpeg")   # read in jpeg images - see line ~840
+# library("ggrepel")     # to improve plot labels
+# 
+# library("future.apply") # faster handling of large tables
+# library("data.table")   # faster handling of large tables
+# 
+# library("sf")           # simple feature objects
+# library("rmapshaper")   # simplify shape file layers
+# library("ggsflabel")    # label simple feature in ggplot  https://github.com/yutannihilation/ggsflabel - possibly inluded in ggplot
+# 
+# library("eulerr")       # to compare BRIUV and eDNA
+# library("ggplotify")    # base R to Ggplot
+# 
+# library("vegan")        # for NMDS 
+# library("indicspecies") # indicator species  - see citation below
+# 
+# library("FactoMineR") # MCA
+# library("explor")     # check MCA results in browser
+# library("factoextra") # get MCA results summaries
+# 
+# library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
+# library("jpeg")   # read in jpeg images - see line ~840
 
 # library("nVennR")
 # library("UpSetR")    # Conway, J. R., Lex, A. & Gehlenborg, N. 2017 UpSetR: an R package for the
@@ -40,6 +43,49 @@ library("jpeg")   # read in jpeg images - see line ~840
 #                      # 2938?2940. (doi:10.1093/bioinformatics/btx364)
 #                      # 
 #                      # documentation at https://rdrr.io/cran/UpSetR/man/upset.html - hard to follow
+
+# Get Euler objects for plotting
+# ------------------------------
+get_euler_object = function(tibl, level){
+  require("eulerr")
+  require("tidyverse")
+  require("magrittr")
+  
+  # check if needed columns are in the input data
+  stopifnot(c("BRUV.OBS.PRES", "EDNA.OBS.PRES", "OBIS.OBS.PRES") %in% names(tibl))
+  stopifnot(level %in% c("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
+  
+  # isolate realvant columns for summary
+  tibl %<>% select(SET.ID, BRUV.OBS.PRES, EDNA.OBS.PRES, OBIS.OBS.PRES, RESERVE.GROUP, RESERVE.GROUP.LOCATION, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) %>% distinct()
+  
+  # sum up unique presences fr Euler plot
+  tibl %<>% group_by(get(level)) %>% summarise(eDNA = as.logical(sum(EDNA.OBS.PRES)),
+                                          BRUV = as.logical(sum(BRUV.OBS.PRES)),
+                                          OBIS = as.logical(sum(OBIS.OBS.PRES))
+                                          )
+  return(euler(tibl[ , 2:4]))
+}
+
+# Get Euler Ggplots 
+# -----------------
+get_euler_ggplot = function(euler_ob, level){
+  require("tidyverse")
+  require ("ggplotify")
+
+  # sanitize input
+  stopifnot( class(euler_ob)[1] == "euler")
+  stopifnot(level %in% c("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
+  
+  euler_ggplot <- as.ggplot(
+    plot(euler_ob, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels = list(font=1, cex=0.8))
+    ) + labs(subtitle = level)
+  
+  return(euler_ggplot)
+}
+
+
+
+
 
 # aggregate discrete observation of either method ("BOTH.PRES") per sampling area (e.g.: "RESERVE.GROUP.LOCATION") on "GENUS" or species  level  
 #   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
@@ -66,158 +112,82 @@ get_taxon_matrix <- function(long_dt = long_table_dt , group_var = "RESERVE.GROU
 # II. Read in data
 # ================
 
-long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds")
-mdl_specs <- read_csv("/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210309_mdl_tablebyspecies.csv")
-mdl_genus <- read_csv("/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210309_mdl_tablebygenus.csv")
+# check input data of previous script
+system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx\"")
+
+long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
 
 
-
-# III. Format data 
+# III. Format data  
 # ================
+# - mark non-NZ species  **(possibly needs to be re-worked)**
+# - split "fish" and "full" data
+# - filter for data completeness **(possibly needs to be re-worked)**
 
-# properly set factor variables in MdLs data in MdLs table
-cols <- c("a.in", "a.out", "b.in", "b.out", "c.in", "c.out")
-mdl_specs[cols] <- lapply(mdl_specs[cols], factor) 
-mdl_genus[cols] <- lapply(mdl_genus[cols], factor) 
-
-# define BRUV.PRES and set EDNA.PRES and BOTH.PRES -possibly already doe in previous script (5-Jul-2021)
-long_table <- long_table %>% mutate( BRUV.PRES = case_when(SAMPLE.TYPE == "BRUV" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
-long_table <- long_table %>% mutate( EDNA.PRES = case_when(SAMPLE.TYPE == "eDNA" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
-long_table <- long_table %>% mutate( BOTH.PRES = case_when(BRUV.PRES == 1 | EDNA.PRES == 1 ~ 1, TRUE ~ 0))
-
-
-# 16-Mar-2021 add asterisks ("*") to non-NZ species, and ("**") to non-fish (mammals and crustaceans)
+# Mark non-NZ species  **(possibly needs to be re-worked)**
+# ---------------------------------------------------------
+#  16-Mar-2021 add asterisks ("*") to non-NZ species, and ("**") to non-fish (mammals and crustaceans)
 #  after checking with list 
 #  Roberts, C., Stewart, A., Struthers, C., Barker, J. & Kortet, S. 2019 Checklist of the Fishes of New Zealand. 
 
 nonnz_fish <- c("Asterropteryx", "Banjos", "Benitochromis", "Bostrychus", "Bovichtus", "Caprodon", "Coptodon", "Engraulis", "Gobiesox", "Gymnoscopelus", "Helcogramma", "Microcanthus", "Opistognathus", "Phoxinus", "Sander", "Scobinichthys")
 nonnz_othr <- c("Macroctopus", "Jasus", "Arctocephalus", "Balaenoptera", "Tursiops")
 
-long_table <- long_table %>% mutate(GENUS = case_when(GENUS %in% nonnz_fish ~ paste0(GENUS, "*"),
-                                        GENUS %in% nonnz_othr ~ paste0(GENUS, "**"),
-                                        TRUE                  ~ GENUS)
-                                        )
+long_table %<>% mutate(GENUS = 
+                         case_when(GENUS %in% nonnz_fish ~ paste0(GENUS, "*"),
+                                   GENUS %in% nonnz_othr ~ paste0(GENUS, "**"),
+                                                    TRUE ~ GENUS)
+                                                    )
 
-# check data
-print(long_table, n = Inf)
-names(long_table)
-
-# copy data to data table
-long_table_dt <- data.table(long_table)
-setkey(long_table_dt,ASV) 
+# Split "fish" and "full" data
+# ----------------------------
+full_biodiv <- long_table  
+fish_biodiv <- long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes")) %>% filter(!(GENUS %in% c("Sardinops")))
 
 
+# Filter for data completeness **(possibly needs to be re-worked)**
+# ------------------------------------------------------------------
 
-# IV. Create a better map for manuscript  
-# =====================================
-
-# following 
-#  https://www.r-spatial.org/r/2018/10/25/ggplot2-sf.html
-#  https://semba-blog.netlify.app/10/20/2018/genetic-connectivity-in-western-indian-ocean-region/
-
-# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
-#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
-# https://gis.stackexchange.com/questions/243569/simplify-polygons-of-sf-object
+# - not done yet -
 
 
-# library("tidyverse")
-# library("rgdal")
-# library("rnaturalearth")
-# library("rnaturalearthdata")
+# IV. get barplots
+# ================
+# - not done yet -
 
 
-# 1.) read the shape file
-# -----------------------
-nzshp_hires = read_sf("/Users/paul/GIS/NZ_coast/NZ_Coast_isl.shp")
+# V. Get Euler plots
+# ==================
+# continue here after 7-Jul-2021 
 
 
-# 2.) re-project shape file (to simple WGS84)
-# -------------------------------------------
-# https://r-spatial.github.io/sf/reference/st_transform.html
-# https://www.earthdatascience.org/courses/earth-analytics/spatial-data-r/reproject-vector-data/
-# transfrom to simple WGS84, EPSG:4326, "+proj=longlat +datum=WGS84 +no_defs"
-nzshp_hires_WGS84 <- st_transform(nzshp_hires, crs = 4326)
+expand.grid(list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), list(full_biodiv, fish_biodiv), KEEP.OUT.ATTRS = TRUE, stringsAsFactors = FALSE)
 
 
-# 3.) simplify shape for low resolution map insets
-# -------------------------------------------------
-# https://gis.stackexchange.com/questions/243569/simplify-polygons-of-sf-object
-nzshp_lores_WGS84 <- rmapshaper::ms_simplify(input = as(nzshp_hires_WGS84, 'Spatial')) %>% st_as_sf()
+str(eg)
+
+pmap(list(eg), get_euler_object)
+
+mapply(get_euler_object, eg[ ,2] , get(eg[ ,1]))
 
 
-# 4.) define a bounding box around the field work area
-# -------------------------------------------------
-# https://geocompr.github.io/post/2019/ggplot2-inset-maps/
-# mins and max of point coordinates, and 0.1 degree added
-bb_fwork <- st_as_sfc(st_bbox(c(xmin = (166.5-0.1), xmax = (167.0+0.1), ymax = (-46.04-0.1), ymin = (-45.52+0.1)), crs = st_crs(4326)))
+euler <- tibble(
+  type   = c("apple", "orange", "apple", "orange", "orange", "orange"),
+  year   = c(2010, 2010, 2012, 2010, 2010, 2012),
+  size
 
 
-# 5.) draw overview map including bounding box
-# ----------------------------------------
-map_inst <- ggplot(data = nzshp_lores_WGS84) +
-    geom_sf(fill = "grey93", color = "red", lwd = 0.5) +
-    geom_sf(data = bb_fwork, fill = NA, color = "darkred", size = 1) +
-    theme_void()
-    
-
-# 6.) draw location map including and add data
-# --------------------------------------------
-
-# get data to be shown
-# ````````````````````
-long_table_dt_map <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("MH.GPS.LAT", "MH.PPS.LONG", "RESERVE.GROUP", "RESERVE.GROUP.INSIDE", "RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+euler_ob <- get_euler_object(full_biodiv, level = "SPECIES")
+euler_ob <- get_euler_object(fish_biodiv, level = "SPECIES")
 
 
-# get bounding boxes
-# ```````````````````
-
-# https://stackoverflow.com/questions/54696440/create-polygons-representing-bounding-boxes-for-subgroups-using-sf
-# function calculates angle with respect to polygon centroid.
-# we need this to order the polygon correctly
-calc_angle <- function(lon,lat) {
-  cent_lon <- mean(lon)
-  cent_lat <- mean(lat)
-  ang <- atan2(lat - cent_lat, lon - cent_lon)
-
-  return(ang)
-}
-
-bbox <- long_table_dt_map %>%
-  group_by(RESERVE.GROUP.LOCATION) %>%
-  summarise(xmin = min(MH.PPS.LONG) -0.01 ,ymin = min(MH.GPS.LAT) -0.01, xmax=max(MH.PPS.LONG) +0.01,  ymax = max(MH.GPS.LAT) +0.01) %>%
-  gather(x,lon,c('xmin','xmax')) %>%
-  gather(y,lat,c('ymin','ymax')) %>%
-  st_as_sf(coords=c('lon','lat'),crs=4326,remove=F) %>%
-  group_by(RESERVE.GROUP.LOCATION) %>%
-  mutate(angle = calc_angle(lon,lat)) %>%
-  arrange(angle) %>%
-  summarise(do_union=FALSE) %>%
-  st_cast('POLYGON')
+euler_ggplot <- get_euler_ggplot(euler_ob, level = "SPECIES")
 
 
-# draw main map - now implemneted in 
-#   /Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r
 
-map_main <- ggplot(data = nzshp_lores_WGS84) +
-    geom_sf(fill = "lightgrey") +
-    geom_sf(data=bbox, fill = NA, color = "red", size = 1) + 
-    coord_sf( xlim = c((166.5-0.1), (167.0+0.1)), ylim = c((-46.04-0.1),(-45.52+0.1)), expand = FALSE) +
-    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "darkred", size = 4) +
-    geom_point(data = long_table_dt_map, aes(x = MH.PPS.LONG, y = MH.GPS.LAT, shape = RESERVE.GROUP), color = "red", size = 3) +
-    geom_sf_label(data=bbox, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 0.06, nudge_y = 0.06) + 
-    theme_bw() +
-    theme(legend.title = element_blank(), 
-          legend.position=c(.9,.1), 
-          legend.background = element_blank(), 
-          legend.key=element_blank(),
-          axis.title.x=element_blank(),
-          axis.title.y=element_blank()) +
-    annotation_custom(ggplotGrob(map_inst), xmin = 166.35, xmax = 166.7, ymin = -45.62, ymax = -45.45)
 
-ggsave("210401_998_r_summarize_results_fig1_draft.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 125, height = 175, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
+pPhl <- 
+
 
 
 

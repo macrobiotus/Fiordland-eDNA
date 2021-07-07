@@ -7,6 +7,7 @@
 # I. Load packages
 # ================
 rm(list = ls(all.names = TRUE))
+lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
 gc()
 
 library("tidyverse")   # tibbles, pipes, and more
@@ -216,7 +217,6 @@ lt_obis_truncated <- lt_obis_results %>%
   filter(rowSums(across(c(SUPERKINGDOM, PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES), ~ !is.na(.))) > 0) %>% 
   rename(DEPTH.M = depth) %>% mutate(DEPTH.M = ifelse(DEPTH.M < 0, NA,DEPTH.M)) %>% 
   rename(ASV = id) %>% 
-  add_column(UNIQ.REP.IDS = 1) %>% 
   add_column(ABUNDANCE = 1) %>% 
   add_column(REP.ID = 4) %>% 
   add_column(SAMPLE.TYPE = "OBIS") 
@@ -257,28 +257,38 @@ long_table %<>% mutate(DEPTH.M = as.numeric(DEPTH.M))
 long_table %<>% bind_rows(long_table, lt_obis_truncated)
 dim(long_table) # 1828   71
 
-# define BRUV.PRES and set EDNA.PRES and BOTH.PRES so as to identify complete BRUV/EDNA data
-# define ALL.PRES so as to identify complete BRUV/EDNA/OBIS data 
+# define unique observations by technique
+long_table %<>% mutate(BRUV.OBS.PRES = case_when(SAMPLE.TYPE == "BRUV" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
+long_table %<>% mutate(EDNA.OBS.PRES = case_when(SAMPLE.TYPE == "eDNA" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
+long_table %<>% mutate(OBIS.OBS.PRES = case_when(SAMPLE.TYPE == "OBIS" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
 
-long_table %<>% mutate( BRUV.PRES = case_when(SAMPLE.TYPE == "BRUV" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
-long_table %<>% mutate( EDNA.PRES = case_when(SAMPLE.TYPE == "eDNA" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
-long_table %<>% mutate( BOTH.PRES = case_when(BRUV.PRES == 1 | EDNA.PRES == 1 ~ 1, TRUE ~ 0))
-
-long_table %<>% mutate( OBIS.PRES = case_when(SAMPLE.TYPE == "OBIS" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
-long_table %<>% mutate(  ALL.PRES = case_when(BRUV.PRES == 1 | EDNA.PRES == 1 | OBIS.PRES == 1 ~ 1, TRUE ~ 0))
-
+# fill missing values for analysis
+long_table %>% group_by(SET.ID) %>% print(n = Inf)
+long_table %<>% group_by(SET.ID) %>% fill(LOC.NAME)
+long_table %<>% group_by(SET.ID) %>% fill(INSIDE.RESERVE)
+long_table %<>% group_by(SET.ID) %>% fill(MH.GPS.LAT, .direction = c("downup"))
+long_table %<>% group_by(SET.ID) %>% fill(MH.PPS.LONG, .direction = c("downup"))
 
 # rearrange columns as in previous data combination
 long_table %<>% relocate(SET.ID,	REP.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT,
   MH.PPS.LONG, RESERVE.GROUP,  RESERVE.GROUP.INSIDE, RESERVE.GROUP.LOCATION, SUPERKINGDOM,	
   PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES)
 
+
+#   7-Jul-21: 
+#     in ~/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r
+#     needed to to have 2 two or 3 UNIQ.REP.IDS
+#     practically this was keeping only sets with complete eDNA and Bruv observations
+#     redefine UNIQ.REP.IDS here 
+#     but can't be used for filtering in the old fashion anymore 
+long_table %<>% group_by(SET.ID) %>% mutate(UNIQ.REP.IDS = n_distinct(REP.ID))
+
 # VIII. Check data completness and citations
 # ==========================================
 
 # safe table with citation info
 data_citataions <- lt_obis_results %>% ungroup() %>% select(bibliographicCitation) %>% filter(!is.na(bibliographicCitation)) %>% 
-   distinct() %>% arrange(bibliographicCitation) %>% print(n = Inf) 
+   distinct() %>% arrange(bibliographicCitation)#  %>% print(n = Inf) 
 
 write.xlsx(data_citataions, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx", asTable = TRUE, overwrite = FALSE)
 
@@ -297,7 +307,7 @@ sum(OBIS_records$used) / nrow(OBIS_records)
 # ==============================
 
 # for verbosity
-write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx", asTable = FALSE)
+write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx", asTable = TRUE, overwrite = TRUE)
 # for superseded QGIS mapping in /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz
 write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/998_r_map_and_add_obis__full_data_raw.csv")
 
@@ -308,4 +318,3 @@ save.image("/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_a
 # for subsequent analyses
 saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
 saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/998_r_map_and_add_obiss__full_data_raw.Rds")
-

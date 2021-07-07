@@ -47,6 +47,10 @@ dim(stack_long_table) #  466 x 67
 stack_long_table <- stack_long_table %>% arrange(SET.ID) 
 
 # need to have three or two UNIQ.REP.IDS, otherwise can't analyse data
+#   7-Jul-21:
+#     practically this is keeping only sets with complete eDNA and Bruv observations
+#     also check /Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r, 
+#     reused there to set the  UNIQ.REP.IDS, but no re-filtering applied
 stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% mutate(UNIQ.REP.IDS = n_distinct(REP.ID))
 stack_long_table <- stack_long_table %>% filter(UNIQ.REP.IDS %in% c(2,3))
 
