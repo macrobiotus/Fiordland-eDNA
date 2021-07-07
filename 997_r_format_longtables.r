@@ -2,7 +2,7 @@
 #   * Combine, filter, and inspect long tables from  *
 #   *   from eDNA data and BRUV observations         * 
 #   **************************************************
-#   26-Feb-2021, 1-Mar-2021
+#   26-Feb-2021, 1-Mar-2021, 7-Jul-2021
 
 # I. Load packages
 # ================
@@ -37,10 +37,10 @@ bruv_long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects
 
 # stack data
 # ----------
-stack_long_table <- bind_rows(edna_long_table, bruv_long_table) #  466 x 67
+stack_long_table <- bind_rows(edna_long_table, bruv_long_table) 
+dim(stack_long_table) #  466 x 67
 
-
-# IV. Format data  
+# IV. Format data
 # ===============
 
 # sorting and inspection for sanity reasons
@@ -128,13 +128,15 @@ long_table <-  long_table %>% relocate(SET.ID,	REP.ID, SAMPLE.TYPE, LOC.NAME, MH
   MH.PPS.LONG, RESERVE.GROUP,  RESERVE.GROUP.INSIDE, RESERVE.GROUP.LOCATION, SUPERKINGDOM,	
   PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES)
 
-print(long_table, n = Inf)
+print(long_table)
 
 # VI. write intermediate file 
 # ===========================
+dim(long_table) # 267 x 71
 
-# Workspce
+# Workspace
 save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input__image.Rdata")
+save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210301_997_r_format_longtables__analysis_input__image.Rdata")
 
 # for verbosity
 write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx", asTable = FALSE)

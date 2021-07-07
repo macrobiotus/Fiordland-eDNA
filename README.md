@@ -462,9 +462,26 @@
       * mapping code
   * commit `151ea60de34334b5cc7f30d302732230dac200f6`
   * continued  `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
-  * commit `5a9eb17a48b056f3eeda336d776ada26acc3a0fa`
- 
+  * commit `edb67644f7e8e7b881831cfad6a5960458e104b0`
+* **07-July-2021** - working on manuscript revision - adding OBIS data to analysis
+  * checked `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
+  * worked on `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
+    * OBIS data citations saved to `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
+    * assessed data completeness
+    * for subsequent analyses saves object `long_table` to
+      * `/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds`
+      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/998_r_map_and_add_obiss__full_data_raw.Rds`
+  * starting to work on `~/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * commit before (extensive) edits (for ealier versions check ear;ier commits before 5-July-2021)
+
+
+
+
 * **todo:**
-  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
-    * during stacking consider: need to have three or two UNIQ.REP.IDS, otherwise can't analyse data - also needs new mapping?
-  * for supplement summarize column `bibliographicCitation` in `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210705_998_r_map_and_add_obis__lt_obis_results.Rds`
+  * export table for reanalysing by Mdl
+  * request re-analysis by MDl
+  * rework `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+  * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
+  * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
+    *  "after data cleaning and assignment of NCBI taxonomy 826 of 1020 OBIS records were retained fro analysis (81%)"
+  

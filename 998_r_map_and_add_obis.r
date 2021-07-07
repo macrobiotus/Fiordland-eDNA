@@ -43,20 +43,11 @@ long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/2103
 # of
 #  /Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r
 
-# get clean raw data
-# -------------------
-
-# define BRUV.PRES and set EDNA.PRES and BOTH.PRES so as to identify complete BRUV/EDNA data 
-long_table <- long_table %>% mutate( BRUV.PRES = case_when(SAMPLE.TYPE == "BRUV" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
-long_table <- long_table %>% mutate( EDNA.PRES = case_when(SAMPLE.TYPE == "eDNA" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
-long_table <- long_table %>% mutate( BOTH.PRES = case_when(BRUV.PRES == 1 | EDNA.PRES == 1 ~ 1, TRUE ~ 0))
-
 # get a table with relevant columns  for OBIS lookup
 lt_obis_lookup <- long_table %>% 
   select("SET.ID", "MH.GPS.LAT", "MH.PPS.LONG",  "RESERVE.GROUP", "RESERVE.GROUP.INSIDE", "RESERVE.GROUP.LOCATION") %>%
   distinct() %>% arrange(SET.ID) 
 lt_obis_lookup %>% print(n= Inf)
-
 
 # get clean spatial data in degree units 
 # ---------------------------------------
@@ -166,8 +157,8 @@ lt_obis_lookup_sf_buffer_d %<>% mutate(BUFFER.WKT = st_as_text(geometry))
 # simplify object to make life easier for later analyses
 lt_obis_lookup <- st_drop_geometry(lt_obis_lookup_sf_buffer_d)
 
-# V. fetch OBIS data
-# ==================
+# V. fetch OBIS data (Wed Jul  7 10:45:50 NZST 2021)
+# ==================================================
 
 # create nested data frame for OBIS lookup -  WKT polygons will go to $data slot
 # renaming $data slot to BUFFER.WKT.NST as it is also a keyword
@@ -188,8 +179,8 @@ lt_obis_results <- unnest(lt_obis_lookup, cols = c(BUFFER.WKT.NST, OBIS))
 saveRDS(lt_obis_results, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_add_obis__lt_obis_results.Rds")
 saveRDS(lt_obis_results, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210705_998_r_map_and_add_obis__lt_obis_results.Rds")
 
-# VI. format OBIS data
-# ==================
+# VI. format OBIS data (NCBI taxonomy addition)
+# =============================================
 # get clean NCBI conform definitions for SUPERKINGDOM PHYLUM CLASS ORDER FAMILY, GENUS, SPECIES, 
 # get a "1" for each ABUNDANCE or count in buffer? / per SET.ID ?
 # keep SET.ID for merging
@@ -213,7 +204,9 @@ ncbi_strings <- as_tibble(get_strng(unique(lt_obis_results$NCBI.TAXID)), rowname
 # add taxonomy strings to OBIS results
 lt_obis_results %<>% left_join(ncbi_strings)
 
-# ***continue here after 5-July-2021***
+
+# VII. format OBIS data (match with previous tales and stack)
+# ===========================================================
 
 # save results for merging with other data -
 # set values to match Excel table
@@ -223,20 +216,96 @@ lt_obis_truncated <- lt_obis_results %>%
   filter(rowSums(across(c(SUPERKINGDOM, PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES), ~ !is.na(.))) > 0) %>% 
   rename(DEPTH.M = depth) %>% mutate(DEPTH.M = ifelse(DEPTH.M < 0, NA,DEPTH.M)) %>% 
   rename(ASV = id) %>% 
+  add_column(UNIQ.REP.IDS = 1) %>% 
   add_column(ABUNDANCE = 1) %>% 
   add_column(REP.ID = 4) %>% 
   add_column(SAMPLE.TYPE = "OBIS") 
 
+lt_obis_truncated %<>% mutate(RESERVE.GROUP = 
+  case_when(SET.ID %in% c(21,22,23,24) ~ "WJ",
+            SET.ID %in% c(26,27,28,29) ~ "WJ",
+            SET.ID %in% c(11,12)       ~ "FF",
+            SET.ID %in% c(17,18,19)    ~ "FF",
+            SET.ID %in% c(7,8,9,10)    ~ "LS",
+            SET.ID %in% c(1,3,4,5)     ~ "LS")
+            )
+
+lt_obis_truncated %<>% mutate(RESERVE.GROUP.INSIDE = 
+  case_when(SET.ID %in% c(21,22,23,24) ~ TRUE,
+            SET.ID %in% c(26,27,28,29) ~ FALSE,
+            SET.ID %in% c(11,12)       ~ TRUE,
+            SET.ID %in% c(17,18,19)    ~ FALSE,
+            SET.ID %in% c(7,8,9,10)    ~ FALSE,
+            SET.ID %in% c(1,3,4,5)     ~ TRUE))
+
+lt_obis_truncated %<>% mutate(RESERVE.GROUP.LOCATION = 
+  case_when(RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == TRUE  ~ "WJ MR",
+            RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == FALSE ~ "WJ CTRL",
+            RESERVE.GROUP == "FF" & RESERVE.GROUP.INSIDE == TRUE  ~ "FF MR",
+            RESERVE.GROUP == "FF" & RESERVE.GROUP.INSIDE == FALSE ~ "FF CTRL",
+            RESERVE.GROUP == "LS" & RESERVE.GROUP.INSIDE == TRUE  ~ "LS MR",
+            RESERVE.GROUP == "LS" & RESERVE.GROUP.INSIDE == FALSE ~ "LS CTRL")
+            )
+
+# stack data for subsequent analysis - check dimensions
+dim(long_table) # 267 x 71
+
+# stack data for subsequent analysis -correct type in previous data for succesful stacking
+long_table %<>% mutate(DEPTH.M = as.numeric(DEPTH.M))
+
+# stack data for subsequent analysis
+long_table %<>% bind_rows(long_table, lt_obis_truncated)
+dim(long_table) # 1828   71
+
+# define BRUV.PRES and set EDNA.PRES and BOTH.PRES so as to identify complete BRUV/EDNA data
+# define ALL.PRES so as to identify complete BRUV/EDNA/OBIS data 
+
+long_table %<>% mutate( BRUV.PRES = case_when(SAMPLE.TYPE == "BRUV" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
+long_table %<>% mutate( EDNA.PRES = case_when(SAMPLE.TYPE == "eDNA" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
+long_table %<>% mutate( BOTH.PRES = case_when(BRUV.PRES == 1 | EDNA.PRES == 1 ~ 1, TRUE ~ 0))
+
+long_table %<>% mutate( OBIS.PRES = case_when(SAMPLE.TYPE == "OBIS" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
+long_table %<>% mutate(  ALL.PRES = case_when(BRUV.PRES == 1 | EDNA.PRES == 1 | OBIS.PRES == 1 ~ 1, TRUE ~ 0))
+
+
+# rearrange columns as in previous data combination
+long_table %<>% relocate(SET.ID,	REP.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT,
+  MH.PPS.LONG, RESERVE.GROUP,  RESERVE.GROUP.INSIDE, RESERVE.GROUP.LOCATION, SUPERKINGDOM,	
+  PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES)
+
+# VIII. Check data completness and citations
+# ==========================================
+
+# safe table with citation info
+data_citataions <- lt_obis_results %>% ungroup() %>% select(bibliographicCitation) %>% filter(!is.na(bibliographicCitation)) %>% 
+   distinct() %>% arrange(bibliographicCitation) %>% print(n = Inf) 
+
+write.xlsx(data_citataions, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx", asTable = TRUE, overwrite = FALSE)
+
+
+# check data completeness - preformatting
+left_join(ungroup(select(lt_obis_results, id)), ungroup(select(long_table, ASV)), by = c("id" = "ASV"))
+OBIS_records <- ungroup(lt_obis_results) %>% select(id) %>% distinct() %>% rename(OBIS_record = id)
+OBIS_records %<>%  mutate(used = case_when(OBIS_record %in%  long_table$ASV ~ TRUE, TRUE ~ FALSE))
+
+# and numerical summaries for manuscript
+nrow(OBIS_records)
+sum(OBIS_records$used)
+sum(OBIS_records$used) / nrow(OBIS_records)
+
+# XI. Save results and workspace
+# ==============================
+
+# for verbosity
+write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx", asTable = FALSE)
+# for superseded QGIS mapping in /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz
+write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/998_r_map_and_add_obis__full_data_raw.csv")
+
 # saving workspace manually
-save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210705_998_r_map_and_add_obis.r")
-  
-  # %>% print(n=Inf)  %>% pull(SET.ID)  %>% unique
-  
-# during stacking consider: need to have three or two UNIQ.REP.IDS, otherwise can't analyse data
-# - also needs new mapping?
-# - filter sf objects and re-plot?
-unique(lt_obis_results$SET.ID)
-unique(lt_obis_lookup_sf_buffer_d$SET.ID)
-lt_obis_lookup_sf_buffer_d %>% print(n = Inf)
-# stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% mutate(UNIQ.REP.IDS = n_distinct(REP.ID))
-# stack_long_table <- stack_long_table %>% filter(UNIQ.REP.IDS %in% c(2,3))
+save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210705_998_r_map_and_add_obis.Rdata")
+save.image("/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_add_obis.Rdata")
+
+# for subsequent analyses
+saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
+saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/998_r_map_and_add_obiss__full_data_raw.Rds")
+
