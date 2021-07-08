@@ -477,6 +477,12 @@
   * wrote functions to get Euler plots
   * commit `24481cee30c0d9dcd8cebc2ad6a7f971e41b0b1b`
   * got Euler plots
+  * commit `262df352764d7f6dc70d59aff5b815d380db1b15`
+  * started on bar plots
+* **08-July-2021** - working on manuscript revision - coding of new display items
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+  * tried plot overlays
+  
 
 
 

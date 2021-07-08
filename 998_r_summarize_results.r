@@ -15,12 +15,18 @@ gc()
 library("tidyverse")   # because we can't stop using it anymore
 library("magrittr")    # get the %<>% pipe
 
+library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
+
+
+library("sf")           # simple feature objects
+
+
 # library("ggrepel")     # to improve plot labels
 # 
 # library("future.apply") # faster handling of large tables
 # library("data.table")   # faster handling of large tables
 # 
-# library("sf")           # simple feature objects
+
 # library("rmapshaper")   # simplify shape file layers
 # library("ggsflabel")    # label simple feature in ggplot  https://github.com/yutannihilation/ggsflabel - possibly inluded in ggplot
 # 
@@ -34,7 +40,6 @@ library("magrittr")    # get the %<>% pipe
 # library("explor")     # check MCA results in browser
 # library("factoextra") # get MCA results summaries
 # 
-library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
 # library("jpeg")   # read in jpeg images - see line ~840
 
 # library("nVennR")
@@ -44,7 +49,7 @@ library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-gg
 #                      # 
 #                      # documentation at https://rdrr.io/cran/UpSetR/man/upset.html - hard to follow
 
-# Get Euler objects for plotting
+# get Euler objects for plotting
 # ------------------------------
 get_euler_object = function(level, tibl){
   require("eulerr")
@@ -66,7 +71,7 @@ get_euler_object = function(level, tibl){
   return(euler(tibl[ , 2:4]))
 }
 
-# Get Euler Ggplots 
+# get Euler Ggplots 
 # -----------------
 get_euler_ggplot = function(level, euler_ob, plot_label = TRUE){
   require("tidyverse")
@@ -83,30 +88,80 @@ get_euler_ggplot = function(level, euler_ob, plot_label = TRUE){
   return(euler_ggplot)
 }
 
+# get a table with relevant columns for mapping
+# ---------------------------------------------
+#   (from full_biodiv or fish_biodiv )
+get_sf_biodiv =  function(tibl){
+  require("tidyverse")
+  require("magrittr")
+  require("sf")
+  
+  # define columns for mapping add input verification
+  cols <- c("SET.ID", "MH.GPS.LAT", "MH.PPS.LONG",  "RESERVE.GROUP", "RESERVE.GROUP.INSIDE",
+            "RESERVE.GROUP.LOCATION", "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS",
+            "SPECIES", "ASV", "ABUNDANCE", "SAMPLE.TYPE", "BRUV.OBS.PRES", "EDNA.OBS.PRES", "OBIS.OBS.PRES")
+  stopifnot(cols %in% names(tibl))
+  
+  # select relavant data fro mapping
+  tibl %<>% ungroup %>% select(all_of(cols)) %>% arrange(SET.ID) 
+  
+  # get simple feature df for mapping, define coordinates as WGS84 (degrees)  
+  tibl %<>% st_as_sf(coords=c("MH.PPS.LONG","MH.GPS.LAT")) %>% st_set_crs(4326) 
 
+}
 
+# get bounding box around an area defined by a variable (here default: RESERVE.GROUP.LOCATION)  
+# ------------------------------------------------------
+# from https://stackoverflow.com/questions/54696440/create-polygons-representing-bounding-boxes-for-subgroups-using-sf
+
+get_bbox_anyloc <- function(tibl, location = c("RESERVE.GROUP.LOCATION")){
+  require("tidyverse")
+  require("magrittr")
+  require("sf")
+  
+  # sanitize input and 
+  stopifnot( c(location, "MH.PPS.LONG", "MH.GPS.LAT") %in% names(tibl))
+  
+  # helper function 
+  calc_angle <- function(lon,lat) {
+    cent_lon <- mean(lon)
+    cent_lat <- mean(lat)
+    ang <- atan2(lat - cent_lat, lon - cent_lon)
+    return(ang)
+  }
+  
+  # calculate bounding box
+  bbox <- tibl %>% group_by(across(location)) %>%
+  summarise(xmin = min(MH.PPS.LONG) -0.01 ,ymin = min(MH.GPS.LAT) -0.01, xmax=max(MH.PPS.LONG) +0.01,  ymax = max(MH.GPS.LAT) +0.01) %>%
+  gather(x,lon,c('xmin','xmax')) %>% gather(y,lat,c('ymin','ymax')) %>%
+  st_as_sf(coords=c('lon','lat'),crs=4326,remove=F) %>%
+  group_by(across(location)) %>% mutate(angle = calc_angle(lon,lat)) %>%
+  arrange(angle) %>% summarise(do_union=FALSE) %>% st_cast('POLYGON')
+  
+  return(bbox)
+}
 
 
 # aggregate discrete observation of either method ("BOTH.PRES") per sampling area (e.g.: "RESERVE.GROUP.LOCATION") on "GENUS" or species  level  
 #   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
 #   used to get distance matrices in vegan and for numerical summaries
-get_taxon_matrix <- function(long_dt = long_table_dt , group_var = "RESERVE.GROUP.LOCATION", level = "GENUS") {
-
-  if (level == "GENUS") {
-    # aggregate dt for provided grouping variable
-    long_table_dt_agg_group_var_level <- long_dt[, lapply(.SD, sum, na.rm=TRUE), by=c(group_var, "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
-  } else if (level == "SPECIES") {
-    # aggregate dt for provided grouping variable
-    long_table_dt_agg_group_var_level <- long_dt[, lapply(.SD, sum, na.rm=TRUE), by=c(group_var, "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), .SDcols=c("BOTH.PRES") ]
-  } else {
-    stop("Level needs to be set to either \"GENUS\" or \"SPECIES\"")
-  }
-  
-  # cast matrix
-  taxon_matrix <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_group_var_level), get(group_var)~get(level), value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
-  return(taxon_matrix)
-
-}
+# get_taxon_matrix <- function(long_dt = long_table_dt , group_var = "RESERVE.GROUP.LOCATION", level = "GENUS") {
+# 
+#   if (level == "GENUS") {
+#     # aggregate dt for provided grouping variable
+#     long_table_dt_agg_group_var_level <- long_dt[, lapply(.SD, sum, na.rm=TRUE), by=c(group_var, "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+#   } else if (level == "SPECIES") {
+#     # aggregate dt for provided grouping variable
+#     long_table_dt_agg_group_var_level <- long_dt[, lapply(.SD, sum, na.rm=TRUE), by=c(group_var, "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), .SDcols=c("BOTH.PRES") ]
+#   } else {
+#     stop("Level needs to be set to either \"GENUS\" or \"SPECIES\"")
+#   }
+#   
+#   # cast matrix
+#   taxon_matrix <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_group_var_level), get(group_var)~get(level), value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
+#   return(taxon_matrix)
+# 
+# }
 
 
 # II. Read in data
@@ -118,8 +173,8 @@ system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manus
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
 
 
-# III. Format data  
-# ================
+# III. Read in and format data  
+# ============================
 # - mark non-NZ species  **(possibly needs to be re-worked)**
 # - split "fish" and "full" data
 # - filter for data completeness **(possibly needs to be re-worked)**
@@ -139,26 +194,28 @@ long_table %<>% mutate(GENUS =
                                                     TRUE ~ GENUS)
                                                     )
 
-# Split "fish" and "full" data
-# ----------------------------
-full_biodiv <- long_table  
-fish_biodiv <- long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes")) %>% filter(!(GENUS %in% c("Sardinops")))
-
-
 # Filter for data completeness **(possibly needs to be re-worked)**
 # ------------------------------------------------------------------
 
 # - not done yet -
 
 
-# IV. get barplots
-# ================
-# - not done yet -
+# continue her after 7-Jul-2021: 
 
+# possibly get equivalent of BOTH.PRES
+# ------------------------------
+# function needs to 
+#   get presence / absence on a {taxonomic level} (SPECIES)
+#   per a {location} (SET.ID  RESERVE.GROUP.LOCATION )
+#   ? check data completeness  {all "1" in BRUV.OBS.PRES	EDNA.OBS.PRES	OBIS.OBS.PRES}
 
-# V. Get Euler plots
-# ==================
-# continue here after 7-Jul-2021 
+# Split "fish" and "full" data
+# ----------------------------
+full_biodiv <- long_table %>% distinct()
+fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes")) %>% filter(!(GENUS %in% c("Sardinops")))
+
+# III. Get Euler plots
+# ====================
 
 # get euler analysis results for plotting / plot_label = TRUE shrinks plots a lot
 euler_obs_full_bio <- lapply(list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), get_euler_object, full_biodiv)
@@ -184,6 +241,343 @@ ggsave("210707_998_r_summarize_results__edna_bruv_obis.pdf", plot = last_plot(),
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1.5, width = 75, height = 175, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
+
+
+
+# IV. get geographical maps with heat overlays
+# =============================================
+
+# compare script  ~/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r
+
+# data preparation
+# ----------------
+
+# for mapping: get column-subset sf's with WGS 84 in degrees 
+full_biodiv_sf <- get_sf_biodiv(full_biodiv)
+fish_biodiv_sf <- get_sf_biodiv(fish_biodiv)
+
+# for mapping: get map layers 
+nzshp_hires_WGS84_sf <- read_sf("/Users/paul/GIS/NZ_coast/NZ_Coast_isl.shp") %>% st_transform(crs = 4326)
+nzshp_lores_WGS84_sf <- rmapshaper::ms_simplify(input = as(nzshp_hires_WGS84_sf, 'Spatial')) %>% st_as_sf
+
+# for mapping: define bounding boxes as in map in previous script 
+#  field work area & sample groups
+bbox_fwork <- st_as_sfc(st_bbox(c(xmin = (166.5-0.1), xmax = (167.0+0.1), ymax = (-46.04-0.1), ymin = (-45.52+0.1)), crs = st_crs(4326)))
+#  boxes around default value RESERVE.GROUP.LOCATION  
+bbox_rgl_full_biodiv <- get_bbox_anyloc(full_biodiv) # must use original object, not sf 
+bbox_rgl_fish_biodiv <- get_bbox_anyloc(fish_biodiv) # must use original object, not sf
+
+# for mapping and buffer calculations at correct scale: re-project all sf's to local km  
+get_reprojection <- function(sf) st_transform(sf, crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
+
+full_biodiv_sf_km <- get_reprojection(full_biodiv_sf)
+fish_biodiv_sf_km <- get_reprojection(fish_biodiv_sf)
+
+nzshp_hires_WGS84_sf_km <- get_reprojection(nzshp_hires_WGS84_sf)
+nzshp_lores_WGS84_sf_km <- get_reprojection(nzshp_lores_WGS84_sf)
+
+bbox_fwork_km <- get_reprojection(bbox_fwork)
+
+bbox_rgl_full_biodiv_km <- get_reprojection(bbox_rgl_full_biodiv)
+bbox_rgl_fish_biodiv_km <- get_reprojection(bbox_rgl_fish_biodiv)
+
+# calculate 2.5 km buffers
+full_biodiv_sf_km_sid_buff <- full_biodiv_sf_km %>% select("SET.ID") %>% distinct %>% st_buffer(2.5)
+fish_biodiv_sf_km_sid_buff <- fish_biodiv_sf_km %>% select("SET.ID") %>% distinct %>% st_buffer(2.5)
+
+
+# mapping
+# --------
+
+# inset map for subsequent main map (see https://geocompr.github.io/post/2019/ggplot2-inset-maps/)
+#  using map in degrees, as scale may be too large for kms
+map_inset <-  ggplot(data = nzshp_lores_WGS84_sf) + geom_sf(fill = "grey93", color = "red", lwd = 0.5) +
+    geom_sf(data = bbox_fwork, fill = NA, color = "darkred", size = 1) + theme_void()
+
+# --- continue her after 8-Jul-2021
+
+# remove cod trawls ....
+
+# write as function....
+
+fish_biodiv_df <- fish_biodiv_sf_km %>%
+    mutate(lat = unlist(map(fish_biodiv_sf_km$geometry,2)),
+           lon = unlist(map(fish_biodiv_sf_km$geometry,1))
+           ) %>% st_drop_geometry %>%            
+           filter(SAMPLE.TYPE == "BRUV") %>%
+           add_row(tibble_row(lon = 600, lat = -5200)) %>%
+           add_row(tibble_row(lon = 700, lat = -5000)) 
+           
+
+# clean up.....
+
+ggplot() +
+    geom_density_2d_filled(data = fish_biodiv_df, aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
+    geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("darkgray",0.9), alpha = 0.8) +
+    geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") + 
+    geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6) +
+    coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
+    theme_bw() + 
+    theme(legend.position= "none", 
+          axis.title.x=element_blank(),
+          axis.title.y=element_blank(), 
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank()
+          )
+
+
+# get plot....
+
+# - not done yet -
+
+# clean up below .....
+
+           
+           %>% 
+           slice(rep(1:n(), each = 5))
+
+
+
+ggplot_build(foo)$data
+
+
+
+
+    geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, color = "grey") +
+
+
+, breaks =  pretty(1:20, n = 10)
+
+
+m <- ggplot(faithful, aes(x = eruptions, y = waiting)) +
+ geom_point() +
+ xlim(0.5, 6) +
+ ylim(40, 110)
+
+# contour lines
+m + geom_density_2d()
+
+
+# contour bands
+m + geom_density_2d_filled(alpha = 0.5, contour_var = "count")
+
+# contour bands and contour lines
+m + geom_density_2d_filled(alpha = 0.5) +
+  geom_density_2d(size = 0.25, colour = "black")
+
+
+
+
+
+map_main <-  ggplot() + 
+    geom_sf(data = nzshp_hires_WGS84_sf_km, fill = "lightgrey", lwd = 0.5) +
+    coord_sf( xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)), expand = FALSE) +
+    theme_bw()
+
+
+
+
+
+
+ggplot(data = nzshp_lores_WGS84_sf)
+
+
+
+    
+    geom_sf(data = lt_obis_lookup_sf_loc, fill = NA, colour = "darkred") + 
+    
+    stat_sf_coordinates(data = lt_obis_lookup_sf_loc, aes(shape = RESERVE.GROUP), color = "darkred", size = 3) +
+    stat_sf_coordinates(data = lt_obis_lookup_sf_loc, aes(shape = RESERVE.GROUP), color = "red", size = 1) +
+    geom_sf_label(data=bbox_loc, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6) + 
+ +
+    annotation_custom(ggplotGrob(map_inset), xmin = 610, xmax = 625, ymin = -5065, ymax = -5025) + 
+    theme_bw() +
+    theme(legend.title = element_blank(), 
+          legend.position=c(.9,.1), 
+          legend.background = element_blank(), 
+          legend.key=element_blank(),
+          axis.title.x=element_blank(),
+          axis.title.y=element_blank())
+
+
+map_main <- 
+
+sf:::as_Spatial(fish_biodiv_sf_km) %>% head
+sf::st_coordinates(fish_biodiv_sf_km)$X
+
+st_geometry(fish_biodiv_sf_km)[[1]]
+
+st_geometry(fish_biodiv_sf_km),1
+st_drop_geometry(fish_biodiv_sf_km)
+
+
+# check https://community.rstudio.com/t/add-geom-density-2d-on-sf-object-to-ggplot-can-pass-geometry-to-aes-x-y/71647/5
+# https://stackoverflow.com/questions/54734771/sf-write-lat-long-from-geometry-into-separate-column-and-keep-id-column
+get_lon = function(sf)  unlist(map(sf$geometry,1))
+get_lat = function(sf)  unlist(map(sf$geometry,2))
+# geom_density_2d(data = fish_biodiv_sf_km, aes(x=get_lon(fish_biodiv_sf_km), y=get_lat(fish_biodiv_sf_km)), alpha=1)
+
+
+
+
+
+
+
+
+
+# ---- old code below ------
+
+
+
+# create inset map for publication / define a bounding box around the field work area
+map_inset <- ggplot(data = nzshp_lores_WGS84) +
+    geom_sf(fill = "grey93", color = "red", lwd = 0.5) +
+    geom_sf(data = bb_fwork, fill = NA, color = "darkred", size = 1) +
+    theme_void()
+
+
+
+
+# check sf objects - looking ok so far
+ggplot() +
+    geom_sf(data = nzshp_hires_WGS84, fill = "lightgrey") + 
+    geom_sf(data = lt_obis_lookup_sf, colour = "red") +
+    geom_sf(data = bbox, fill = NA, color = "red") +   
+    coord_sf(xlim = c((166.5-0.1), (167.0+0.1)), ylim = c((-46.04-0.1),(-45.52+0.1)), expand = FALSE) +
+    theme_bw()
+
+# get clean spatial data in local distance units 
+# ---------------------------------------
+
+# for buffer generation re-project objects to local kms and check again
+lt_obis_lookup_sf_loc <- lt_obis_lookup_sf %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
+nzshp_hires_WGS84_loc <- nzshp_hires_WGS84 %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
+bbox_loc <- bbox %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
+
+# calculate 2.5 km buffers
+lt_obis_lookup_sf_buffer_loc <- st_buffer(lt_obis_lookup_sf_loc, 2.5)
+
+# map to check object and for publication - unit is in km
+#  check sf objects  - bounding box as defined per lt_obis_lookup_sf and 10 km in addition
+#  inset grob in degrees, but positioned in kilometers
+
+map_main <- ggplot() +
+    geom_sf(data = nzshp_hires_WGS84_loc, fill = "lightgrey") + 
+    geom_sf(data = lt_obis_lookup_sf_buffer_loc, fill = NA, colour = "red") + 
+    geom_sf(data = lt_obis_lookup_sf_loc, fill = NA, colour = "darkred") + 
+    geom_sf(data = bbox_loc, fill = NA, color = "darkred") +
+    stat_sf_coordinates(data = lt_obis_lookup_sf_loc, aes(shape = RESERVE.GROUP), color = "darkred", size = 3) +
+    stat_sf_coordinates(data = lt_obis_lookup_sf_loc, aes(shape = RESERVE.GROUP), color = "red", size = 1) +
+    geom_sf_label(data=bbox_loc, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6) + 
+    coord_sf( xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
+    annotation_custom(ggplotGrob(map_inset), xmin = 610, xmax = 625, ymin = -5065, ymax = -5025) + 
+    theme_bw() +
+    theme(legend.title = element_blank(), 
+          legend.position=c(.9,.1), 
+          legend.background = element_blank(), 
+          legend.key=element_blank(),
+          axis.title.x=element_blank(),
+          axis.title.y=element_blank())
+
+# see filename - map saving originally implemented in 
+#  /Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r
+
+ggsave("210401_998_r_summarize_results_fig1_draft.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 125, height = 175, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# IV. get barplots
+# ================
+# - not done yet -
+
+get_default_ocurrence_plot = function (psob_molten, taxlev, taxlev_fill = taxlev, ptitl, pxlab, pylab, facet_var = "LOC.NAME" ){
+  
+  require(ggplot2)
+  require(data.table)
+
+  # melting Phyloseq object to data table for merging and speed
+  psob_molten <- data.table(psob_molten)
+ 
+  # set sorting key properly
+  setkey(psob_molten,ASV)
+ 
+  
+  # aggregate on chosen level
+  #   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+  psob_molten <- psob_molten[, lapply(.SD, sum, na.rm=TRUE), by=c(facet_var, "ASV", "SAMPLE.TYPE", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS",  "SPECIES"), .SDcols=c("ABUNDANCE") ]
+
+  #  resort for clarity
+  keycol <-c("ASV",facet_var)
+  setorderv(psob_molten, keycol)
+  
+  # debugging
+  # print(head(psob_molten))
+
+  # add presence-absence abundance column
+  psob_molten <- psob_molten[ , ASVPRESENT :=  fifelse(ABUNDANCE == 0 , 0, 1, na=NA)]
+  
+  # debugging
+  # print(head(psob_molten))
+
+  ggplot(psob_molten, aes_string(x = taxlev, y = "ASVPRESENT", fill = taxlev_fill)) +
+    geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
+    facet_grid(get(facet_var) ~ SAMPLE.TYPE, shrink = TRUE, scales = "free") +
+    theme_bw() +
+    theme(legend.position = "none") +
+    theme(strip.text.y = element_text(angle=0)) + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
+          axis.ticks.y = element_blank()) +
+    labs( title = ptitl) + xlab(pxlab) + ylab(pylab)
+  
+}
+
+get_default_ocurrence_plot (fish_biodiv, facet_var = "RESERVE.GROUP.LOCATION", taxlev = "FAMILY", ptitl = "Phyla across all sample types before filtering", pxlab = "phyla (NCBI taxonomy) ", pylab =  "ASV counts in sample category (y scales fixed)")
+
+
+
+foo <- fish_biodiv %>% group_by(RESERVE.GROUP.LOCATION, SAMPLE.TYPE, SPECIES) %>% summarise(SUMABU = case_when(ABUNDANCE >= 1  ~ 1))
+
+
+foo %>% print(n = Inf)
+
+ggplot(foo, aes(fill=SAMPLE.TYPE, y=SUMABU, x=SPECIES)) + 
+    geom_bar(position="stack", stat="identity") +
+    facet_grid(rows = vars(RESERVE.GROUP.LOCATION), scales="free") + 
+    theme_bw() +
+    theme(strip.text.y = element_text(angle=0)) + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
+          axis.ticks.y = element_blank()) +
+    labs( title = "ptitl") + xlab("pxlab") + ylab("pylab")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
