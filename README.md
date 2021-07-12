@@ -482,16 +482,27 @@
 * **08-July-2021** - working on manuscript revision - coding of new display items
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
   * tried plot overlays
-  
-
+  * commit `222da8e9862c695aa5c07bea5f87bc79c03b1ee1`
+* **08-July-2021** - working on manuscript revision - coding of new display items
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * finished Euler plot after data filtering
+    * finished heat map after data filtering
+  * commit `foo`
 
 
 
 * **todo:**
-  * export table for reanalysing by Mdl
-  * request re-analysis by MDl
-  * rework `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
-    * possibly re-mark non-nz fish species
+  * remove blue cod from OBIS data
+  * get di with fish biodiversity only
+  * **discuss** analysis
+  * finish draft analysis
+  * possibly re-mark non-nz fish species
+  * **discuss, test**, and possibly redo Blast assignments
+  * **discuss**, and possibly shrink OBIS buffers with while losing samples
+  * **export table for reanalysing by Mdl - request re-analysis by MDl**
+  
+  
+
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
   * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
     *  "after data cleaning and assignment of NCBI taxonomy 826 of 1020 OBIS records were retained fro analysis (81%)"

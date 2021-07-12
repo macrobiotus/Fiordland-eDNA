@@ -209,6 +209,10 @@ lt_obis_results %<>% left_join(ncbi_strings)
 # VII. format OBIS data (match with previous tales and stack)
 # ===========================================================
 
+# kick out trawling records
+lt_obis_results %<>% filter(!str_detect(catalogNumber, "Tag") & !str_detect(catalogNumber, "Trawl"))
+
+
 # save results for merging with other data -
 # set values to match Excel table
 #  "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx"

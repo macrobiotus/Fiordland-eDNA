@@ -141,6 +141,25 @@ get_bbox_anyloc <- function(tibl, location = c("RESERVE.GROUP.LOCATION")){
   return(bbox)
 }
 
+# get hacked data frame for heat-map plotting 
+# --------------------------------------------
+#  - isolate coordinates into seperate columns 
+#  - ass two crows matching mapping extend to extend plot
+get_plot_df = function(sf_df, show_var = NULL) {
+  require("sf")
+  require("purrr")
+  require("magrittr")
+  stopifnot("sf" %in% class(sf_df))
+   
+  sf_df %<>% mutate(lat = unlist(map(sf_df$geometry,2)),
+                    lon = unlist(map(sf_df$geometry,1))
+                    ) %>% st_drop_geometry %>% 
+                    {if(!is.null(show_var)) filter(.,SAMPLE.TYPE == show_var) else .} %>%
+                    add_row(tibble_row(lon = 600, lat = -5200, SAMPLE.TYPE = "eDNA")) %>%
+                    add_row(tibble_row(lon = 700, lat = -5000, SAMPLE.TYPE = "eDNA")) 
+                    
+  return(sf_df)
+}
 
 # aggregate discrete observation of either method ("BOTH.PRES") per sampling area (e.g.: "RESERVE.GROUP.LOCATION") on "GENUS" or species  level  
 #   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
@@ -237,12 +256,10 @@ ggarrange(
   )
 
 # save compound plot with better labels then with plot_label = TRUE above
-ggsave("210707_998_r_summarize_results__edna_bruv_obis.pdf", plot = last_plot(), 
+ggsave("210712_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1.5, width = 75, height = 175, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
-
-
 
 # IV. get geographical maps with heat overlays
 # =============================================
@@ -285,6 +302,20 @@ bbox_rgl_fish_biodiv_km <- get_reprojection(bbox_rgl_fish_biodiv)
 full_biodiv_sf_km_sid_buff <- full_biodiv_sf_km %>% select("SET.ID") %>% distinct %>% st_buffer(2.5)
 fish_biodiv_sf_km_sid_buff <- fish_biodiv_sf_km %>% select("SET.ID") %>% distinct %>% st_buffer(2.5)
 
+# get dataframes suitable for plotting with below functions - write as function
+full_biodiv_df_edna <- get_plot_df(full_biodiv_sf_km, "eDNA")
+full_biodiv_df_bruv <- get_plot_df(full_biodiv_sf_km, "BRUV")
+full_biodiv_df_obis <- get_plot_df(full_biodiv_sf_km, "OBIS")
+
+fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "eDNA")
+fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "BRUV")
+fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "OBIS")
+
+get_ggeom_density(get_plot_df(fish_biodiv_sf_km))
+get_ggeom_density(get_plot_df(fish_biodiv_sf_km, c("eDNA")))
+get_ggeom_density(get_plot_df(fish_biodiv_sf_km, c("BRUV")))
+get_ggeom_density(get_plot_df(fish_biodiv_sf_km, c("OBIS")))
+
 
 # mapping
 # --------
@@ -294,206 +325,59 @@ fish_biodiv_sf_km_sid_buff <- fish_biodiv_sf_km %>% select("SET.ID") %>% distinc
 map_inset <-  ggplot(data = nzshp_lores_WGS84_sf) + geom_sf(fill = "grey93", color = "red", lwd = 0.5) +
     geom_sf(data = bbox_fwork, fill = NA, color = "darkred", size = 1) + theme_void()
 
-# --- continue her after 8-Jul-2021
 
-# remove cod trawls ....
-
-# write as function....
-
-fish_biodiv_df <- fish_biodiv_sf_km %>%
-    mutate(lat = unlist(map(fish_biodiv_sf_km$geometry,2)),
-           lon = unlist(map(fish_biodiv_sf_km$geometry,1))
-           ) %>% st_drop_geometry %>%            
-           filter(SAMPLE.TYPE == "BRUV") %>%
-           add_row(tibble_row(lon = 600, lat = -5200)) %>%
-           add_row(tibble_row(lon = 700, lat = -5000)) 
-           
-
-# clean up.....
-
-ggplot() +
-    geom_density_2d_filled(data = fish_biodiv_df, aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
-    geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("darkgray",0.9), alpha = 0.8) +
-    geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") + 
-    geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6) +
-    coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
-    theme_bw() + 
-    theme(legend.position= "none", 
-          axis.title.x=element_blank(),
-          axis.title.y=element_blank(), 
-          axis.text.x=element_blank(),
-          axis.ticks.x=element_blank()
-          )
-
-
-# get plot....
-
-# - not done yet -
-
-# clean up below .....
-
-           
-           %>% 
-           slice(rep(1:n(), each = 5))
-
-
-
-ggplot_build(foo)$data
-
-
-
-
-    geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, color = "grey") +
-
-
-, breaks =  pretty(1:20, n = 10)
-
-
-m <- ggplot(faithful, aes(x = eruptions, y = waiting)) +
- geom_point() +
- xlim(0.5, 6) +
- ylim(40, 110)
-
-# contour lines
-m + geom_density_2d()
-
-
-# contour bands
-m + geom_density_2d_filled(alpha = 0.5, contour_var = "count")
-
-# contour bands and contour lines
-m + geom_density_2d_filled(alpha = 0.5) +
-  geom_density_2d(size = 0.25, colour = "black")
-
-
-
-
-
-map_main <-  ggplot() + 
-    geom_sf(data = nzshp_hires_WGS84_sf_km, fill = "lightgrey", lwd = 0.5) +
-    coord_sf( xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)), expand = FALSE) +
-    theme_bw()
-
-
-
-
-
-
-ggplot(data = nzshp_lores_WGS84_sf)
-
-
-
-    
-    geom_sf(data = lt_obis_lookup_sf_loc, fill = NA, colour = "darkred") + 
-    
-    stat_sf_coordinates(data = lt_obis_lookup_sf_loc, aes(shape = RESERVE.GROUP), color = "darkred", size = 3) +
-    stat_sf_coordinates(data = lt_obis_lookup_sf_loc, aes(shape = RESERVE.GROUP), color = "red", size = 1) +
-    geom_sf_label(data=bbox_loc, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6) + 
- +
-    annotation_custom(ggplotGrob(map_inset), xmin = 610, xmax = 625, ymin = -5065, ymax = -5025) + 
-    theme_bw() +
-    theme(legend.title = element_blank(), 
-          legend.position=c(.9,.1), 
-          legend.background = element_blank(), 
-          legend.key=element_blank(),
-          axis.title.x=element_blank(),
-          axis.title.y=element_blank())
-
-
-map_main <- 
-
-sf:::as_Spatial(fish_biodiv_sf_km) %>% head
-sf::st_coordinates(fish_biodiv_sf_km)$X
-
-st_geometry(fish_biodiv_sf_km)[[1]]
-
-st_geometry(fish_biodiv_sf_km),1
-st_drop_geometry(fish_biodiv_sf_km)
-
-
-# check https://community.rstudio.com/t/add-geom-density-2d-on-sf-object-to-ggplot-can-pass-geometry-to-aes-x-y/71647/5
-# https://stackoverflow.com/questions/54734771/sf-write-lat-long-from-geometry-into-separate-column-and-keep-id-column
-get_lon = function(sf)  unlist(map(sf$geometry,1))
-get_lat = function(sf)  unlist(map(sf$geometry,2))
-# geom_density_2d(data = fish_biodiv_sf_km, aes(x=get_lon(fish_biodiv_sf_km), y=get_lat(fish_biodiv_sf_km)), alpha=1)
-
-
-
-
-
-
-
-
-
-# ---- old code below ------
-
-
-
-# create inset map for publication / define a bounding box around the field work area
-map_inset <- ggplot(data = nzshp_lores_WGS84) +
-    geom_sf(fill = "grey93", color = "red", lwd = 0.5) +
-    geom_sf(data = bb_fwork, fill = NA, color = "darkred", size = 1) +
-    theme_void()
-
-
-
-
-# check sf objects - looking ok so far
-ggplot() +
-    geom_sf(data = nzshp_hires_WGS84, fill = "lightgrey") + 
-    geom_sf(data = lt_obis_lookup_sf, colour = "red") +
-    geom_sf(data = bbox, fill = NA, color = "red") +   
-    coord_sf(xlim = c((166.5-0.1), (167.0+0.1)), ylim = c((-46.04-0.1),(-45.52+0.1)), expand = FALSE) +
-    theme_bw()
-
-# get clean spatial data in local distance units 
-# ---------------------------------------
-
-# for buffer generation re-project objects to local kms and check again
-lt_obis_lookup_sf_loc <- lt_obis_lookup_sf %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
-nzshp_hires_WGS84_loc <- nzshp_hires_WGS84 %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
-bbox_loc <- bbox %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
-
-# calculate 2.5 km buffers
-lt_obis_lookup_sf_buffer_loc <- st_buffer(lt_obis_lookup_sf_loc, 2.5)
-
-# map to check object and for publication - unit is in km
-#  check sf objects  - bounding box as defined per lt_obis_lookup_sf and 10 km in addition
-#  inset grob in degrees, but positioned in kilometers
-
-map_main <- ggplot() +
-    geom_sf(data = nzshp_hires_WGS84_loc, fill = "lightgrey") + 
-    geom_sf(data = lt_obis_lookup_sf_buffer_loc, fill = NA, colour = "red") + 
-    geom_sf(data = lt_obis_lookup_sf_loc, fill = NA, colour = "darkred") + 
-    geom_sf(data = bbox_loc, fill = NA, color = "darkred") +
-    stat_sf_coordinates(data = lt_obis_lookup_sf_loc, aes(shape = RESERVE.GROUP), color = "darkred", size = 3) +
-    stat_sf_coordinates(data = lt_obis_lookup_sf_loc, aes(shape = RESERVE.GROUP), color = "red", size = 1) +
-    geom_sf_label(data=bbox_loc, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6) + 
-    coord_sf( xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
-    annotation_custom(ggplotGrob(map_inset), xmin = 610, xmax = 625, ymin = -5065, ymax = -5025) + 
-    theme_bw() +
-    theme(legend.title = element_blank(), 
-          legend.position=c(.9,.1), 
-          legend.background = element_blank(), 
-          legend.key=element_blank(),
-          axis.title.x=element_blank(),
-          axis.title.y=element_blank())
-
-# see filename - map saving originally implemented in 
-#  /Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r
-
-ggsave("210401_998_r_summarize_results_fig1_draft.pdf", plot = last_plot(), 
+plot_full_biodiv <- ggplot() +
+      geom_density_2d_filled(data = get_plot_df(full_biodiv_sf_km), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
+      facet_grid(. ~ SAMPLE.TYPE) +
+      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("darkgray",1), alpha = 0.9) +
+      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") + 
+      stat_sf_coordinates(data = full_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
+      stat_sf_coordinates(data = full_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey", size = 1) +
+      coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
+      theme_bw() + 
+      theme(legend.position= "none",
+            axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank()
+            )
+
+plot_fish_biodiv <- ggplot() +
+      geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
+      facet_grid(. ~ SAMPLE.TYPE) +
+      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("darkgray",1), alpha = 0.9) +
+      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") + 
+      stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
+      stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey", size = 1) +
+      coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
+      theme_bw() + 
+      theme(legend.position= "none",
+            axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank()
+            )
+
+ggarrange( plot_full_biodiv, plot_fish_biodiv,  
+  ncol = 1, nrow = 2, labels = c("a","b") )
+
+
+# save compound plot with better labels then with plot_label = TRUE above
+ggsave("210712_998_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 125, height = 175, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
+         scale = 2, width = 85, height = 85, units = c("mm"),
+         dpi = 500, limitsize = TRUE)  
 
 
 
 
 
 
-
-
+# --- unrevised code below ----
 
 
 
