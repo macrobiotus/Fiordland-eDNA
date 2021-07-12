@@ -487,9 +487,7 @@
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
     * finished Euler plot after data filtering
     * finished heat map after data filtering
-  * commit `foo`
-
-
+  * commit `0443735b32522ce6912ebebd0f137f6750ca9f04`
 
 * **todo:**
   * remove blue cod from OBIS data

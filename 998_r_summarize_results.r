@@ -325,14 +325,13 @@ get_ggeom_density(get_plot_df(fish_biodiv_sf_km, c("OBIS")))
 map_inset <-  ggplot(data = nzshp_lores_WGS84_sf) + geom_sf(fill = "grey93", color = "red", lwd = 0.5) +
     geom_sf(data = bbox_fwork, fill = NA, color = "darkred", size = 1) + theme_void()
 
-
 plot_full_biodiv <- ggplot() +
       geom_density_2d_filled(data = get_plot_df(full_biodiv_sf_km), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
       facet_grid(. ~ SAMPLE.TYPE) +
-      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("darkgray",1), alpha = 0.9) +
+      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
       # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") + 
       stat_sf_coordinates(data = full_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
-      stat_sf_coordinates(data = full_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey", size = 1) +
+      stat_sf_coordinates(data = full_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "white", size = 1) +
       coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
       theme_bw() + 
       theme(legend.position= "none",
@@ -341,16 +340,18 @@ plot_full_biodiv <- ggplot() +
             axis.ticks.x = element_blank(),
             axis.ticks.y = element_blank(),
             axis.title.x = element_blank(),
-            axis.title.y = element_blank()
+            axis.title.y = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank()
             )
 
 plot_fish_biodiv <- ggplot() +
       geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
       facet_grid(. ~ SAMPLE.TYPE) +
-      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("darkgray",1), alpha = 0.9) +
+      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
       # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") + 
       stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
-      stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey", size = 1) +
+      stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "white", size = 1) +
       coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
       theme_bw() + 
       theme(legend.position= "none",
@@ -359,18 +360,32 @@ plot_fish_biodiv <- ggplot() +
             axis.ticks.x = element_blank(),
             axis.ticks.y = element_blank(),
             axis.title.x = element_blank(),
-            axis.title.y = element_blank()
+            axis.title.y = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank()
             )
 
 ggarrange( plot_full_biodiv, plot_fish_biodiv,  
   ncol = 1, nrow = 2, labels = c("a","b") )
-
 
 # save compound plot with better labels then with plot_label = TRUE above
 ggsave("210712_998_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 2, width = 85, height = 85, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
+
+# V. Get a table
+# ==============
+
+# --- just drafting ----
+
+
+full_biodiv  %>% select("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES") %>% distinct()
+fish_biodiv  %>% select("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES") %>% distinct()
+
+
+
+full_biodiv_sf_km %>% filter(SAMPLE.TYPE == "OBIS"") 
 
 
 
