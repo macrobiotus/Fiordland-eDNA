@@ -2,11 +2,12 @@
 #   * Combine, filter, and inspect long tables from  *
 #   *   from eDNA data and BRUV observations         * 
 #   **************************************************
-#   26-Feb-2021, 1-Mar-2021, 7-Jul-2021
+#   26-Feb-2021, 1-Mar-2021, 7-Jul-2021, 15-Jul-2021
 
 # I. Load packages
 # ================
 rm(list = ls(all.names = TRUE))
+lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
 gc()
 
 library("tidyverse")   # tibbles, pipes, and more
@@ -134,6 +135,25 @@ long_table <-  long_table %>% relocate(SET.ID,	REP.ID, SAMPLE.TYPE, LOC.NAME, MH
 
 print(long_table)
 
+# VII. Insert 15-Jul-2015 - add NCBI data in (had been lost)
+# ==========================================================
+
+# check relavant columns - NCBI.TAXID needs to be filled (again) for eDNA data
+long_table |> select(SAMPLE.TYPE, ASV, NCBI.TAXID)
+
+
+# load "blast_results_final" to get access to the "tax_id" column looked up previously
+load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
+blast_results_final |> select(iteration_query_def, tax_id)
+
+
+# fill in missing NCBI tax strings 
+long_table <- long_table |> 
+  left_join( {blast_results_final |> select(iteration_query_def, tax_id) |> setNames(c("ASV", "NCBI.TAXID"))} , by = c("ASV")) |>
+  unite(NCBI.TAXID, c(NCBI.TAXID.x, NCBI.TAXID.y), remove = TRUE, na.rm = TRUE) # |>
+  # select(SAMPLE.TYPE, ASV, NCBI.TAXID)
+
+
 # VI. write intermediate file 
 # ===========================
 dim(long_table) # 267 x 71
@@ -143,7 +163,7 @@ save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_fo
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210301_997_r_format_longtables__analysis_input__image.Rdata")
 
 # for verbosity
-write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx", asTable = FALSE)
+write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx", asTable = FALSE, overwrite = TRUE)
 # for superseded QGIS mapping in /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz
 write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210301_997_r_format_longtables__analysis_input.csv")
 

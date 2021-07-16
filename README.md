@@ -488,6 +488,22 @@
     * finished Euler plot after data filtering
     * finished heat map after data filtering
   * commit `0443735b32522ce6912ebebd0f137f6750ca9f04`
+  * commit `f0575dae1f5d7dbafa7a3347b397412cea2b08ac`
+* **15-July-2021** - working on manuscript revision - of tree-sorted fish list
+  * getting NCBI tax ids for all fish so as to be able to use NCBI tree via ETE toolkit (`http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html`)
+  * **done** - revised `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r` - eDNA ASVs have NCBI tax ids again.
+  * **done** - revise `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r` - to keep values in column `NCBI.TAXID`
+  * **pending** get Newick Trees from NCBI ids in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r` via ETE toolkit and Phyton
+  * trying to get to work `/Users/paul/Documents/OU_eDNA/200901_scripts/get_tree_for_ncbi_taxid_vector.py`
+    * **NCBI data installation running but pending and needed to be set up properly**
+* **16-July-2021** - working on manuscript revision - of tree-sorted fish list
+  * continued working on `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * **pending** - tree needs to be gotten after database works
+    * **pending** - Anosim results need to be obtained **next** - subset to observation type via  function?
+    * **pending** - indicator species analysis ?
+  * commit ``
+     
+    
 
 * **todo:**
   * remove blue cod from OBIS data

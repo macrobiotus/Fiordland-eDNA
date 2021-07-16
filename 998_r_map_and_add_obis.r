@@ -180,6 +180,8 @@ lt_obis_results <- unnest(lt_obis_lookup, cols = c(BUFFER.WKT.NST, OBIS))
 saveRDS(lt_obis_results, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_add_obis__lt_obis_results.Rds")
 saveRDS(lt_obis_results, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210705_998_r_map_and_add_obis__lt_obis_results.Rds")
 
+lt_obis_results <- readRDS("/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210705_998_r_map_and_add_obis__lt_obis_results.Rds")
+
 # VI. format OBIS data (NCBI taxonomy addition)
 # =============================================
 # get clean NCBI conform definitions for SUPERKINGDOM PHYLUM CLASS ORDER FAMILY, GENUS, SPECIES, 
@@ -255,7 +257,10 @@ lt_obis_truncated %<>% mutate(RESERVE.GROUP.LOCATION =
 dim(long_table) # 267 x 71
 
 # stack data for subsequent analysis -correct type in previous data for succesful stacking
-long_table %<>% mutate(DEPTH.M = as.numeric(DEPTH.M))
+long_table %<>% mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))
+lt_obis_truncated %<>% mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))
+lt_obis_truncated %<>% mutate(DEPTH.M = as.numeric(DEPTH.M))
+
 
 # stack data for subsequent analysis
 long_table %<>% bind_rows(long_table, lt_obis_truncated)

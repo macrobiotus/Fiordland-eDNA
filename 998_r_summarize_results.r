@@ -161,26 +161,79 @@ get_plot_df = function(sf_df, show_var = NULL) {
   return(sf_df)
 }
 
-# aggregate discrete observation of either method ("BOTH.PRES") per sampling area (e.g.: "RESERVE.GROUP.LOCATION") on "GENUS" or species  level  
-#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
-#   used to get distance matrices in vegan and for numerical summaries
-# get_taxon_matrix <- function(long_dt = long_table_dt , group_var = "RESERVE.GROUP.LOCATION", level = "GENUS") {
-# 
-#   if (level == "GENUS") {
-#     # aggregate dt for provided grouping variable
-#     long_table_dt_agg_group_var_level <- long_dt[, lapply(.SD, sum, na.rm=TRUE), by=c(group_var, "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
-#   } else if (level == "SPECIES") {
-#     # aggregate dt for provided grouping variable
-#     long_table_dt_agg_group_var_level <- long_dt[, lapply(.SD, sum, na.rm=TRUE), by=c(group_var, "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), .SDcols=c("BOTH.PRES") ]
-#   } else {
-#     stop("Level needs to be set to either \"GENUS\" or \"SPECIES\"")
-#   }
-#   
-#   # cast matrix
-#   taxon_matrix <- as.matrix(data.table::dcast(setDT(long_table_dt_agg_group_var_level), get(group_var)~get(level), value.var="BOTH.PRES", sum, fill=0), rownames=TRUE)
-#   return(taxon_matrix)
-# 
-# }
+# get matrix - fro distance calculations and 
+get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", group_row = "SPECIES", obs_methods = NULL, tbl = FALSE){
+  
+  stopifnot(group_col %in% names(tibl))
+  stopifnot(group_row %in% c("SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
+  
+  require(data.table) # re-use old code rather then finding out how to reimplement
+  require(tidyverse)
+  
+  # subset for desired observation method if needed
+  
+  if(!is.null(obs_methods))  { 
+    message("Keeping only observations of \"", obs_methods, "\".")
+    tibl <- filter(tibl, SAMPLE.TYPE %in% obs_methods) 
+  }
+  
+  # filter for defined observations - NAs would get lumped together and give erroneous NMDS results
+  message("Filtering out NA's of provided (or default) taxon level, for distance calculations, taxon list will likely have shortened.")
+  tibl <- filter(tibl, !is.na(get(group_row)))
+  
+  dtbl <-  as.data.table(tibl)   # re-use old code rather then finding out how to reimplement
+  
+  # aggregate table for provided grouping variables,
+  #   get counts of occurrences per location, per taxonomic entity for subsequent matrix 
+  #   not sure if all taxonomy level are needed, implementing just in case
+  if (group_row == "SPECIES") {
+    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "NCBI.TAXID", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), .SDcols=c("ANY.OBS.PRES") ]
+  } else if (group_row == "GENUS") {
+    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY",  "GENUS"), .SDcols=c("ANY.OBS.PRES") ]
+  } else if (group_row == "FAMILY") {
+    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY"), .SDcols=c("ANY.OBS.PRES") ]
+  } else if (group_row == "ORDER") {
+    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER"), .SDcols=c("ANY.OBS.PRES") ]
+  } else if (group_row == "CLASS") {
+    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "SUPERKINGDOM", "PHYLUM", "CLASS"), .SDcols=c("ANY.OBS.PRES") ]
+  } else {
+    stop("\"group_row\" needs to be on of  \"CLASS\", \"ORDER\", \"FAMILY\", \"GENUS\", \"SPECIES\"")
+  }
+ 
+  
+  # return matrix for NMDS as default - otherwise list
+  if(tbl == TRUE)  {
+  
+    return(as_tibble(dtbl_ag)) 
+  
+  } else if (tbl == FALSE) {
+    
+    dtbl_ag <- dcast(setDT(dtbl_ag), get(group_col)~get(group_row), value.var="ANY.OBS.PRES", sum, fill=0)
+    mat <- as.matrix(dtbl_ag, rownames=TRUE)
+    return(mat)
+  }
+}
+
+# get ANOSIM results for a given tibble ("tibl")
+#   aggregate observations for "group_col" on taxonomic level "group_row"
+#   aggregated observations ar replicates for ANOSIM as levels of "group_col_ano"
+get_anosim <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano = NULL){
+
+  # get matrix and group variables for Anosim
+  ano_mat <- get_matrix_or_table(tibl, group_col, group_row, tbl = FALSE)
+  ano_grp <- as_tibble(tibl %>% select(all_of(c(group_col, group_col_ano)))) %>% distinct() %>% pull(group_col_ano)
+
+  # print(ano_mat)
+  # print(ano_grp)
+  
+  # get vegan results
+  anosim <- vegan::anosim(ano_mat, ano_grp, permutations = 9999, distance = "jaccard")
+  
+  return(anosim)
+
+}
+
+
 
 
 # II. Read in data
@@ -192,11 +245,19 @@ system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manus
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
 
 
-# III. Read in and format data  
-# ============================
+# III. Format data  
+# =================
 # - mark non-NZ species  **(possibly needs to be re-worked)**
 # - split "fish" and "full" data
 # - filter for data completeness **(possibly needs to be re-worked)**
+
+# clean taxonomy strings
+# ----------------------
+# erase all that may come after "sp." if there is an "sp." at all
+long_table %<>% mutate(SPECIES = gsub("sp\\..*", "sp.", SPECIES))
+long_table %<>% mutate(SPECIES = gsub("cf. ", "", SPECIES))
+long_table %<>% mutate(SPECIES = str_replace(SPECIES, "\\s\\S*\\s\\S*(.*)", ""))
+
 
 # Mark non-NZ species  **(possibly needs to be re-worked)**
 # ---------------------------------------------------------
@@ -207,6 +268,11 @@ long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_
 nonnz_fish <- c("Asterropteryx", "Banjos", "Benitochromis", "Bostrychus", "Bovichtus", "Caprodon", "Coptodon", "Engraulis", "Gobiesox", "Gymnoscopelus", "Helcogramma", "Microcanthus", "Opistognathus", "Phoxinus", "Sander", "Scobinichthys")
 nonnz_othr <- c("Macroctopus", "Jasus", "Arctocephalus", "Balaenoptera", "Tursiops")
 
+long_table %<>% mutate(SPECIES = 
+                         case_when(GENUS %in% nonnz_fish ~ paste0(SPECIES, "*"),
+                                   GENUS %in% nonnz_othr ~ paste0(SPECIES, "**"),
+                                                  TRUE ~ SPECIES)
+                                                   )
 long_table %<>% mutate(GENUS = 
                          case_when(GENUS %in% nonnz_fish ~ paste0(GENUS, "*"),
                                    GENUS %in% nonnz_othr ~ paste0(GENUS, "**"),
@@ -218,15 +284,18 @@ long_table %<>% mutate(GENUS =
 
 # - not done yet -
 
-
-# continue her after 7-Jul-2021: 
-
-# possibly get equivalent of BOTH.PRES
+#  get equivalent of BOTH.PRES
 # ------------------------------
-# function needs to 
+
+# function possibly needs to 
 #   get presence / absence on a {taxonomic level} (SPECIES)
 #   per a {location} (SET.ID  RESERVE.GROUP.LOCATION )
 #   ? check data completeness  {all "1" in BRUV.OBS.PRES	EDNA.OBS.PRES	OBIS.OBS.PRES}
+#   implementing as follows
+
+# for aggregation of identical taxonomic entities across multiple observations, copy observation typ to one
+#   uniting variable (used to be "BOTH.PRES")
+long_table %<>% mutate(ANY.OBS.PRES = case_when(BRUV.OBS.PRES == 1 ~ 1, EDNA.OBS.PRES == 1 ~ 1, OBIS.OBS.PRES == 1 ~ 1, TRUE ~ 0))
 
 # Split "fish" and "full" data
 # ----------------------------
@@ -311,12 +380,6 @@ fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "eDNA")
 fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "BRUV")
 fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "OBIS")
 
-get_ggeom_density(get_plot_df(fish_biodiv_sf_km))
-get_ggeom_density(get_plot_df(fish_biodiv_sf_km, c("eDNA")))
-get_ggeom_density(get_plot_df(fish_biodiv_sf_km, c("BRUV")))
-get_ggeom_density(get_plot_df(fish_biodiv_sf_km, c("OBIS")))
-
-
 # mapping
 # --------
 
@@ -374,115 +437,220 @@ ggsave("210712_998_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last
          scale = 2, width = 85, height = 85, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
 
-# V. Get a table
+# VI. Get a tree 
 # ==============
 
-# --- just drafting ----
+# - in progress - 
 
 
-full_biodiv  %>% select("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES") %>% distinct()
-fish_biodiv  %>% select("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES") %>% distinct()
+# use reticulate to call Python from within R (see https://cran.r-project.org/web/packages/reticulate/vignettes/calling_python.html)
+# use Python's ETE toolkit (see http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html)
+# ETE toolkit installed in conda environment "ete3" (http://etetoolkit.org/download/)
+
+Sys.setenv(RETICULATE_PYTHON = "/Users/paul/Applications/miniconda3/envs/ete3/bin/python")
+reticulate::use_condaenv("/Users/paul/Applications/miniconda3/envs/ete3",  required = TRUE) # ... in the righ environmnet...
+reticulate::py_config()
+source_python("/Users/paul/Documents/OU_eDNA/200901_scripts/get_tree_for_ncbi_taxid_vector.py") #  ...using the corrcet function
+
+tax_ids <- c(9606, 9598, 10090, 7707, 8782)
+
+# call python function (R multi-element vector should become list automatically)
+get_tree_for_ncbi_taxid_vector(tax_ids)
+
+
+# print obtained Newick tree using ggtree
+#   https://www.molecularecologist.com/2017/02/08/phylogenetic-trees-in-r-using-ggtree/
 
 
 
-full_biodiv_sf_km %>% filter(SAMPLE.TYPE == "OBIS"") 
+
+
+# VI. Get biodiversity heat map 
+# ===========================
+
+htmp_tibl_fish <- bind_rows(
+  get_matrix_or_table(fish_biodiv, obs_methods = "eDNA",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
+  get_matrix_or_table(fish_biodiv, obs_methods = "BRUV",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "BRUV"), 
+  get_matrix_or_table(fish_biodiv, obs_methods = "OBIS",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "OBIS"), 
+)
+
+htmp_tibl_full <- bind_rows(
+  get_matrix_or_table(full_biodiv, obs_methods = "eDNA",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
+  get_matrix_or_table(full_biodiv, obs_methods = "BRUV",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "BRUV"), 
+  get_matrix_or_table(full_biodiv, obs_methods = "OBIS",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "OBIS"), 
+)
+
+# get margin sums 
+# h_total <- long_table_dt_agg_gen %>% 
+#   group_by(GENUS) %>% 
+#   summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
+#   mutate(RESERVE.GROUP.LOCATION = 'TOTAL')
+# 
+# v_total <- long_table_dt_agg_gen %>% 
+#   group_by(RESERVE.GROUP.LOCATION) %>% 
+#   summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
+#   mutate(GENUS = 'TOTAL')
+#   
+# add margin sums column for merging
+# v_total <- v_total %>% mutate(GENUS.SUM = BOTH.PRES) %>% select(RESERVE.GROUP.LOCATION, GENUS.SUM)
+# h_total <- h_total %>% mutate(RESERVE.GROUP.LOCATION.SUM = BOTH.PRES) %>% select(GENUS, RESERVE.GROUP.LOCATION.SUM)
+
+# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
+#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
+# long_table_dt_agg_gen <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
+# 
+# RESERVE.GROUP.LOCATION.LABS <- list(
+#   "LS MR"   = "LS MR\n (n = 4)",
+#   "LS CTRL" = "LS CTRL\n (n = 4)",
+#   "FF MR"   = "FF MR\n (n = 2)",
+#   "FF CTRL" = "FF CTRL\n (n = 3)",
+#   "WJ MR"   = "WJ MR\n (n = 4)",
+#   "WJ CTRL" = "WJ CTRL\n (n = 4)"
+# )
 
 
 
-
-
-
-# --- unrevised code below ----
-
-
-
-
-
-
-# IV. get barplots
-# ================
-# - not done yet -
-
-get_default_ocurrence_plot = function (psob_molten, taxlev, taxlev_fill = taxlev, ptitl, pxlab, pylab, facet_var = "LOC.NAME" ){
-  
-  require(ggplot2)
-  require(data.table)
-
-  # melting Phyloseq object to data table for merging and speed
-  psob_molten <- data.table(psob_molten)
- 
-  # set sorting key properly
-  setkey(psob_molten,ASV)
- 
-  
-  # aggregate on chosen level
-  #   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
-  psob_molten <- psob_molten[, lapply(.SD, sum, na.rm=TRUE), by=c(facet_var, "ASV", "SAMPLE.TYPE", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS",  "SPECIES"), .SDcols=c("ABUNDANCE") ]
-
-  #  resort for clarity
-  keycol <-c("ASV",facet_var)
-  setorderv(psob_molten, keycol)
-  
-  # debugging
-  # print(head(psob_molten))
-
-  # add presence-absence abundance column
-  psob_molten <- psob_molten[ , ASVPRESENT :=  fifelse(ABUNDANCE == 0 , 0, 1, na=NA)]
-  
-  # debugging
-  # print(head(psob_molten))
-
-  ggplot(psob_molten, aes_string(x = taxlev, y = "ASVPRESENT", fill = taxlev_fill)) +
-    geom_bar(stat = "identity", position = "stack", colour = NA, size=0) +
-    facet_grid(get(facet_var) ~ SAMPLE.TYPE, shrink = TRUE, scales = "free") +
+# plot heatmap 
+# - needs tree 
+# - needs vectors ordered with tree
+# - needs annotation of non NZ species
+# - may need margin sums
+ggplot(htmp_tibl_full, aes_string(x = "RESERVE.GROUP.LOCATION", y = reorder(htmp_tibl_full$SPECIES, desc(htmp_tibl_full$SPECIES)))) +
+    geom_tile(aes(fill = ANY.OBS.PRES) ) +
+    scale_fill_gradient(low="black", high="red") +
+    geom_text(size = 2, aes(label = ANY.OBS.PRES, color = "white")) +
+    facet_grid(. ~ SAMPLE.TYPE, scales = "fixed") + 
     theme_bw() +
-    theme(legend.position = "none") +
-    theme(strip.text.y = element_text(angle=0)) + 
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
-          axis.ticks.y = element_blank()) +
-    labs( title = ptitl) + xlab(pxlab) + ylab(pylab)
+    theme(legend.position = "none", 
+          strip.text.y = element_text(angle=0), 
+          axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7, face = "italic"), 
+          axis.ticks.y = element_blank()
+          ) +
+    xlab("Sampling Locations") + ylab("Species Observations")
+
+
+# VII. Combine tree and heat-map
+# =============================
+
+# - not done yet - 
+
+
+# VIII. ANOSIM of observation types and variables
+# ===============================================
+
+# - started  - 
+# - next 
+#     get results for both "tibl", **subset by obervation type?**
+#     all "group_row"'s implemented in "get_matrix_or_table()"
+#     sensible "group_col_ano"
+# gather and plot results
+
+get_anosim(tibl = full_biodiv, group_col = "SET.ID", group_row = "FAMILY", group_col_ano = "RESERVE.GROUP.LOCATION") 
+
+
+
+# IX. Indicator species analysis fro significant ANOMSIM results
+# ==============================================================
+
+
+# - not done yet - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ******* OLD code below **********
+# =================================
+
+
+
+
+
+
+
+
+
+# heat maps
+# ---------
+
+# base heat maps 
+#   https://cran.r-project.org/web/packages/plot.matrix/vignettes/plot.matrix.html
+#   https://www.r-graph-gallery.com/74-margin-and-oma-cheatsheet.html
+
+library(plot.matrix)
+par(mar=c(5.1, 10, 4.1, 4.1))
+plot(t(mat_rgl_gen), axis.col=list(side=1, las=1), axis.row = list(side=2, las=1), ann = FALSE, digits = 1, fmt.cell='%.0f')
+
+
+# ggplot heat map with margin totals
+#   as per check https://stackoverflow.com/questions/55787412/adding-marginal-totals-to-ggplot-heatmap-in-r
+
+# get margin sums 
+h_total <- long_table_dt_agg_gen %>% 
+  group_by(GENUS) %>% 
+  summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
+  mutate(RESERVE.GROUP.LOCATION = 'TOTAL')
+
+v_total <- long_table_dt_agg_gen %>% 
+  group_by(RESERVE.GROUP.LOCATION) %>% 
+  summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
+  mutate(GENUS = 'TOTAL')
   
-}
+# add margin sums column for merging
+v_total <- v_total %>% mutate(GENUS.SUM = BOTH.PRES) %>% select(RESERVE.GROUP.LOCATION, GENUS.SUM)
+h_total <- h_total %>% mutate(RESERVE.GROUP.LOCATION.SUM = BOTH.PRES) %>% select(GENUS, RESERVE.GROUP.LOCATION.SUM)
 
-get_default_ocurrence_plot (fish_biodiv, facet_var = "RESERVE.GROUP.LOCATION", taxlev = "FAMILY", ptitl = "Phyla across all sample types before filtering", pxlab = "phyla (NCBI taxonomy) ", pylab =  "ASV counts in sample category (y scales fixed)")
+long_table_dt_agg_gen_plot <- long_table_dt_agg_gen
+long_table_dt_agg_gen_plot <- left_join(long_table_dt_agg_gen_plot, v_total, by = c("RESERVE.GROUP.LOCATION"), keep = FALSE  )
+long_table_dt_agg_gen_plot <- left_join(long_table_dt_agg_gen_plot, h_total, by = c("GENUS"), keep = FALSE )
+
+long_table_dt_agg_gen_plot <- long_table_dt_agg_gen_plot %>% mutate( RESERVE.GROUP.LOCATION = paste0(RESERVE.GROUP.LOCATION, " (", GENUS.SUM, ")"))
+long_table_dt_agg_gen_plot <- long_table_dt_agg_gen_plot %>% mutate( GENUS = paste0(GENUS, " (", RESERVE.GROUP.LOCATION.SUM, ")"))
 
 
+# expand margin to to be compatible with long dt used below - doesn't work 
+# 
+# h_total_long <- as_tibble(long_table_dt_agg_gen$GENUS) %>% arrange(value) %>% rename(GENUS = value)
+# h_total_long <- left_join(h_total_long, h_total, by = "GENUS")
+# 
+# v_total_long <- as_tibble(long_table_dt_agg_gen$RESERVE.GROUP.LOCATION) %>% rename(RESERVE.GROUP.LOCATION = value)
+# v_total_long <- left_join(v_total_long, v_total, by = "RESERVE.GROUP.LOCATION")
+# get heat map
 
-foo <- fish_biodiv %>% group_by(RESERVE.GROUP.LOCATION, SAMPLE.TYPE, SPECIES) %>% summarise(SUMABU = case_when(ABUNDANCE >= 1  ~ 1))
+# add margin sums to new version of long data frame - looks crap
+# long_table_dt_agg_gen_plot <- bind_rows(long_table_dt_agg_gen, h_total) 
+# long_table_dt_agg_gen_plot <- bind_rows(long_table_dt_agg_gen_plot, v_total) 
 
-
-foo %>% print(n = Inf)
-
-ggplot(foo, aes(fill=SAMPLE.TYPE, y=SUMABU, x=SPECIES)) + 
-    geom_bar(position="stack", stat="identity") +
-    facet_grid(rows = vars(RESERVE.GROUP.LOCATION), scales="free") + 
+p_heatobs <- ggplot(long_table_dt_agg_gen_plot, aes_string(x = "RESERVE.GROUP.LOCATION", y = reorder(long_table_dt_agg_gen_plot$GENUS, desc(long_table_dt_agg_gen_plot$GENUS)))) +
+    geom_tile(aes(fill = BOTH.PRES) ) +
+    scale_fill_gradient(low="black", high="red") +
+    geom_text(size = 2, aes(label = BOTH.PRES, color = "white")) +
     theme_bw() +
-    theme(strip.text.y = element_text(angle=0)) + 
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7), 
-          axis.ticks.y = element_blank()) +
-    labs( title = "ptitl") + xlab("pxlab") + ylab("pylab")
+    theme(legend.position = "none", 
+          strip.text.y = element_text(angle=0), 
+          axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7, face = "italic"), 
+          axis.ticks.y = element_blank()
+          ) +
+    xlab("Sampling Locations") + ylab("Genus Observations")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ggsave("210407_998_r_summarize_results_observations_heat.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 75, height = 165, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
 
 
 # VI. Present raw observations 
@@ -584,74 +752,6 @@ which(mat_rgl_spc == max(mat_rgl_spc), arr.ind = TRUE)
 colnames(mat_rgl_spc)[which(mat_rgl_spc == max(mat_rgl_spc), arr.ind = TRUE)[2]]
 mat_rgl_spc[which(mat_rgl_spc == max(mat_rgl_spc), arr.ind = TRUE)]
 
-# heat maps
-# ---------
-
-# base heat maps 
-#   https://cran.r-project.org/web/packages/plot.matrix/vignettes/plot.matrix.html
-#   https://www.r-graph-gallery.com/74-margin-and-oma-cheatsheet.html
-
-library(plot.matrix)
-par(mar=c(5.1, 10, 4.1, 4.1))
-plot(t(mat_rgl_gen), axis.col=list(side=1, las=1), axis.row = list(side=2, las=1), ann = FALSE, digits = 1, fmt.cell='%.0f')
-
-
-# ggplot heat map with margin totals
-#   as per check https://stackoverflow.com/questions/55787412/adding-marginal-totals-to-ggplot-heatmap-in-r
-
-# get margin sums 
-h_total <- long_table_dt_agg_gen %>% 
-  group_by(GENUS) %>% 
-  summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
-  mutate(RESERVE.GROUP.LOCATION = 'TOTAL')
-
-v_total <- long_table_dt_agg_gen %>% 
-  group_by(RESERVE.GROUP.LOCATION) %>% 
-  summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
-  mutate(GENUS = 'TOTAL')
-  
-# add margin sums column for merging
-v_total <- v_total %>% mutate(GENUS.SUM = BOTH.PRES) %>% select(RESERVE.GROUP.LOCATION, GENUS.SUM)
-h_total <- h_total %>% mutate(RESERVE.GROUP.LOCATION.SUM = BOTH.PRES) %>% select(GENUS, RESERVE.GROUP.LOCATION.SUM)
-
-long_table_dt_agg_gen_plot <- long_table_dt_agg_gen
-long_table_dt_agg_gen_plot <- left_join(long_table_dt_agg_gen_plot, v_total, by = c("RESERVE.GROUP.LOCATION"), keep = FALSE  )
-long_table_dt_agg_gen_plot <- left_join(long_table_dt_agg_gen_plot, h_total, by = c("GENUS"), keep = FALSE )
-
-long_table_dt_agg_gen_plot <- long_table_dt_agg_gen_plot %>% mutate( RESERVE.GROUP.LOCATION = paste0(RESERVE.GROUP.LOCATION, " (", GENUS.SUM, ")"))
-long_table_dt_agg_gen_plot <- long_table_dt_agg_gen_plot %>% mutate( GENUS = paste0(GENUS, " (", RESERVE.GROUP.LOCATION.SUM, ")"))
-
-
-# expand margin to to be compatible with long dt used below - doesn't work 
-# 
-# h_total_long <- as_tibble(long_table_dt_agg_gen$GENUS) %>% arrange(value) %>% rename(GENUS = value)
-# h_total_long <- left_join(h_total_long, h_total, by = "GENUS")
-# 
-# v_total_long <- as_tibble(long_table_dt_agg_gen$RESERVE.GROUP.LOCATION) %>% rename(RESERVE.GROUP.LOCATION = value)
-# v_total_long <- left_join(v_total_long, v_total, by = "RESERVE.GROUP.LOCATION")
-# get heat map
-
-# add margin sums to new version of long data frame - looks crap
-# long_table_dt_agg_gen_plot <- bind_rows(long_table_dt_agg_gen, h_total) 
-# long_table_dt_agg_gen_plot <- bind_rows(long_table_dt_agg_gen_plot, v_total) 
-
-p_heatobs <- ggplot(long_table_dt_agg_gen_plot, aes_string(x = "RESERVE.GROUP.LOCATION", y = reorder(long_table_dt_agg_gen_plot$GENUS, desc(long_table_dt_agg_gen_plot$GENUS)))) +
-    geom_tile(aes(fill = BOTH.PRES) ) +
-    scale_fill_gradient(low="black", high="red") +
-    geom_text(size = 2, aes(label = BOTH.PRES, color = "white")) +
-    theme_bw() +
-    theme(legend.position = "none", 
-          strip.text.y = element_text(angle=0), 
-          axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7, face = "italic"), 
-          axis.ticks.y = element_blank()
-          ) +
-    xlab("Sampling Locations") + ylab("Genus Observations")
-
-ggsave("210407_998_r_summarize_results_observations_heat.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 75, height = 165, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
 
 
 # summary corrected for sampling effort
