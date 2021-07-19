@@ -49,6 +49,11 @@ library("sf")           # simple feature objects
 #                      # 
 #                      # documentation at https://rdrr.io/cran/UpSetR/man/upset.html - hard to follow
 
+# not in 
+# -------
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
+
 # get Euler objects for plotting
 # ------------------------------
 get_euler_object = function(level, tibl){
@@ -174,7 +179,8 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   
   if(!is.null(obs_methods))  { 
     message("Keeping only observations of \"", obs_methods, "\".")
-    tibl <- filter(tibl, SAMPLE.TYPE %in% obs_methods) 
+    tibl <- filter(tibl, SAMPLE.TYPE %in% obs_methods)
+    message("Keeping:", tibl %>% ungroup %>% select(SAMPLE.TYPE) %>% distinct)
   }
   
   # filter for defined observations - NAs would get lumped together and give erroneous NMDS results
@@ -217,17 +223,31 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
 # get ANOSIM results for a given tibble ("tibl")
 #   aggregate observations for "group_col" on taxonomic level "group_row"
 #   aggregated observations ar replicates for ANOSIM as levels of "group_col_ano"
-get_anosim <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano = NULL){
-
+get_anosim <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano = NULL, obs_methods = NULL, distance = NULL){
+  
+  # debugging
+  #    tibl          = get(c("full_biodiv_obis"))
+  #    group_col     = c("SET.ID") 
+  #    group_row     = c("SPECIES", "GENUS", "FAMILY", "ORDER", "CLASS")[1]
+  #    group_col_ano = c("RESERVE.GROUP.LOCATION", "RESERVE.GROUP.INSIDE")[1] 
+  #    obs_methods   = c("OBIS")
+  #     distance      = "jaccard"
+  message(group_col)
   # get matrix and group variables for Anosim
-  ano_mat <- get_matrix_or_table(tibl, group_col, group_row, tbl = FALSE)
-  ano_grp <- as_tibble(tibl %>% select(all_of(c(group_col, group_col_ano)))) %>% distinct() %>% pull(group_col_ano)
+  ano_mat <- get_matrix_or_table(tibl, group_col, group_row, tbl = FALSE, obs_methods = obs_methods)
+  message("get_anosim() filter command is buggy and works only with expand.grid dfs atm")
+  ano_grp <- as_tibble(tibl %>% select(all_of(c(group_col, group_col_ano)))) %>% distinct() %>% 
+    filter(group_col %in% rownames(ano_mat)) %>% arrange(group_col) %>% pull(group_col_ano)
+    
+    # if not called from dataframes line needs to be: 
+    # filter(get(group_col) %in% rownames(ano_mat)) %>% arrange(interp(group_col)) %>% pull(group_col_ano)
 
-  # print(ano_mat)
-  # print(ano_grp)
+  # debugging
+  #   print(ano_mat)
+  #   print(ano_grp)
   
   # get vegan results
-  anosim <- vegan::anosim(ano_mat, ano_grp, permutations = 9999, distance = "jaccard")
+  anosim <- vegan::anosim(ano_mat, ano_grp, permutations = 9999, distance = distance)
   
   return(anosim)
 
@@ -539,18 +559,90 @@ ggplot(htmp_tibl_full, aes_string(x = "RESERVE.GROUP.LOCATION", y = reorder(htmp
 # VIII. ANOSIM of observation types and variables
 # ===============================================
 
-# - started  - 
-# - next 
-#     get results for both "tibl", **subset by obervation type?**
-#     all "group_row"'s implemented in "get_matrix_or_table()"
-#     sensible "group_col_ano"
-# gather and plot results
-
-get_anosim(tibl = full_biodiv, group_col = "SET.ID", group_row = "FAMILY", group_col_ano = "RESERVE.GROUP.LOCATION") 
+# testing function with one data set
+#   get_anosim(distance = "jaccard", tibl = full_biodiv, group_col = "SET.ID", group_row = c("SPECIES"), group_col_ano = "RESERVE.GROUP.LOCATION", obs_methods = "BRUV")
 
 
+# Analysis for fish (as per eDNA markers) for BRUV and eDNA (data complete across all sets)
+# ----------------------------------------------------------------------------------------------
 
-# IX. Indicator species analysis fro significant ANOMSIM results
+# setting up parameter combinations for complete ANOSIM analysis
+anosim_analysis_fish <- expand.grid(
+  distance      = c("jaccard"),
+  tibl          = c("fish_biodiv"),
+  group_col     = c("SET.ID"), 
+  group_row     = c("SPECIES", "GENUS", "FAMILY", "ORDER", "CLASS"),
+  group_col_ano = c("RESERVE.GROUP.LOCATION", "RESERVE.GROUP.INSIDE"), 
+  obs_methods   = c("eDNA", "BRUV")
+  )
+
+# run ANOSIM analysis
+anosim_results_fish <- apply(anosim_analysis_fish, 1, FUN = function(x) try(get_anosim(distance = x[1], tibl = get(x[2]), group_col = x[3], group_row = x[4], group_col_ano = x[5], obs_methods = x[6])))
+
+# inspect results
+#  str(anosim_results[[1]])
+
+# get results data frame
+anosim_analysis_fish$statistic    <- unlist(lapply(anosim_results_fish, '[[', 5))
+anosim_analysis_fish$significance <- unlist(lapply(anosim_results_fish, '[[', 2))
+anosim_analysis_fish %>% filter(significance <= 0.05 )
+
+
+# Analysis only full biodiversity  (for BRUV, eDNA, and OBIS) 
+# -----------------------------------------------------------
+#   with truntaed dataset (OBIS observations missing for some SET.ID's (22,27,28,29))
+#   --------------------------------------------------------------------------------
+
+# filter out data undefined for OBIS 
+full_biodiv_obis <- full_biodiv %>% filter(SET.ID %!in% c(22,27,28,29))
+
+# testing function with one data set
+get_anosim(distance = "jaccard", tibl = full_biodiv_obis, group_col = "SET.ID", group_row = c("SPECIES"), group_col_ano = "RESERVE.GROUP.LOCATION", obs_methods = "OBIS")
+
+anosim_analysis_full <- expand.grid(
+  distance      = c("jaccard"),
+  tibl          = c("full_biodiv_obis"),
+  group_col     = c("SET.ID"), 
+  group_row     = c("SPECIES", "GENUS", "FAMILY", "ORDER", "CLASS"),
+  group_col_ano = c("RESERVE.GROUP.LOCATION", "RESERVE.GROUP.INSIDE"), 
+  obs_methods   = c("OBIS", "eDNA", "BRUV")
+  )
+
+# run ANOSIM analysis
+anosim_results_full <- apply(anosim_analysis_full, 1, FUN = function(x) try(get_anosim(distance = x[1], tibl = get(x[2]), group_col = x[3], group_row = x[4], group_col_ano = x[5], obs_methods = x[6])))
+
+# get results data frame
+anosim_analysis_full$statistic    <- unlist(lapply(anosim_results_full, '[[', 5))
+anosim_analysis_full$significance <- unlist(lapply(anosim_results_full, '[[', 2))
+anosim_analysis_full %>% filter(significance <= 0.05 )
+
+
+
+
+# ###############################################################
+# obis obs missing for some set.ids (22,27,28,29) - annotate in map 
+# not done yet
+full_biodiv %>% summarise(sum(OBIS.OBS.PRES)) %>% print(n = Inf)
+# ###############################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# IX. Indicator species analysis for significant ANOMSIM results
 # ==============================================================
 
 
@@ -559,10 +651,10 @@ get_anosim(tibl = full_biodiv, group_col = "SET.ID", group_row = "FAMILY", group
 
 
 
+pmap(list(x = 1, y = 1, z = 1 ), sum, na.rm = TRUE)
 
-
-
-
+mapply(rep, 1:4, 4:1)
+mapply(rep, times = 1:4, MoreArgs = list(x = 42))
 
 
 

@@ -501,6 +501,12 @@
     * **pending** - tree needs to be gotten after database works
     * **pending** - Anosim results need to be obtained **next** - subset to observation type via  function?
     * **pending** - indicator species analysis ?
+  * commit `77415cc05c999016401f491d16fc33eb7aa77ce6`
+* **19-July-2021** - working on manuscript revision - of tree-sorted fish list
+  * continued working on `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * **pending** - tree needs to be gotten after database works 
+    * **debug filter** - ANOSIM results need to be obtained
+    * **pending** - indicator species analysis
   * commit ``
      
     
