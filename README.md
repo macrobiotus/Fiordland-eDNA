@@ -507,8 +507,13 @@
     * **pending** - tree needs to be gotten after database works 
     * **debug filter** - ANOSIM results need to be obtained
     * **pending** - indicator species analysis
+  * commit `f0498f34161835d1f21792862d5f6182a5125a16`
+* **19-July-2021** - working on manuscript revision
+  * continued working on `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * now looking up trivial names
+    * now putting out taxonomically ordered flextable of full biodiversity
+    * now putting out taxonomically ordered heatmap  of full biodiversity
   * commit ``
-     
     
 
 * **todo:**

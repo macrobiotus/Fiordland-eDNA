@@ -15,10 +15,22 @@ gc()
 library("tidyverse")   # because we can't stop using it anymore
 library("magrittr")    # get the %<>% pipe
 
+library("taxize")      # look up trivial names
+Sys.setenv(ENTREZ_KEY="a634c6e9c96c3859bca27a2771f6d2872f08")
+Sys.getenv("ENTREZ_KEY")
+
+
 library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
 
 
 library("sf")           # simple feature objects
+
+library("flextable")   # format species lists as tables https://ardata-fr.github.io/flextable-book/
+library("officer")     # format species lists as tables https://ardata-fr.github.io/flextable-book/
+library("magick")      # convert flext table to ggplot grob
+library("grid")        # convert flext table to ggplot grob
+# library("cowplot")   # convert flext table to ggplot grob
+
 
 
 # library("ggrepel")     # to improve plot labels
@@ -193,7 +205,7 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   #   get counts of occurrences per location, per taxonomic entity for subsequent matrix 
   #   not sure if all taxonomy level are needed, implementing just in case
   if (group_row == "SPECIES") {
-    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "NCBI.TAXID", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), .SDcols=c("ANY.OBS.PRES") ]
+    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "NCBI.TAXID", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES", "TRIVIAL.SCPECIES"), .SDcols=c("ANY.OBS.PRES") ]
   } else if (group_row == "GENUS") {
     dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY",  "GENUS"), .SDcols=c("ANY.OBS.PRES") ]
   } else if (group_row == "FAMILY") {
@@ -253,33 +265,41 @@ get_anosim <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano =
 
 }
 
-
-
-
 # II. Read in data
 # ================
 
 # check input data of previous script
-system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx\"")
+# system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx\"")
 
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
 
 
 # III. Format data  
 # =================
+# - add trivial names 
 # - mark non-NZ species  **(possibly needs to be re-worked)**
 # - split "fish" and "full" data
 # - filter for data completeness **(possibly needs to be re-worked)**
 
+
 # clean taxonomy strings
 # ----------------------
+
 # erase all that may come after "sp." if there is an "sp." at all
 long_table %<>% mutate(SPECIES = gsub("sp\\..*", "sp.", SPECIES))
 long_table %<>% mutate(SPECIES = gsub("cf. ", "", SPECIES))
 long_table %<>% mutate(SPECIES = str_replace(SPECIES, "\\s\\S*\\s\\S*(.*)", ""))
 
 
-# Mark non-NZ species  **(possibly needs to be re-worked)**
+# add trivial names 
+# -----------------
+
+long_table %<>% mutate(TRIVIAL.SCPECIES = ifelse( is.na(SPECIES), NA,  sci2comm(SPECIES, db = "ncbi", simplify = TRUE))) 
+long_table %<>% tidyr::unnest(TRIVIAL.SCPECIES)
+
+
+
+#  mark non-NZ species  **(possibly needs to be re-worked)**
 # ---------------------------------------------------------
 #  16-Mar-2021 add asterisks ("*") to non-NZ species, and ("**") to non-fish (mammals and crustaceans)
 #  after checking with list 
@@ -298,6 +318,14 @@ long_table %<>% mutate(GENUS =
                                    GENUS %in% nonnz_othr ~ paste0(GENUS, "**"),
                                                     TRUE ~ GENUS)
                                                     )
+
+# save / load annotated object
+# ------------------------------
+
+saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
+long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
+
+
 
 # Filter for data completeness **(possibly needs to be re-worked)**
 # ------------------------------------------------------------------
@@ -413,6 +441,8 @@ plot_full_biodiv <- ggplot() +
       facet_grid(. ~ SAMPLE.TYPE) +
       geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
       # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") + 
+      geom_sf(data = bbox_rgl_full_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) +
+      geom_sf_label(data=bbox_rgl_full_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
       stat_sf_coordinates(data = full_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
       stat_sf_coordinates(data = full_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "white", size = 1) +
       coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
@@ -432,7 +462,9 @@ plot_fish_biodiv <- ggplot() +
       geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
       facet_grid(. ~ SAMPLE.TYPE) +
       geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
-      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") + 
+      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
+      geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
+      geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
       stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
       stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "white", size = 1) +
       coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
@@ -454,39 +486,38 @@ ggarrange( plot_full_biodiv, plot_fish_biodiv,
 # save compound plot with better labels then with plot_label = TRUE above
 ggsave("210712_998_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 2, width = 85, height = 85, units = c("mm"),
+         scale = 2.5, width = 85, height = 85, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
 
-# VI. Get a tree 
-# ==============
+# Omitted - Get a tree 
+# =====================
 
-# - in progress - 
-
+# - omitted - 
 
 # use reticulate to call Python from within R (see https://cran.r-project.org/web/packages/reticulate/vignettes/calling_python.html)
 # use Python's ETE toolkit (see http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html)
 # ETE toolkit installed in conda environment "ete3" (http://etetoolkit.org/download/)
 
-Sys.setenv(RETICULATE_PYTHON = "/Users/paul/Applications/miniconda3/envs/ete3/bin/python")
-reticulate::use_condaenv("/Users/paul/Applications/miniconda3/envs/ete3",  required = TRUE) # ... in the righ environmnet...
-reticulate::py_config()
-source_python("/Users/paul/Documents/OU_eDNA/200901_scripts/get_tree_for_ncbi_taxid_vector.py") #  ...using the corrcet function
-
-tax_ids <- c(9606, 9598, 10090, 7707, 8782)
-
-# call python function (R multi-element vector should become list automatically)
-get_tree_for_ncbi_taxid_vector(tax_ids)
-
-
-# print obtained Newick tree using ggtree
-#   https://www.molecularecologist.com/2017/02/08/phylogenetic-trees-in-r-using-ggtree/
-
-
+# Sys.setenv(RETICULATE_PYTHON = "/Users/paul/Applications/miniconda3/envs/ete3/bin/python")
+# reticulate::use_condaenv("/Users/paul/Applications/miniconda3/envs/ete3",  required = TRUE) # ... in the righ environmnet...
+# reticulate::py_config()
+# source_python("/Users/paul/Documents/OU_eDNA/200901_scripts/get_tree_for_ncbi_taxid_vector.py") #  ...using the corrcet function
+# 
+# tax_ids <- c(9606, 9598, 10090, 7707, 8782)
+# 
+# # call python function (R multi-element vector should become list automatically)
+# get_tree_for_ncbi_taxid_vector(tax_ids)
+# 
+# 
+# # print obtained Newick tree using ggtree
+# #   https://www.molecularecologist.com/2017/02/08/phylogenetic-trees-in-r-using-ggtree/
 
 
+# V. Get biodiversity heat map and matching flex table
+# ====================================================
 
-# VI. Get biodiversity heat map 
-# ===========================
+# get plotting data sets
+# ----------------------
 
 htmp_tibl_fish <- bind_rows(
   get_matrix_or_table(fish_biodiv, obs_methods = "eDNA",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
@@ -528,14 +559,45 @@ htmp_tibl_full <- bind_rows(
 #   "WJ CTRL" = "WJ CTRL\n (n = 4)"
 # )
 
+# get matching flex table
+# -----------------------
+
+# format data for flex table
+tibl_plot <- htmp_tibl_full %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SCPECIES) %>% 
+ distinct() %>% arrange(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES) 
+ 
+ 
+# generate flex table - for merging with ggplot object
+ft <-  flextable(tibl_plot) %>% 
+   merge_v(j = "PHYLUM", target = "PHYLUM") %>%
+   merge_v(j = "CLASS", target = "CLASS") %>%
+   merge_v(j = "ORDER", target = "ORDER") %>%
+   merge_v(j = "FAMILY", target = "FAMILY") %>%
+   merge_v(j = "GENUS", target = "GENUS") %>% 
+   valign(valign = "top") %>%
+   italic(j = c(5,6)) %>%
+   bold(j = c(7)) %>% 
+   set_header_labels(values = list(PHYLUM = "Phylum",
+     CLASS = "Class",
+     ORDER = "Order",
+     FAMILY = "Family",
+     GENUS = "Genus",
+     SPECIES = "Species",
+     TRIVIAL.SCPECIES = "Common name")) %>%
+     fontsize(part = "all", size = 12) %>%
+     autofit(add_w = 1, add_h = 0, part = c("all"))
+
+# order factors in plotting object to match flex table  
+y_axis_label_order <- fct_relevel(htmp_tibl_full$SPECIES, rev(c(tibl_plot$SPECIES)))  # y_axis_label_order <- reorder(htmp_tibl_full$SPECIES, desc(htmp_tibl_full$SPECIES))
 
 
-# plot heatmap 
-# - needs tree 
+# plot out data as tiles
+# -----------------------
 # - needs vectors ordered with tree
 # - needs annotation of non NZ species
 # - may need margin sums
-ggplot(htmp_tibl_full, aes_string(x = "RESERVE.GROUP.LOCATION", y = reorder(htmp_tibl_full$SPECIES, desc(htmp_tibl_full$SPECIES)))) +
+
+plot_htmp <- ggplot(htmp_tibl_full, aes_string(x = "RESERVE.GROUP.LOCATION", y = y_axis_label_order)) +
     geom_tile(aes(fill = ANY.OBS.PRES) ) +
     scale_fill_gradient(low="black", high="red") +
     geom_text(size = 2, aes(label = ANY.OBS.PRES, color = "white")) +
@@ -545,19 +607,29 @@ ggplot(htmp_tibl_full, aes_string(x = "RESERVE.GROUP.LOCATION", y = reorder(htmp
           strip.text.y = element_text(angle=0), 
           axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
           axis.text.y = element_text(angle = 0, hjust = 1,  size = 7, face = "italic"), 
-          axis.ticks.y = element_blank()
+          axis.ticks.y = element_blank(),
+          axis.title.y = element_blank()
           ) +
-    xlab("Sampling Locations") + ylab("Species Observations")
+    xlab("Sampling Locations") # + ylab("Species Observations")
+
+# Combine heatmap and flextable
+# ------------------------------
+
+# get flex table as ggplot object
+ft_raster <- as_raster(ft) # webshot and magick.
+ft_rgrob  <- rasterGrob(ft_raster)
+
+ggarrange(plot_ft, plot_htmp, ncol = 2, nrow = 1, labels = c("a","b"), widths = c(1,1))
+
+ggsave("210712_998_r_summarize_results__biodiv_heat.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 2.5, width = 85, height = 85, units = c("mm"),
+         dpi = 500, limitsize = TRUE)  
 
 
-# VII. Combine tree and heat-map
-# =============================
-
-# - not done yet - 
-
-
-# VIII. ANOSIM of observation types and variables
+# VI. ANOSIM of observation types and variables
 # ===============================================
+# continue here after 20-Jul-2021
 
 # testing function with one data set
 #   get_anosim(distance = "jaccard", tibl = full_biodiv, group_col = "SET.ID", group_row = c("SPECIES"), group_col_ano = "RESERVE.GROUP.LOCATION", obs_methods = "BRUV")
