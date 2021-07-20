@@ -515,6 +515,9 @@
     * now putting out taxonomically ordered heatmap  of full biodiversity
   * commit `0778b9b979d94347cc5fc217404c9505fb6b0758`
     * printing table with full data
+  * commit `f19d6ced14469b458158ae40156b47b454159a6f`
+    * testeding ANOSIM function - should be bug free
+  * commit `f19d6ced14469b458158ae40156b47b454159a6f`
     
 
 * **todo:**

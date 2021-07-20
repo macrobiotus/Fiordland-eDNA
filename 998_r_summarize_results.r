@@ -4,10 +4,10 @@
 #  *                                *
 #  **********************************
 
-
 lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
 rm(list = ls(all.names = TRUE))
 gc()
+options(tibble.print_max = Inf) 
 
 # I. Load packages and define functions
 # =====================================
@@ -181,8 +181,17 @@ get_plot_df = function(sf_df, show_var = NULL) {
 # get matrix - for distance calculations and 
 get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", group_row = "SPECIES", obs_methods = NULL, tbl = FALSE){
   
+  # debugging
+  #   tibl = get("fish_biodiv")
+  #   group_col = "RESERVE.GROUP.LOCATION"
+  #   group_row = "SPECIES"
+  #   obs_methods = c("eDNA")
+  #   tbl = FALSE
+  
   stopifnot(group_col %in% names(tibl))
   stopifnot(group_row %in% c("SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
+  # stopifnot(length(obs_methods) == 1)
+  stopifnot(obs_methods %in% c("BRUV", "eDNA", "OBIS", NULL))
   
   require(data.table) # re-use old code rather then finding out how to reimplement
   require(tidyverse)
@@ -191,6 +200,12 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   
   if(!is.null(obs_methods))  { 
     message("Keeping only observations of \"", obs_methods, "\".")
+    
+    # debugging checks
+    #   filter(tibl, SAMPLE.TYPE %in% "BRUV") %>% select(SET.ID, REP.ID, SAMPLE.TYPE,RESERVE.GROUP.LOCATION, SPECIES, ANY.OBS.PRES, EDNA.OBS.PRES, BRUV.OBS.PRES, OBIS.OBS.PRES)
+    #   filter(tibl, SAMPLE.TYPE %in% "eDNA") %>% select(SET.ID, REP.ID, SAMPLE.TYPE,RESERVE.GROUP.LOCATION, SPECIES, ANY.OBS.PRES, EDNA.OBS.PRES, BRUV.OBS.PRES, OBIS.OBS.PRES)
+    #   filter(tibl, SAMPLE.TYPE %in% "OBIS") %>% select(SET.ID, REP.ID, SAMPLE.TYPE,RESERVE.GROUP.LOCATION, SPECIES, ANY.OBS.PRES, EDNA.OBS.PRES, BRUV.OBS.PRES, OBIS.OBS.PRES)
+  
     tibl <- filter(tibl, SAMPLE.TYPE %in% obs_methods)
     message("Keeping:", tibl %>% ungroup %>% select(SAMPLE.TYPE) %>% distinct)
   }
@@ -229,7 +244,7 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
     
     dtbl_ag <- dcast(setDT(dtbl_ag), get(group_col)~get(group_row), value.var="ANY.OBS.PRES", sum, fill=0)
     mat <- as.matrix(dtbl_ag, rownames=TRUE)
-    # print(mat)
+    message("Matrix dimensions are", paste(dim(mat), collapse =  " "))
     return(mat)
   }
 }
@@ -378,8 +393,6 @@ obs_sums <- full_biodiv %>% ungroup() %>% group_by(SPECIES) %>%
             EDNA.OBS.PRES.SUM = ifelse(sum(EDNA.OBS.PRES), sum(EDNA.OBS.PRES), NA),
             OBIS.OBS.PRES.SUM = ifelse(sum(OBIS.OBS.PRES), TRUE, NA)
             )
-                  
-                  
  
 spcies_obs_sums <- ungroup(full_biodiv) %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SCPECIES) %>% distinct() %>%
   left_join(obs_sums) %>% arrange(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES) 
@@ -584,7 +597,6 @@ ggsave("210712_998_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last
 
 # get plotting data sets
 # ----------------------
-options(tibble.print_max = Inf) 
 
 htmp_tibl_fish <- bind_rows(
   get_matrix_or_table(fish_biodiv, obs_methods = "eDNA",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
@@ -707,7 +719,7 @@ get_anosim(distance = "jaccard", tibl = full_biodiv, group_col = "SET.ID", group
 
 # setting up parameter combinations for complete ANOSIM analysis
 anosim_analysis_fish <- expand.grid(
-  distance      = c("bray"),
+  distance      = c("jaccard"),
   tibl          = c("fish_biodiv"),
   group_col     = c("SET.ID"), 
   group_row     = c("SPECIES", "GENUS", "FAMILY", "ORDER", "CLASS"),
@@ -722,7 +734,7 @@ anosim_results_fish <- apply(anosim_analysis_fish, 1, FUN = function(x) try(get_
 #  str(anosim_results[[1]])
 
 # get results data frame
-anosim_analysis_fish$statistic    <- unlist(lapply(anosim_results_fish, '[[', 5))
+anosim_analysis_fish$statistic  <- unlist(lapply(anosim_results_fish, '[[', 5))
 anosim_analysis_fish$significance <- unlist(lapply(anosim_results_fish, '[[', 2))
 anosim_analysis_fish
 anosim_analysis_fish %>% filter(significance <= 0.05 )
