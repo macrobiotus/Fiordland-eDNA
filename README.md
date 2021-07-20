@@ -513,7 +513,8 @@
     * now looking up trivial names
     * now putting out taxonomically ordered flextable of full biodiversity
     * now putting out taxonomically ordered heatmap  of full biodiversity
-  * commit ``
+  * commit `0778b9b979d94347cc5fc217404c9505fb6b0758`
+    * printing table with full data
     
 
 * **todo:**

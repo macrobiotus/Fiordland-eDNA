@@ -178,7 +178,7 @@ get_plot_df = function(sf_df, show_var = NULL) {
   return(sf_df)
 }
 
-# get matrix - fro distance calculations and 
+# get matrix - for distance calculations and 
 get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", group_row = "SPECIES", obs_methods = NULL, tbl = FALSE){
   
   stopifnot(group_col %in% names(tibl))
@@ -196,7 +196,7 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   }
   
   # filter for defined observations - NAs would get lumped together and give erroneous NMDS results
-  message("Filtering out NA's of provided (or default) taxon level, for distance calculations, taxon list will likely have shortened.")
+  message("Filtering out NA's of level ", group_row, " for distance calculations, taxon list will likely have shortened.")
   tibl <- filter(tibl, !is.na(get(group_row)))
   
   dtbl <-  as.data.table(tibl)   # re-use old code rather then finding out how to reimplement
@@ -221,13 +221,15 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   
   # return matrix for NMDS as default - otherwise list
   if(tbl == TRUE)  {
-  
+    
+    # print(as_tibble(dtbl_ag))
     return(as_tibble(dtbl_ag)) 
   
   } else if (tbl == FALSE) {
     
     dtbl_ag <- dcast(setDT(dtbl_ag), get(group_col)~get(group_row), value.var="ANY.OBS.PRES", sum, fill=0)
     mat <- as.matrix(dtbl_ag, rownames=TRUE)
+    # print(mat)
     return(mat)
   }
 }
@@ -238,25 +240,38 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
 get_anosim <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano = NULL, obs_methods = NULL, distance = NULL){
   
   # debugging
-  #    tibl          = get(c("full_biodiv_obis"))
-  #    group_col     = c("SET.ID") 
-  #    group_row     = c("SPECIES", "GENUS", "FAMILY", "ORDER", "CLASS")[1]
-  #    group_col_ano = c("RESERVE.GROUP.LOCATION", "RESERVE.GROUP.INSIDE")[1] 
-  #    obs_methods   = c("OBIS")
-  #     distance      = "jaccard"
-  message(group_col)
+  #  tibl          = get(c("full_biodiv"))
+  #  group_col     = c("SET.ID") 
+  #  group_row     = c("SPECIES", "GENUS", "FAMILY", "ORDER", "CLASS")[1]
+  #  group_col_ano = c("RESERVE.GROUP.LOCATION", "RESERVE.GROUP.INSIDE")[1] 
+  #  obs_methods   = c("OBIS")
+  #  distance      = "jaccard"
+  
+  # debugging 
+  #  message("get_anosim() uses \"group_col\": ", group_col)
+ 
   # get matrix and group variables for Anosim
   ano_mat <- get_matrix_or_table(tibl, group_col, group_row, tbl = FALSE, obs_methods = obs_methods)
-  message("get_anosim() filter command is buggy and works only with expand.grid dfs atm")
-  ano_grp <- as_tibble(tibl %>% select(all_of(c(group_col, group_col_ano)))) %>% distinct() %>% 
-    filter(group_col %in% rownames(ano_mat)) %>% arrange(group_col) %>% pull(group_col_ano)
-    
-    # if not called from dataframes line needs to be: 
-    # filter(get(group_col) %in% rownames(ano_mat)) %>% arrange(interp(group_col)) %>% pull(group_col_ano)
-
+  ano_grp <- as_tibble(rownames(ano_mat)) %>% 
+    rename(!!group_col := value)  %>% 
+    merge(., unique(tibl[ ,c(as.character(group_col),group_col_ano ) ]))
+  
   # debugging
-  #   print(ano_mat)
-  #   print(ano_grp)
+  #  message(ano_grp)
+    
+  # prepare grouping in correct order 
+  ano_grp <-  ano_grp[match(rownames(ano_mat), ano_grp[[group_col]]),]
+   
+  # isolate group column
+  ano_grp <- ano_grp %>% pull(!! group_col_ano)
+  
+  # debugging
+  #   message("get_anosim() is generated grouping var: ", paste(ano_grp, collapse = " "))
+  #   message("                   for matrix rownames: ", paste(rownames(ano_mat), collapse = " "))
+   
+  # if not called from dataframes line needs to be: 
+  # filter(get(group_col) %in% rownames(ano_mat)) %>% arrange(interp(group_col)) %>% pull(group_col_ano)
+
   
   # get vegan results
   anosim <- vegan::anosim(ano_mat, ano_grp, permutations = 9999, distance = distance)
@@ -326,7 +341,6 @@ saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
 
 
-
 # Filter for data completeness **(possibly needs to be re-worked)**
 # ------------------------------------------------------------------
 
@@ -349,6 +363,58 @@ long_table %<>% mutate(ANY.OBS.PRES = case_when(BRUV.OBS.PRES == 1 ~ 1, EDNA.OBS
 # ----------------------------
 full_biodiv <- long_table %>% distinct()
 fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes")) %>% filter(!(GENUS %in% c("Sardinops")))
+
+
+
+# III. Get full flex table 
+# =========================
+
+
+# format data for flex table
+
+obs_sums <- full_biodiv %>% ungroup() %>% group_by(SPECIES) %>%  
+  select(SPECIES, BRUV.OBS.PRES, EDNA.OBS.PRES, OBIS.OBS.PRES) %>% 
+  summarize(BRUV.OBS.PRES.SUM = ifelse(sum(BRUV.OBS.PRES), sum(BRUV.OBS.PRES), NA),
+            EDNA.OBS.PRES.SUM = ifelse(sum(EDNA.OBS.PRES), sum(EDNA.OBS.PRES), NA),
+            OBIS.OBS.PRES.SUM = ifelse(sum(OBIS.OBS.PRES), TRUE, NA)
+            )
+                  
+                  
+ 
+spcies_obs_sums <- ungroup(full_biodiv) %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SCPECIES) %>% distinct() %>%
+  left_join(obs_sums) %>% arrange(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES) 
+
+
+# generate flex table - for merging with ggplot object
+ft_spcies_obs_sums <-  flextable(spcies_obs_sums) %>% 
+   merge_v(j = "PHYLUM", target = "PHYLUM") %>%
+   merge_v(j = "CLASS", target = "CLASS") %>%
+   merge_v(j = "ORDER", target = "ORDER") %>%
+   merge_v(j = "FAMILY", target = "FAMILY") %>%
+   merge_v(j = "GENUS", target = "GENUS") %>% 
+   valign(valign = "top") %>%
+   italic(j = c(5,6)) %>%
+   bold(j = c(7)) %>% 
+   set_header_labels(values = list(PHYLUM = "Phylum",
+     CLASS = "Class",
+     ORDER = "Order",
+     FAMILY = "Family",
+     GENUS = "Genus",
+     SPECIES = "Species",
+     TRIVIAL.SCPECIES = "Common name",
+     BRUV.OBS.PRES.SUM = "BRUV observations",
+     EDNA.OBS.PRES.SUM = "eDNA observations",
+     OBIS.OBS.PRES.SUM  = "OBIS records")) %>%
+     fontsize(part = "all", size = 9) %>%
+     fit_to_width(max_width = 12, inc = 1L, max_iter = 20)
+     # autofit(add_w = 0, add_h = 0, part = c("all"))
+
+save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.docx",
+  pr_section = prop_section(
+    page_size = page_size(orient = "landscape"), type = "continuous"
+    ))
+
+
 
 # III. Get Euler plots
 # ====================
@@ -618,6 +684,7 @@ plot_htmp <- ggplot(htmp_tibl_full, aes_string(x = "RESERVE.GROUP.LOCATION", y =
 # get flex table as ggplot object
 ft_raster <- as_raster(ft) # webshot and magick.
 ft_rgrob  <- rasterGrob(ft_raster)
+plot_ft <- ggplot() + theme_void() + annotation_custom(ft_rgrob, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)
 
 ggarrange(plot_ft, plot_htmp, ncol = 2, nrow = 1, labels = c("a","b"), widths = c(1,1))
 
@@ -629,10 +696,9 @@ ggsave("210712_998_r_summarize_results__biodiv_heat.pdf", plot = last_plot(),
 
 # VI. ANOSIM of observation types and variables
 # ===============================================
-# continue here after 20-Jul-2021
 
 # testing function with one data set
-#   get_anosim(distance = "jaccard", tibl = full_biodiv, group_col = "SET.ID", group_row = c("SPECIES"), group_col_ano = "RESERVE.GROUP.LOCATION", obs_methods = "BRUV")
+get_anosim(distance = "jaccard", tibl = full_biodiv, group_col = "SET.ID", group_row = c("SPECIES"), group_col_ano = "RESERVE.GROUP.LOCATION", obs_methods = "BRUV")
 
 
 # Analysis for fish (as per eDNA markers) for BRUV and eDNA (data complete across all sets)
@@ -657,10 +723,11 @@ anosim_results_fish <- apply(anosim_analysis_fish, 1, FUN = function(x) try(get_
 # get results data frame
 anosim_analysis_fish$statistic    <- unlist(lapply(anosim_results_fish, '[[', 5))
 anosim_analysis_fish$significance <- unlist(lapply(anosim_results_fish, '[[', 2))
+anosim_analysis_fish
 anosim_analysis_fish %>% filter(significance <= 0.05 )
 
 
-# Analysis only full biodiversity  (for BRUV, eDNA, and OBIS) 
+# Analysis only full biodiversity (for BRUV, eDNA, and OBIS) 
 # -----------------------------------------------------------
 #   with truntaed dataset (OBIS observations missing for some SET.ID's (22,27,28,29))
 #   --------------------------------------------------------------------------------
@@ -671,13 +738,38 @@ full_biodiv_obis <- full_biodiv %>% filter(SET.ID %!in% c(22,27,28,29))
 # testing function with one data set
 get_anosim(distance = "jaccard", tibl = full_biodiv_obis, group_col = "SET.ID", group_row = c("SPECIES"), group_col_ano = "RESERVE.GROUP.LOCATION", obs_methods = "OBIS")
 
-anosim_analysis_full <- expand.grid(
+anosim_analysis_full_obis <- expand.grid(
   distance      = c("jaccard"),
   tibl          = c("full_biodiv_obis"),
   group_col     = c("SET.ID"), 
   group_row     = c("SPECIES", "GENUS", "FAMILY", "ORDER", "CLASS"),
   group_col_ano = c("RESERVE.GROUP.LOCATION", "RESERVE.GROUP.INSIDE"), 
-  obs_methods   = c("OBIS", "eDNA", "BRUV")
+  obs_methods   = c("eDNA", "BRUV","OBIS")
+  )
+
+# run ANOSIM analysis
+anosim_results_full_obis <- apply(anosim_analysis_full_obis, 1, FUN = function(x) try(get_anosim(distance = x[1], tibl = get(x[2]), group_col = x[3], group_row = x[4], group_col_ano = x[5], obs_methods = x[6])))
+
+# get results data frame
+anosim_analysis_full_obis$statistic    <- unlist(lapply(anosim_results_full_obis, '[[', 5))
+anosim_analysis_full_obis$significance <- unlist(lapply(anosim_results_full_obis, '[[', 2))
+anosim_analysis_full_obis
+anosim_analysis_full_obis %>% filter(significance <= 0.05 )
+
+
+# Analysis full biodiversity (for BRUV, eDNA) 
+# -----------------------------------------------------------
+
+# testing function with one data set
+get_anosim(distance = "jaccard", tibl = full_biodiv, group_col = "SET.ID", group_row = c("GENUS"), group_col_ano = "RESERVE.GROUP.LOCATION")
+
+anosim_analysis_full <- expand.grid(
+  distance      = c("jaccard"),
+  tibl          = c("full_biodiv"),
+  group_col     = c("SET.ID"), 
+  group_row     = c("SPECIES", "GENUS", "FAMILY", "ORDER", "CLASS"),
+  group_col_ano = c("RESERVE.GROUP.LOCATION", "RESERVE.GROUP.INSIDE"), 
+  obs_methods   = c("eDNA", "BRUV")
   )
 
 # run ANOSIM analysis
@@ -686,7 +778,37 @@ anosim_results_full <- apply(anosim_analysis_full, 1, FUN = function(x) try(get_
 # get results data frame
 anosim_analysis_full$statistic    <- unlist(lapply(anosim_results_full, '[[', 5))
 anosim_analysis_full$significance <- unlist(lapply(anosim_results_full, '[[', 2))
+anosim_analysis_full
 anosim_analysis_full %>% filter(significance <= 0.05 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
