@@ -584,6 +584,7 @@ ggsave("210712_998_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last
 
 # get plotting data sets
 # ----------------------
+options(tibble.print_max = Inf) 
 
 htmp_tibl_fish <- bind_rows(
   get_matrix_or_table(fish_biodiv, obs_methods = "eDNA",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
@@ -706,7 +707,7 @@ get_anosim(distance = "jaccard", tibl = full_biodiv, group_col = "SET.ID", group
 
 # setting up parameter combinations for complete ANOSIM analysis
 anosim_analysis_fish <- expand.grid(
-  distance      = c("jaccard"),
+  distance      = c("bray"),
   tibl          = c("fish_biodiv"),
   group_col     = c("SET.ID"), 
   group_row     = c("SPECIES", "GENUS", "FAMILY", "ORDER", "CLASS"),
