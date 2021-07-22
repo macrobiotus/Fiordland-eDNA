@@ -508,7 +508,7 @@
     * **debug filter** - ANOSIM results need to be obtained
     * **pending** - indicator species analysis
   * commit `f0498f34161835d1f21792862d5f6182a5125a16`
-* **19-July-2021** - working on manuscript revision
+* **20-July-2021** - working on manuscript revision
   * continued working on `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
     * now looking up trivial names
     * now putting out taxonomically ordered flextable of full biodiversity
@@ -517,10 +517,12 @@
     * printing table with full data
   * commit `f19d6ced14469b458158ae40156b47b454159a6f`
     * testeding ANOSIM function - should be bug free
-  * commit `f19d6ced14469b458158ae40156b47b454159a6f`
-    
+  * commit `86939ab7513314d2ba5b593265fe3ccd2d594a8f `
+* **22-July-2021** - adding species observations from literature and OBIS with a wide-circle buffer
+  * started working on `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_include_literature_data.r`
 
 * **todo:**
+  * check `/Users/paul/Documents/OU_eDNA/200224_references/ES13-00257.1.pdf` for terminology of sites (MR vs commercial exclusion zones)
   * remove blue cod from OBIS data
   * get di with fish biodiversity only
   * **discuss** analysis
