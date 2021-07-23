@@ -20,9 +20,15 @@ library("sp")
 
 library("taxonomizr")  # get NCBI tax ids
 
+library("taxize") # better then "taxonomizr" - may use and recode
+Sys.setenv(ENTREZ_KEY="a634c6e9c96c3859bca27a2771f6d2872f08")
+Sys.getenv("ENTREZ_KEY")
+
 
 library("readxl")      # read Excel files
 library("openxlsx")    # write Excel tables
+
+options(tibble.print_max = Inf) 
 
 
 # II. Functions
@@ -48,6 +54,17 @@ long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/2103
 lt_obis_lookup <- long_table %>% 
   select("SET.ID", "MH.GPS.LAT", "MH.PPS.LONG",  "RESERVE.GROUP", "RESERVE.GROUP.INSIDE", "RESERVE.GROUP.LOCATION") %>%
   distinct() %>% arrange(SET.ID) 
+
+# add missing values for newly added publication data **use those below, again**
+# use code to adjust great circle position
+left_deg <- c( 0.150)
+up_deg   <- c(-0.035)
+
+lt_obis_lookup <- lt_obis_lookup |>  mutate(MH.GPS.LAT = ifelse(is.na(MH.GPS.LAT), (mean(na.omit(lt_obis_lookup$MH.GPS.LAT) + up_deg)), MH.GPS.LAT))
+lt_obis_lookup <- lt_obis_lookup |>  mutate(MH.PPS.LONG = ifelse(is.na(MH.PPS.LONG), (mean(na.omit(lt_obis_lookup$MH.PPS.LONG) + left_deg) ), MH.PPS.LONG))
+lt_obis_lookup <- lt_obis_lookup |>  mutate(RESERVE.GROUP = ifelse(is.na(RESERVE.GROUP), "FI", RESERVE.GROUP))
+lt_obis_lookup <- lt_obis_lookup |>  mutate(RESERVE.GROUP.INSIDE = ifelse(is.na(RESERVE.GROUP.INSIDE), FALSE, RESERVE.GROUP.INSIDE))
+lt_obis_lookup <- lt_obis_lookup |>  mutate(RESERVE.GROUP.LOCATION = ifelse(RESERVE.GROUP == "FI", "FI CTRL", RESERVE.GROUP.LOCATION))
 lt_obis_lookup %>% print(n= Inf)
 
 # get clean spatial data in degree units 
@@ -87,9 +104,10 @@ calc_angle <- function(lon,lat) {
   return(ang)
 }
 
+# bounding boxes for all data but Fiordland data
 bbox <- lt_obis_lookup %>%
-  group_by(RESERVE.GROUP.LOCATION) %>%
-  summarise(xmin = min(MH.PPS.LONG) -0.01 ,ymin = min(MH.GPS.LAT) -0.01, xmax=max(MH.PPS.LONG) +0.01,  ymax = max(MH.GPS.LAT) +0.01) %>%
+  group_by(RESERVE.GROUP.LOCATION) %>% filter(RESERVE.GROUP.LOCATION != "FI CTRL") %>%
+  summarise(xmin = min(MH.PPS.LONG) -0.01 ,ymin = min(MH.GPS.LAT) -0.01, xmax=max(MH.PPS.LONG) + 0.01,  ymax = max(MH.GPS.LAT) +0.01) %>%
   gather(x,lon,c('xmin','xmax')) %>%
   gather(y,lat,c('ymin','ymax')) %>%
   st_as_sf(coords=c('lon','lat'),crs=4326,remove=F) %>%
@@ -109,15 +127,22 @@ ggplot() +
     theme_bw()
 
 # get clean spatial data in local distance units 
-# ---------------------------------------
+# ----------------------------------------------
 
 # for buffer generation re-project objects to local kms and check again
 lt_obis_lookup_sf_loc <- lt_obis_lookup_sf %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
 nzshp_hires_WGS84_loc <- nzshp_hires_WGS84 %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
 bbox_loc <- bbox %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
 
-# calculate 2.5 km buffers
-lt_obis_lookup_sf_buffer_loc <- st_buffer(lt_obis_lookup_sf_loc, 2.5)
+# calculate 2.5 km buffers - for inside cols
+# calculate 2.5 km buffers - for outside cols - needs to be one great circle
+# dosdy code - check results carefully - last column should have coordinates for a large circle
+
+rows_inside  <- c(1:nrow(lt_obis_lookup_sf_buffer_loc)-1)
+rows_outside <- c(nrow(lt_obis_lookup_sf_buffer_loc))
+
+lt_obis_lookup_sf_buffer_loc <- st_buffer(lt_obis_lookup_sf_loc[rows_inside,  ], 2.5)
+lt_obis_lookup_sf_buffer_loc <- rbind(lt_obis_lookup_sf_buffer_loc, st_buffer(lt_obis_lookup_sf_loc[rows_outside, ], 38))
 
 # map to check object and for publication - unit is in km
 #  check sf objects  - bounding box as defined per lt_obis_lookup_sf and 10 km in addition
@@ -126,10 +151,10 @@ lt_obis_lookup_sf_buffer_loc <- st_buffer(lt_obis_lookup_sf_loc, 2.5)
 map_main <- ggplot() +
     geom_sf(data = nzshp_hires_WGS84_loc, fill = "lightgrey") + 
     geom_sf(data = lt_obis_lookup_sf_buffer_loc, fill = NA, colour = "red") + 
-    geom_sf(data = lt_obis_lookup_sf_loc, fill = NA, colour = "darkred") + 
+    geom_sf(data = filter(lt_obis_lookup_sf_loc, RESERVE.GROUP != "FI"), fill = NA, colour = "darkred") + 
     geom_sf(data = bbox_loc, fill = NA, color = "darkred") +
-    stat_sf_coordinates(data = lt_obis_lookup_sf_loc, aes(shape = RESERVE.GROUP), color = "darkred", size = 3) +
-    stat_sf_coordinates(data = lt_obis_lookup_sf_loc, aes(shape = RESERVE.GROUP), color = "red", size = 1) +
+    stat_sf_coordinates(data = filter(lt_obis_lookup_sf_loc, RESERVE.GROUP != "FI"), aes(shape = RESERVE.GROUP), color = "darkred", size = 3) +
+    stat_sf_coordinates(data = filter(lt_obis_lookup_sf_loc, RESERVE.GROUP != "FI"), aes(shape = RESERVE.GROUP), color = "red", size = 1) +
     geom_sf_label(data=bbox_loc, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6) + 
     coord_sf( xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
     annotation_custom(ggplotGrob(map_inset), xmin = 610, xmax = 625, ymin = -5065, ymax = -5025) + 

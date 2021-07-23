@@ -512,7 +512,7 @@
   * continued working on `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
     * now looking up trivial names
     * now putting out taxonomically ordered flextable of full biodiversity
-    * now putting out taxonomically ordered heatmap  of full biodiversity
+    * now putting out taxonomically ordered heat-map of full biodiversity
   * commit `0778b9b979d94347cc5fc217404c9505fb6b0758`
     * printing table with full data
   * commit `f19d6ced14469b458158ae40156b47b454159a6f`
@@ -533,15 +533,21 @@
   * next stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
   * commit `91f11ad4db6c0d6121201dd1594f6ebb5753c5f5`
   * re-ran `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
-    * `PUBL` data added, `NCBI.TAXID` set to `numeric()`.
-  
+  * `PUBL` data added, `NCBI.TAXID` set to `numeric()`.
+  * commit `6b6fb3f766148d2618fd33dde37e36b6d1d340e6`
+  * starting to step through `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
+    * add OBIS data with wide circle
+    * correct / fill / append missing variables
+    * wrote new map to `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
+    * saved workspace file to `/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210723_998_r_get_OBIS_and_map.Rdata`
+    * commit ``
   
   
 
 
 * **todo:**
   * check `/Users/paul/Documents/OU_eDNA/200224_references/ES13-00257.1.pdf` for terminology of sites (MR vs commercial exclusion zones)
-  * remove blue cod from OBIS data
+  * include blue cod in OBIS data
   * get di with fish biodiversity only
   * **discuss** analysis
   * finish draft analysis
