@@ -105,7 +105,8 @@ get_tidy_molten_ps = function(psob){
   psob_molten$phylum[which(psob_molten$phylum %in% c("undefined"))] <-  "missing taxonomy"
   
   # create uniform column names
-  psob_molten <- psob_molten %>% rename(ASV = OTU) %>% rename_with(toupper)
+  # print(head(psob_molten))
+  psob_molten <- psob_molten %>% dplyr::rename("ASV" = "OTU") %>% rename_with(toupper)
 
   return(psob_molten)
   
@@ -874,8 +875,11 @@ clean_marine %>% pull(SET.ABUNDANCE.PRSNT)
 names(clean_marine) <- toupper(names(clean_marine))
 names(clean_marine) <- gsub("_", ".", names(clean_marine))
 
+clean_marine %>% select(PHYLUM, CLASS, ORDER , FAMILY, GENUS, SPECIES, HSP.IDENTITY.PERC) %>% print(n = Inf)
+clean_marine <- clean_marine %>% mutate(NCBI.TAXDB.INC = FALSE)
+
 # save or load molten state
 save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_990_r_get_eDNA_long_table__export_workspace.Rdata")
-write.xlsx(clean_marine, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_990_r_get_eDNA_long_table__eDNA_data.xlsx", asTable = FALSE)
+write.xlsx(clean_marine, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_990_r_get_eDNA_long_table__eDNA_data.xlsx", overwrite = TRUE, asTable = FALSE)
 saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_990_r_get_eDNA_long_table__eDNA_data.Rds")
 saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_990_r_get_eDNA_long_table__eDNA_data.Rds")

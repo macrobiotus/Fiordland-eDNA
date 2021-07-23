@@ -1,7 +1,7 @@
-# **********************************************
-# * Create, filter, and write long table object *
-#            from BRUV observations            * 
-# **********************************************
+# ************************************************
+# * Create, filter, and write long table object  *
+#            from BRUV observations              * 
+# ************************************************
 # 26-Aug-2022, 22-Feb-2021, 23-Feb-2021, 25-Feb-2021, 26-Feb-2021
 
 # I. Load packages
@@ -13,6 +13,9 @@ library("readxl")      # read Excel files
 library("openxlsx")    # write Excel tables
 library("taxonomizr")  # query taxon names
 library("tidyverse")   # tibbles, pipes, and more
+
+options(tibble.print_max = Inf) 
+
 
 # II. Functions
 # =============
@@ -33,7 +36,7 @@ mh_obs_raw <- read_csv("/Users/paul/Documents/OU_eDNA/191213_field_work/210225_M
 # taxonomy database lookup and inspection 
 # ----------------------------------------
 
-# 10-Aug-2020: check external hard drive for readily created database files, if unavailable run 
+# 10-Aug-2020/23-Jul-2021: check external hard drive for readily created database files, if unavailable run 
 # prepareDatabase(sqlFile = "accessionTaxa.sql", tmpDir = "/Users/paul/Sequences/References/taxonomizR/", vocal = TRUE) # takes a very long time - avoid by reloading full object from disk
 
 # function for mutate to use taxonomic IDs and add taxonomy strings
@@ -77,7 +80,6 @@ names(tax_table_distinct_curated) <- toupper(names(tax_table_distinct_curated))
 # =========================================
 
 mh_obs <- right_join(mh_obs_raw, tax_table_distinct_curated, by = "NCBI.TAXID", KEEP = FALSE, copy = TRUE)
-
 
 # V. Export molten long table for merging with eDNA data 
 # ======================================================

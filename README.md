@@ -520,6 +520,22 @@
   * commit `86939ab7513314d2ba5b593265fe3ccd2d594a8f `
 * **22-July-2021** - adding species observations from literature and OBIS with a wide-circle buffer
   * started working on `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_include_literature_data.r`
+* **23-July-2021** - adding species observations from literature and OBIS with a wide-circle buffer
+  * checking `/Users/paul/Documents/OU_eDNA/200901_scripts/800_r_get_q2_tax-tab.r`
+  * re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/990_r_get_eDNA_long_table.r`
+    * defining `NCBI.TAXDB.INC`
+    * checking query coverages - **do again later**: `select(PHYLUM, CLASS, ORDER , FAMILY, GENUS, SPECIES, HSP.IDENTITY.PERC) %>% print(n = Inf)`
+  * re-running and checking `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_long_table.r`
+  * finishing `~/Documents/OU_eDNA/200901_scripts/997_r_include_literature_data.r`
+      * defining `NCBI.TAXDB.INC`
+  * finished `~/Documents/OU_eDNA/200901_scripts/995_r_get_PUBL_long_table.r`
+  * renamed other script files as per commit message
+  * next stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
+  * commit ``
+  
+  
+  
+
 
 * **todo:**
   * check `/Users/paul/Documents/OU_eDNA/200224_references/ES13-00257.1.pdf` for terminology of sites (MR vs commercial exclusion zones)

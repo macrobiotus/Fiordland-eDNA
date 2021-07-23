@@ -1,5 +1,3 @@
-# 
-#
 #  *******************************************************
 #  *                                                     *   
 #  *  Including Fiordland species lists from literature  *
@@ -7,7 +5,6 @@
 #  *******************************************************
 #
 #  Paul Czechowski - paul.czechowski@gmail.com
-
 
 # I. Environment setup 
 # ====================
@@ -19,13 +16,11 @@ library("taxize")
 library("dplyr")
 library("tidyr")
 
-
+options(tibble.print_max = Inf) 
 Sys.setenv(ENTREZ_KEY="a634c6e9c96c3859bca27a2771f6d2872f08")
 Sys.getenv("ENTREZ_KEY")
 
-
 `%!in%` <- Negate(`%in%`)
-
 
 # II. Data read-in  
 # ================
@@ -54,12 +49,12 @@ spc_in <- c(
   "Conger verreauxi", "Cryptichthys jojettae", "Eptatretus cirrahtus", "Fiordichthys slartibartfasti", 
   "Forsterygion flavonigrum", "Forsterygion lapillum", "Forsterygion malcolmi", "Forsterygion varium", 
   "Gaidropsarus novaezelandi", "Modicus minimus", "Gobiopsis atrata", "Grahamina capito", "Helicolenus percoides", 
-  "Hypoplectrodes huntii", "Karalepis stewarti", "Latridopsis ciliaris", "Latridopsis forsteri ", "Latris lineata", 
+  "Hypoplectrodes huntii", "Karalepis stewarti", "Latridopsis ciliaris", "Latridopsis forsteri", "Latris lineata", 
   "Lepidoperca tasmanica", "Lissocampus filum", "Lotella rhacina", "Mendosoma lineatum", "Mendosoma lineatum", 
   "Modicus tangaroa", "Nemadactylus macropterus", "Notoclinops caerulepunctus", "Notoclinops segmentatus", 
   "Notoclinus fenestratus", "Notolabrus celidotus", "Notolabrus cinctus", "Notolabrus fucicola", "Forsterygion maryannae", 
   "Odax pullus", "Parapercis colias", "Parapercis gilliesii", "Paratrachichthys trailli", "Meuschenia scaber", 
-  "Patiriella regularis", "Polyprion oxygeneios", "Pseudolabrus miles ", "Pseudophycis barbata",
+  "Patiriella regularis", "Polyprion oxygeneios", "Pseudolabrus miles", "Pseudophycis barbata",
   "Retropinna retropinna", "Rhombosolea plebeia", "Ruanoho decemdigitatus",
   "Ruanoho whero", "Scorpaena papillosa", "Scorpis lineolata", "Squalus acanthias", "Thyrsites atun"
   ) 
@@ -68,47 +63,52 @@ spc_in <- c(
 # ----------------------------------------------------------------------
 
 # sort strings
-spc <- species_in  |> sort() |> unique() # for assembly of object 
-gen <- gsub( " .*$", "", species)             # for assembly of object 
-gen_uniq <- gen |> sort() |> unique()       # for reporting only (below)
+spc <- spc_in  |> sort() |> unique()   # for assembly of object 
+gen <- gsub( " .*$", "", spc)          # for assembly of object 
+gen_uniq <- gen |> sort() |> unique()  # for reporting only (below)
 
 # download annotations - list of data frames
-gen_ls   <- classification(genus, db = "ncbi")
-spc_ls <- classification(species, db = "ncbi")
-gen_uniq_list <- classification(genus_uniq, db = "ncbi")
+gen_ls <- classification(gen, db = "ncbi")
+spc_ls <- classification(spc, db = "ncbi")
+gen_uniq_list <- classification(gen_uniq, db = "ncbi")
 
 # 58 of 64 species found in NCBI (and 22 not found in NCBI excluded from eDNA)
 # ---------------------------------------------------------------------------
-
-# Acanthoclinus littoreus
-# Acanthoclinus marilynae
-# Acanthoclinus matti
-# Acanthoclinus rua
-# Aplidium adamsi
-# Callanthias allporti
-# Cephaloscyllium isabellum
-# Cominella sp.
-# Cryptichthys jojettae
-# Gaidropsarus novaezelandi
-# Hypoplectrodes huntii
-# Eptatretus cirrahtus
-# Fiordichthys slartibartfasti
-# Forsterygion malcolmi
-# Forsterygion maryannae
-# Gaidropsarus novaezelandi
-# Modicus minimus
-# Modicus tangaroa
-# Notoclinops caerulepunctus
-# Notoclinops segmentatus
-# Notoclinus fenestratus
-# Ruanoho decemdigitatus
+spc_in_nf <- tibble( SPECIES = c(
+  "Acanthoclinus littoreus",
+  "Acanthoclinus marilynae",
+  "Acanthoclinus matti",
+  "Acanthoclinus rua",
+  "Aplidium adamsi",
+  "Callanthias allporti",
+  "Cephaloscyllium isabellum",
+  "Cominella sp.",
+  "Cryptichthys jojettae",
+  "Gaidropsarus novaezelandi",
+  "Hypoplectrodes huntii",
+  "Eptatretus cirrahtus",
+  "Fiordichthys slartibartfasti",
+  "Forsterygion malcolmi",
+  "Forsterygion maryannae",
+  "Gaidropsarus novaezelandi",
+  "Modicus minimus",
+  "Modicus tangaroa",
+  "Notoclinops caerulepunctus",
+  "Notoclinops segmentatus",
+  "Notoclinus fenestratus",
+  "Ruanoho decemdigitatus" 
+   ))
 
 # 44 of 48 genera found in NCBI (and 4 not found in NCBI excluded from eDNA)
 # ---------------------------------------------------------------------------
-# Cryptichthys
-# Fiordichthys
-# Modicus
-# Notoclinops
+
+# already among species names - not needed
+# gen_in_nf <- tibble( GENUS = c(
+#   "Cryptichthys",
+#   "Fiordichthys",
+#   "Modicus",
+#   "Notoclinops"
+#   ))
 
 # III. Data formatting
 # ====================
@@ -141,31 +141,78 @@ gen <- gen_tibl |> pivot_wider(id_cols = column_label, names_from = rank,  value
 spc <- left_join(spc, spc_tibl |> filter(rank == "SPECIES") |> select(column_label, id)) |> select(-c(column_label)) |> rename("NCBI.TAXID" = "id") 
 gen <- left_join(gen, gen_tibl |> filter(rank == "GENUS") |> select(column_label, id)) |> select(-c(column_label)) |> rename("NCBI.TAXID" = "id") 
 
-# select genera that haven't been found on species level already
+# select genera that haven't been found on species level already - not needed
 unique(spc$GENUS); unique(spc$SPECIES) # 34 Genera, 42 species fully resolved
 gen_not_in_spc <- gen |> filter(GENUS %!in% unique(spc$GENUS))
-spc <- bind_rows(spc, gen_not_in_spc ) 
+# add species not found and later fill higher taxonomy columns up 
+spc <- bind_rows(spc, spc_in_nf, gen ) 
 
 #  add missing species manually for which genus information is available
 # ----------------------------------------------------------------------
 
-# continue here after 22-Jul-2021
+# sort stuff
+col_order <- c("SUPERKINGDOM", "PHYLUM",  "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES")                     
+spc <- spc |> mutate(GENUS = case_when( is.na(GENUS) == TRUE ~  gsub( " .*$", "", SPECIES), TRUE ~ as.character(GENUS)))
+spc <- spc |> relocate(col_order) |> arrange(across( rev(col_order[1:(length(col_order)-1)]) ))
+
+# fill NA's that can be filled
+spc <- spc |> group_by(GENUS)  |> fill(FAMILY, .direction = c("updown"))
+spc <- spc |> group_by(FAMILY) |> fill(ORDER, .direction = c("updown"))
+spc <- spc |> group_by(ORDER)  |> fill(CLASS, .direction = c("updown")) 
+spc <- spc |> group_by(CLASS) |> fill(PHYLUM, .direction = c("updown"))
+spc <- spc |> group_by(PHYLUM) |> fill(SUPERKINGDOM, .direction = c("updown"))
+
+
+# plug holes manually 
+spc <- spc |> mutate(ORDER = ifelse(FAMILY == "Plesiopidae", "Ovalentaria", FAMILY)) 
+
+spc <- spc |> mutate(FAMILY = ifelse(GENUS == "Cryptichthys", "Tripterygiidae", FAMILY)) 
+spc <- spc |> mutate(ORDER  = ifelse(GENUS == "Cryptichthys", "Blenniiformes" , ORDER)) 
+
+spc <- spc |> mutate(FAMILY = ifelse(GENUS == "Fiordichthys", "Bythitidae", FAMILY)) 
+spc <- spc |> mutate(ORDER  = ifelse(GENUS == "Fiordichthys", "Ophidiiformes" , ORDER)) 
+
+spc <- spc |> mutate(FAMILY = ifelse(GENUS == "Modicus", "Gobiesocidae", FAMILY)) 
+spc <- spc |> mutate(ORDER  = ifelse(GENUS == "Modicus", "Gobiesociformes" , ORDER)) 
+
+spc <- spc |> mutate(FAMILY = ifelse(GENUS == "Notoclinops", "Tripterygiidae", FAMILY)) 
+spc <- spc |> mutate(ORDER  = ifelse(GENUS == "Notoclinops", "Blenniiformes" , ORDER)) 
+
+spc <- spc |> mutate(FAMILY = ifelse(FAMILY == "Callanthiidae", "Eupercaria", FAMILY)) 
+
+# fill NA's that can be filled
+spc <- spc |> relocate(col_order) |> arrange(across( rev(col_order[1:(length(col_order)-1)]) ))
+spc <- spc |> group_by(GENUS)  |> fill(FAMILY, .direction = c("updown"))
+spc <- spc |> group_by(FAMILY) |> fill(ORDER, .direction = c("updown"))
+spc <- spc |> group_by(ORDER)  |> fill(CLASS, .direction = c("updown")) 
+spc <- spc |> group_by(CLASS)  |> fill(PHYLUM, .direction = c("updown"))
+spc <- spc |> group_by(PHYLUM) |> fill(SUPERKINGDOM, .direction = c("updown"))
+
+# remove holes that can be
+spc <- spc |> filter(!is.na(SPECIES)) |> distinct()
+
+# sort again
+spc <- spc |> relocate(col_order) |> arrange(across(col_order))
 
 
 # add other variables for downstream compatibility
 # -----------------------------------------------
 
-# SET.ID will be PUBL
-
-
-
-# get counts and verify table
-# ---------------------------
+spc <- spc |> mutate(NCBI.TAXID = ifelse(!is.na(NCBI.TAXID), NCBI.TAXID, as.character("0"))) 
+spc <- spc |> mutate(NCBI.TAXID.INC = ifelse(NCBI.TAXID == "0", TRUE, FALSE)) 
+spc <- spc |> mutate(SAMPLE.TYPE = "PUBL") |> mutate(ABUNDANCE = 1) |> mutate(SET.ID = 98)
+spc <- spc |> mutate(PUBL.OBS.PRES = 1)
+spc <- spc |> mutate(NCBI.LEVEL = ifelse(GENUS != "Cominella", "species", "genus"))
 
 
 # IV. Data export
 # ===============
+publ_obs <- ungroup(spc)
 
+# save or load molten state 
+save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210723_995_r_get_PUBL_long_table__image.Rdata")
+saveRDS(publ_obs, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210723_995_r_get_PUBL_long_table__publ_obs.Rds")
+saveRDS(publ_obs, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210723_995_r_get_PUBL_long_table__publ_obs.Rds")
 
 # Appendix. Unused species
 # =========================
