@@ -16,10 +16,10 @@ library("taxize")
 library("dplyr")
 library("tidyr")
 
-options(tibble.print_max = Inf) 
 Sys.setenv(ENTREZ_KEY="a634c6e9c96c3859bca27a2771f6d2872f08")
 Sys.getenv("ENTREZ_KEY")
 
+options(tibble.print_max = Inf) 
 `%!in%` <- Negate(`%in%`)
 
 # II. Data read-in  
@@ -199,10 +199,12 @@ spc <- spc |> relocate(col_order) |> arrange(across(col_order))
 # -----------------------------------------------
 
 spc <- spc |> mutate(NCBI.TAXID = ifelse(!is.na(NCBI.TAXID), NCBI.TAXID, as.character("0"))) 
-spc <- spc |> mutate(NCBI.TAXID.INC = ifelse(NCBI.TAXID == "0", TRUE, FALSE)) 
+spc <- spc |> mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))
+spc <- spc |> mutate(NCBI.TAXID.INC = ifelse(NCBI.TAXID == 0, TRUE, FALSE)) 
 spc <- spc |> mutate(SAMPLE.TYPE = "PUBL") |> mutate(ABUNDANCE = 1) |> mutate(SET.ID = 98)
 spc <- spc |> mutate(PUBL.OBS.PRES = 1)
 spc <- spc |> mutate(NCBI.LEVEL = ifelse(GENUS != "Cominella", "species", "genus"))
+spc <- spc |> mutate(LOC.NAME = "Fiordland")
 
 
 # IV. Data export

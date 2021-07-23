@@ -6,8 +6,9 @@
 
 # I. Load packages
 # ================
-rm(list = ls(all.names = TRUE))
 lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
+
+rm(list = ls(all.names = TRUE))
 gc()
 
 library("tidyverse")   # tibbles, pipes, and more
@@ -17,6 +18,8 @@ library("robis")       # access OBIS data
 
 library("readxl")      # read Excel files
 library("openxlsx")    # write Excel tables
+
+options(tibble.print_max = Inf) 
 
 # II. Functions
 # =============
@@ -36,10 +39,14 @@ edna_long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/200403_manuscri
 # BRUV data by  "/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_long_table.r"
 bruv_long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210226_995_r_get_BRUV_long_table__mh_bruv_obs.Rds")
 
+# PUBL data by  "/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_PUBL_long_table.r"
+publ_long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210723_995_r_get_PUBL_long_table__publ_obs.Rds")
+
 # stack data
 # ----------
 stack_long_table <- bind_rows(edna_long_table, bruv_long_table) 
 dim(stack_long_table) #  466 x 67
+names(stack_long_table)
 
 # IV. Format data
 # ===============
@@ -70,11 +77,10 @@ stack_long_table <-  stack_long_table %>% relocate(SET.ID,	REP.ID, LOC.NAME, INS
 
 # fill missing values for analysis
 stack_long_table %>% group_by(SET.ID) %>% print(n = Inf)
-stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% fill(LOC.NAME) %>% print(n = Inf)
-stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% fill(INSIDE.RESERVE) %>% print(n = Inf)
-stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% fill(MH.GPS.LAT, .direction = c("downup")) %>% print(n = Inf)
-stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% fill(MH.PPS.LONG, .direction = c("downup")) %>% print(n = Inf)
-
+stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% fill(LOC.NAME) 
+stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% fill(INSIDE.RESERVE)
+stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% fill(MH.GPS.LAT, .direction = c("downup"))
+stack_long_table <- stack_long_table %>% group_by(SET.ID) %>% fill(MH.PPS.LONG, .direction = c("downup"))
 
 # V. Redefine areas inside and out side marine reserves
 # ========================================================
@@ -91,7 +97,7 @@ stack_long_table <- stack_long_table %>% mutate(RESERVE.GROUP =
 
 stack_long_table <- stack_long_table %>% mutate(RESERVE.GROUP.INSIDE = 
                                             case_when(SET.ID %in% c(21,22,23,24) ~ TRUE,
-                                                      SET.ID %in% c(26,27,28,29)    ~ FALSE,
+                                                      SET.ID %in% c(26,27,28,29)  ~ FALSE,
                                                       SET.ID %in% c(11,12)       ~ TRUE,
                                                       SET.ID %in% c(17,18,19)    ~ FALSE,
                                                       SET.ID %in% c(7,8,9,10)    ~ FALSE,
@@ -135,7 +141,7 @@ long_table <-  long_table %>% relocate(SET.ID,	REP.ID, SAMPLE.TYPE, LOC.NAME, MH
 
 print(long_table)
 
-# VII. Insert 15-Jul-2015 - add NCBI data in (had been lost)
+# VI. Insert 15-Jul-2021 - add NCBI data in (had been lost)
 # ==========================================================
 
 # check relavant columns - NCBI.TAXID needs to be filled (again) for eDNA data
@@ -153,10 +159,17 @@ long_table <- long_table |>
   unite(NCBI.TAXID, c(NCBI.TAXID.x, NCBI.TAXID.y), remove = TRUE, na.rm = TRUE) # |>
   # select(SAMPLE.TYPE, ASV, NCBI.TAXID)
 
+# VIII. Insert 23-Jul-2021 - add Publication data
+# ==============================================
 
-# VI. write intermediate file 
+# for superseded QGIS mapping in /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz
+write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210301_997_r_format_longtables__analysis_input.csv")
+
+long_table <- bind_rows( {long_table |> mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))}, publ_long_table) 
+
+# IX. write intermediate file 
 # ===========================
-dim(long_table) # 267 x 71
+dim(long_table) # 267 x 71 /  330 x 73 with PUBL data
 
 # Workspace
 save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input__image.Rdata")
@@ -164,8 +177,6 @@ save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210301_997_
 
 # for verbosity
 write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx", asTable = FALSE, overwrite = TRUE)
-# for superseded QGIS mapping in /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz
-write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210301_997_r_format_longtables__analysis_input.csv")
 
 # for previous analysis by MDL
 saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input.Rds")

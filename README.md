@@ -531,7 +531,9 @@
   * finished `~/Documents/OU_eDNA/200901_scripts/995_r_get_PUBL_long_table.r`
   * renamed other script files as per commit message
   * next stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
-  * commit ``
+  * commit `91f11ad4db6c0d6121201dd1594f6ebb5753c5f5`
+  * re-ran `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r`
+    * `PUBL` data added, `NCBI.TAXID` set to `numeric()`.
   
   
   
