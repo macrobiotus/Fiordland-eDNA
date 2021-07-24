@@ -198,13 +198,16 @@ spc <- spc |> relocate(col_order) |> arrange(across(col_order))
 # add other variables for downstream compatibility
 # -----------------------------------------------
 
+spc <- spc |> mutate(NCBI.LEVEL = ifelse(GENUS != "Cominella", "species", "genus"))
 spc <- spc |> mutate(NCBI.TAXID = ifelse(!is.na(NCBI.TAXID), NCBI.TAXID, as.character("0"))) 
 spc <- spc |> mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))
 spc <- spc |> mutate(NCBI.TAXID.INC = ifelse(NCBI.TAXID == 0, TRUE, FALSE)) 
 spc <- spc |> mutate(SAMPLE.TYPE = "PUBL") |> mutate(ABUNDANCE = 1) |> mutate(SET.ID = 98)
 spc <- spc |> mutate(PUBL.OBS.PRES = 1)
-spc <- spc |> mutate(NCBI.LEVEL = ifelse(GENUS != "Cominella", "species", "genus"))
 spc <- spc |> mutate(LOC.NAME = "Fiordland")
+spc <- spc |> mutate(RESERVE.GROUP = "FI")
+spc <- spc |> mutate(RESERVE.GROUP.INSIDE = FALSE)
+spc <- spc |> mutate(RESERVE.GROUP.LOCATION = "FI CTRL")
 
 
 # IV. Data export

@@ -55,6 +55,11 @@ lt_obis_lookup <- long_table %>%
   select("SET.ID", "MH.GPS.LAT", "MH.PPS.LONG",  "RESERVE.GROUP", "RESERVE.GROUP.INSIDE", "RESERVE.GROUP.LOCATION") %>%
   distinct() %>% arrange(SET.ID) 
 
+# modify SET.ID 
+#  from "98" Publication data set 
+#  to "99" Obis data set to be added below (to each line)
+lt_obis_lookup  <- lt_obis_lookup |> mutate(SET.ID = ifelse(SET.ID == 98, 99, SET.ID)) 
+
 # add missing values for newly added publication data **use those below, again**
 # use code to adjust great circle position
 left_deg <- c( 0.150)
@@ -138,8 +143,8 @@ bbox_loc <- bbox %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84
 # calculate 2.5 km buffers - for outside cols - needs to be one great circle
 # dosdy code - check results carefully - last column should have coordinates for a large circle
 
-rows_inside  <- c(1:nrow(lt_obis_lookup_sf_buffer_loc)-1)
-rows_outside <- c(nrow(lt_obis_lookup_sf_buffer_loc))
+rows_inside  <- c(1:nrow(lt_obis_lookup_sf_loc)-1)
+rows_outside <- c(nrow(lt_obis_lookup_sf_loc))
 
 lt_obis_lookup_sf_buffer_loc <- st_buffer(lt_obis_lookup_sf_loc[rows_inside,  ], 2.5)
 lt_obis_lookup_sf_buffer_loc <- rbind(lt_obis_lookup_sf_buffer_loc, st_buffer(lt_obis_lookup_sf_loc[rows_outside, ], 38))
@@ -183,7 +188,7 @@ lt_obis_lookup_sf_buffer_d %<>% mutate(BUFFER.WKT = st_as_text(geometry))
 # simplify object to make life easier for later analyses
 lt_obis_lookup <- st_drop_geometry(lt_obis_lookup_sf_buffer_d)
 
-# V. fetch OBIS data (Wed Jul  7 10:45:50 NZST 2021)
+# V. fetch OBIS data (Wed Jul  24 10:45:50 NZST 2021)
 # ==================================================
 
 # create nested data frame for OBIS lookup -  WKT polygons will go to $data slot
@@ -191,12 +196,13 @@ lt_obis_lookup <- st_drop_geometry(lt_obis_lookup_sf_buffer_d)
 lt_obis_lookup %<>% select(SET.ID,BUFFER.WKT)
 lt_obis_lookup %<>% group_by(SET.ID) %>% nest() %>% rename(BUFFER.WKT.NST = data)
 
-# OBIS lookup function for each WKT POLYGON 
-get_obis <- function(BUFFER.WKT) occurrence(taxon = 2, geometry = BUFFER.WKT)
+# OBIS lookup function for each WKT POLYGON  - retrive all Chordata (taxon 1821)
+get_obis <- function(BUFFER.WKT) occurrence(taxon = 1821, geometry = BUFFER.WKT)
 
 # fill nested data frame with OBIS data
-lt_obis_lookup %<>% mutate(OBIS = map(BUFFER.WKT.NST, get_obis) )
-lt_obis_lookup %>% print(n = Inf)
+lt_obis_lookup %<>% mutate(OBIS = map(BUFFER.WKT.NST, get_obis)) # OBIS access may take some time
+lt_obis_lookup %>% print(n = Inf)                                # continue here after 24-Jul-2021
+                                                                 # work space saved 
 
 # create full table of raw results from nested table for cleaning and merging with other data
 lt_obis_results <- unnest(lt_obis_lookup, cols = c(BUFFER.WKT.NST, OBIS))
