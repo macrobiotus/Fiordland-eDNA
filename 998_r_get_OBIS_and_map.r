@@ -222,44 +222,141 @@ lt_obis_results <- readRDS("/Users/paul/Documents/OU_eDNA/200403_manuscript/5_on
 # UNIQ.REP.IDS = ?
 # REP.IDS = 4
 
-# getting clean taxonomy - look up NCBI taxonomy ids
-#  - look up NCBI strings as for other datasets 
-#  - use first taxonomy strings, if more then one dicovered
-lt_obis_results %<>% mutate(NCBI.TAXID = getId(scientificName ,"/Volumes/HGST1TB/Users/paul/Sequences/References/taxonomizR/accessionTaxa.sql", onlyScientific = TRUE)) 
-lt_obis_results %<>% mutate(NCBI.TAXID = as.numeric(gsub(",.*$", "", NCBI.TAXID)))
-
-# get NCBI taxonomy strings
-get_strng <- function(x) {getTaxonomy(x,"/Volumes/HGST1TB/Users/paul/Sequences/References/taxonomizR/accessionTaxa.sql")}
-ncbi_strings <- as_tibble(get_strng(unique(lt_obis_results$NCBI.TAXID)), rownames = "NCBI.TAXID") %>% 
-                   mutate(NCBI.TAXID= as.numeric(NCBI.TAXID)) %>% filter(!is.na(NCBI.TAXID)) %>% 
-                   rename_all(toupper) 
-# ncbi_strings %>% print(n=Inf)
-
-# add taxonomy strings to OBIS results
-lt_obis_results %<>% left_join(ncbi_strings)
+# 50 species found
+spc_in <- lt_obis_results |> ungroup()  |> select(species) |> filter(!is.na(species)) |> distinct() |> pull(species)
 
 
-# VII. format OBIS data (match with previous tales and stack)
-# ===========================================================
+# Download NCBI annotations (to match taxonomy records of other surveys)
+# ----------------------------------------------------------------------
+# same as in /Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_PUBL_long_table.r
 
-# kick out trawling records
-lt_obis_results %<>% filter(!str_detect(catalogNumber, "Tag") & !str_detect(catalogNumber, "Trawl"))
+# sort strings
+spc <- spc_in  |> sort() |> unique()   # for assembly of object 
+gen <- gsub( " .*$", "", spc)          # for assembly of object 
+gen_uniq <- gen |> sort() |> unique()  # for reporting only (below)
 
 
-# save results for merging with other data -
-# set values to match Excel table
-#  "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_997_r_format_longtables__analysis_input.xlsx"
-lt_obis_truncated <- lt_obis_results %>% 
-  select(SET.ID, NCBI.TAXID, SUPERKINGDOM, PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES, id, depth ) %>% 
-  filter(rowSums(across(c(SUPERKINGDOM, PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES), ~ !is.na(.))) > 0) %>% 
-  rename(DEPTH.M = depth) %>% mutate(DEPTH.M = ifelse(DEPTH.M < 0, NA,DEPTH.M)) %>% 
-  rename(ASV = id) %>% 
-  add_column(ABUNDANCE = 1) %>% 
-  add_column(REP.ID = 4) %>% 
-  add_column(SAMPLE.TYPE = "OBIS") 
+# download annotations - list of data frames
+gen_ls <- classification(gen, db = "ncbi")
+spc_ls <- classification(spc, db = "ncbi")
+gen_uniq_list <- classification(gen_uniq, db = "ncbi")
+
+# 34 of 50 species found in NCBI (and 22 not found in NCBI excluded from eDNA)
+# ---------------------------------------------------------------------------
+
+spc_in_nf <- tibble( SPECIES = c(
+  "Acanthoclinus matti",
+  "Aplidium coronum",
+  "Aplidium phortax",
+  "Aplidium powelli",
+  "Botryllus stewartensis",
+  "Cnemidocarpa bicornuta",
+  "Cnemidocarpa nisiotis",
+  "Diplosoma velatum",
+  "Eudistoma circumvallatum",
+  "Hemerocoetes monopterygius",
+  "Lissoclinum notti",
+  "Ritterella sigillinoides",
+  "Synoicum kuranui",
+  "Synoicum occidentalis",
+  "Synoicum stewartense",
+  "Trididemnum shawi"
+  ))
+
+gen_in_nf <- c("Ritterella")
+
+# get basic species lists
+# -----------------------
+
+# get list of tibbles and strip class attributes for row binding
+spc_tibl_ls <- sapply(spc_ls, as_tibble)
+gen_tibl_ls <- sapply(gen_uniq_list, as_tibble)
+
+length(gen_tibl_ls) # 41 genera
+length(spc_tibl_ls) # 50 spcies
+
+# unnest objects - but keep list names (also species name duplicates) 
+#  to later separate rows
+spc_tibl <- bind_rows(spc_tibl_ls, .id = "column_label") |> select(-c(value))
+gen_tibl <- bind_rows(gen_tibl_ls, .id = "column_label") |> select(-c(value))
+
+# keep only needed taxonomic values
+nrnk <- c("SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES")
+spc_tibl <- spc_tibl |> mutate(rank = toupper(rank)) |> filter(rank %in% !! nrnk)
+gen_tibl <- gen_tibl |> mutate(rank = toupper(rank)) |> filter(rank %in% !! nrnk)
+
+# widen taxonomic information for downstream compatibility
+spc <- spc_tibl |> pivot_wider(id_cols = column_label, names_from = rank,  values_from = name, names_sort = FALSE)
+gen <- gen_tibl |> pivot_wider(id_cols = column_label, names_from = rank,  values_from = name, names_sort = FALSE)
+
+# add future column NCBI.ID, drop now unneeded "column_label"
+spc <- left_join(spc, spc_tibl |> filter(rank == "SPECIES") |> select(column_label, id)) |> select(-c(column_label)) |> rename("NCBI.TAXID" = "id") 
+gen <- left_join(gen, gen_tibl |> filter(rank == "GENUS") |> select(column_label, id)) |> select(-c(column_label)) |> rename("NCBI.TAXID" = "id") 
+  
+# select genera that haven't been found on species level already - not needed
+unique(spc$GENUS); unique(spc$SPECIES) # 34 Genera, 42 species fully resolved
+gen_not_in_spc <- gen |> filter(GENUS %!in% unique(spc$GENUS))
+# add species not found and later fill higher taxonomy columns up 
+spc <- bind_rows(spc, spc_in_nf, gen) 
+
+#  add missing species manually for which genus information is available
+# ----------------------------------------------------------------------
+
+# sort stuff
+col_order <- c("SUPERKINGDOM", "PHYLUM",  "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES")                     
+spc <- spc |> mutate(GENUS = case_when( is.na(GENUS) == TRUE ~  gsub( " .*$", "", SPECIES), TRUE ~ as.character(GENUS)))
+spc <- spc |> relocate(all_of(col_order)) |> arrange(across( rev(col_order[1:(length(col_order)-1)]) ))
+
+# fill NA's that can be filled
+spc <- spc |> group_by(GENUS)  |> fill(FAMILY, .direction = c("updown"))
+spc <- spc |> group_by(FAMILY) |> fill(ORDER, .direction = c("updown"))
+spc <- spc |> group_by(ORDER)  |> fill(CLASS, .direction = c("updown")) 
+spc <- spc |> group_by(CLASS)  |> fill(PHYLUM, .direction = c("updown"))
+spc <- spc |> group_by(PHYLUM) |> fill(SUPERKINGDOM, .direction = c("updown"))
+
+# remove holes that can be
+spc <- spc |> filter(!is.na(SPECIES)) |> distinct()
+
+# plug holes manually 
+spc <- spc |> mutate(FAMILY = ifelse(GENUS == "Ritterella", "Salpidae", FAMILY))
+spc <- spc |> mutate(ORDER = ifelse(FAMILY == "Salpidae", "Salpida", ORDER))
+spc <- spc |> mutate(CLASS = ifelse(ORDER == "Salpida", "Thaliacea", CLASS))
+
+spc <- spc |> mutate(CLASS = ifelse(FAMILY == "Plesiopidae", "Actinopteri", CLASS))
+spc <- spc |> mutate(ORDER = ifelse(FAMILY == "Plesiopidae", "Ovalentaria", ORDER))
+ 
+ 
+# add other variables for downstream compatibility
+# -----------------------------------------------
+
+spc <- spc |> mutate(NCBI.TAXID = ifelse(!is.na(NCBI.TAXID), NCBI.TAXID, as.character("0"))) 
+spc <- spc |> mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))
+spc <- spc |> mutate(NCBI.TAXID.INC = ifelse(NCBI.TAXID == 0, TRUE, FALSE)) 
+spc <- spc |> mutate(SAMPLE.TYPE = "OBIS") |> mutate(ABUNDANCE = 1)
+
+# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210726_998_r_get_OBIS_and_map.Rdata")
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210726_998_r_get_OBIS_and_map.Rdata")
+
+# combine columns 
+# ----------------
+
+# left_join(lt_obis_results spc
+lt_obis_truncated <- left_join(
+  (lt_obis_results |> 
+    select(SET.ID, id, species, depth) |> filter(!is.na(species)) |>
+    rename(DEPTH.M = depth) |> mutate(DEPTH.M = ifelse(DEPTH.M < 0, NA,DEPTH.M)) |> 
+    rename(ASV = id) |> rename(SPECIES = species)),
+  spc)
+
+head(lt_obis_truncated)
+
+lt_obis_truncated <- lt_obis_truncated |> mutate(OBIS.OBS.PRES = 1)   
+
+head(lt_obis_truncated)
 
 lt_obis_truncated %<>% mutate(RESERVE.GROUP = 
-  case_when(SET.ID %in% c(21,22,23,24) ~ "WJ",
+  case_when(SET.ID %in% c(98, 99) ~ "FI",
+            SET.ID %in% c(21,22,23,24) ~ "WJ",
             SET.ID %in% c(26,27,28,29) ~ "WJ",
             SET.ID %in% c(11,12)       ~ "FF",
             SET.ID %in% c(17,18,19)    ~ "FF",
@@ -267,8 +364,11 @@ lt_obis_truncated %<>% mutate(RESERVE.GROUP =
             SET.ID %in% c(1,3,4,5)     ~ "LS")
             )
 
+lt_obis_truncated |> select (SET.ID, RESERVE.GROUP) |> distinct()
+
 lt_obis_truncated %<>% mutate(RESERVE.GROUP.INSIDE = 
-  case_when(SET.ID %in% c(21,22,23,24) ~ TRUE,
+  case_when(SET.ID %in% c(98, 99) ~ FALSE,
+            SET.ID %in% c(21,22,23,24) ~ TRUE,
             SET.ID %in% c(26,27,28,29) ~ FALSE,
             SET.ID %in% c(11,12)       ~ TRUE,
             SET.ID %in% c(17,18,19)    ~ FALSE,
@@ -276,7 +376,8 @@ lt_obis_truncated %<>% mutate(RESERVE.GROUP.INSIDE =
             SET.ID %in% c(1,3,4,5)     ~ TRUE))
 
 lt_obis_truncated %<>% mutate(RESERVE.GROUP.LOCATION = 
-  case_when(RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == TRUE  ~ "WJ MR",
+  case_when(RESERVE.GROUP == "FI" & RESERVE.GROUP.INSIDE == FALSE  ~ "FI CTRL",
+            RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == TRUE  ~ "WJ MR",
             RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == FALSE ~ "WJ CTRL",
             RESERVE.GROUP == "FF" & RESERVE.GROUP.INSIDE == TRUE  ~ "FF MR",
             RESERVE.GROUP == "FF" & RESERVE.GROUP.INSIDE == FALSE ~ "FF CTRL",
@@ -285,22 +386,68 @@ lt_obis_truncated %<>% mutate(RESERVE.GROUP.LOCATION =
             )
 
 # stack data for subsequent analysis - check dimensions
-dim(long_table) # 267 x 71
+dim(long_table) # 330 x 73
 
 # stack data for subsequent analysis -correct type in previous data for succesful stacking
 long_table %<>% mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))
+long_table %<>% mutate(DEPTH.M = as.numeric(DEPTH.M))
+
 lt_obis_truncated %<>% mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))
 lt_obis_truncated %<>% mutate(DEPTH.M = as.numeric(DEPTH.M))
 
-
 # stack data for subsequent analysis
 long_table %<>% bind_rows(long_table, lt_obis_truncated)
-dim(long_table) # 1828   71
+dim(long_table) # 6973   74
+
+long_table %<>% mutate(RESERVE.GROUP = 
+  case_when(SET.ID %in% c(98, 99) ~ "FI",
+            SET.ID %in% c(21,22,23,24) ~ "WJ",
+            SET.ID %in% c(26,27,28,29) ~ "WJ",
+            SET.ID %in% c(11,12)       ~ "FF",
+            SET.ID %in% c(17,18,19)    ~ "FF",
+            SET.ID %in% c(7,8,9,10)    ~ "LS",
+            SET.ID %in% c(1,3,4,5)     ~ "LS")
+            )
+
+long_table |> select (SET.ID, RESERVE.GROUP) |> distinct()
+
+long_table %<>% mutate(RESERVE.GROUP.INSIDE = 
+  case_when(SET.ID %in% c(98, 99) ~ FALSE,
+            SET.ID %in% c(21,22,23,24) ~ TRUE,
+            SET.ID %in% c(26,27,28,29) ~ FALSE,
+            SET.ID %in% c(11,12)       ~ TRUE,
+            SET.ID %in% c(17,18,19)    ~ FALSE,
+            SET.ID %in% c(7,8,9,10)    ~ FALSE,
+            SET.ID %in% c(1,3,4,5)     ~ TRUE))
+
+long_table |> select (SET.ID, RESERVE.GROUP, RESERVE.GROUP.INSIDE) |> distinct()
+
+long_table %<>% mutate(RESERVE.GROUP.LOCATION = 
+  case_when(RESERVE.GROUP == "FI" & RESERVE.GROUP.INSIDE == FALSE  ~ "FI CTRL",
+            RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == TRUE  ~ "WJ MR",
+            RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == FALSE ~ "WJ CTRL",
+            RESERVE.GROUP == "FF" & RESERVE.GROUP.INSIDE == TRUE  ~ "FF MR",
+            RESERVE.GROUP == "FF" & RESERVE.GROUP.INSIDE == FALSE ~ "FF CTRL",
+            RESERVE.GROUP == "LS" & RESERVE.GROUP.INSIDE == TRUE  ~ "LS MR",
+            RESERVE.GROUP == "LS" & RESERVE.GROUP.INSIDE == FALSE ~ "LS CTRL")
+            )
+
+long_table |> select (SET.ID, RESERVE.GROUP.LOCATION, RESERVE.GROUP, RESERVE.GROUP.INSIDE) |> distinct()
+
 
 # define unique observations by technique
 long_table %<>% mutate(BRUV.OBS.PRES = case_when(SAMPLE.TYPE == "BRUV" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
 long_table %<>% mutate(EDNA.OBS.PRES = case_when(SAMPLE.TYPE == "eDNA" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
 long_table %<>% mutate(OBIS.OBS.PRES = case_when(SAMPLE.TYPE == "OBIS" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
+long_table %<>% mutate(PUBL.OBS.PRES = case_when(SAMPLE.TYPE == "PUBL" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
+
+long_table |> select (SET.ID, SAMPLE.TYPE, LOC.NAME, RESERVE.GROUP.LOCATION, RESERVE.GROUP, RESERVE.GROUP.INSIDE) |>
+  arrange(SET.ID) |> distinct()
+
+long_table <- long_table |> mutate(LOC.NAME = ifelse(SET.ID == 99, "Fiordland", LOC.NAME)) 
+
+long_table |> select (SET.ID, SAMPLE.TYPE, LOC.NAME, RESERVE.GROUP.LOCATION, RESERVE.GROUP, RESERVE.GROUP.INSIDE) |>
+  arrange(SET.ID) |> distinct()
 
 # fill missing values for analysis
 long_table %>% group_by(SET.ID) %>% print(n = Inf)
@@ -308,11 +455,24 @@ long_table %<>% group_by(SET.ID) %>% fill(LOC.NAME)
 long_table %<>% group_by(SET.ID) %>% fill(INSIDE.RESERVE)
 long_table %<>% group_by(SET.ID) %>% fill(MH.GPS.LAT, .direction = c("downup"))
 long_table %<>% group_by(SET.ID) %>% fill(MH.PPS.LONG, .direction = c("downup"))
+long_table %<>% group_by(SPECIES) %>%  fill(NCBI.TAXID.INC,  .direction = c("downup"))
+long_table %<>% group_by(SPECIES) %>%  fill(NCBI.TAXID, .direction = c("downup"))
+long_table %<>% group_by(SPECIES) %>%  fill(NCBI.LEVEL,  .direction = c("downup"))
+long_table %<>% ungroup(SET.ID)
 
 # rearrange columns as in previous data combination
-long_table %<>% relocate(SET.ID,	REP.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT,
+long_table %<>% relocate(SET.ID,REP.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT,
   MH.PPS.LONG, RESERVE.GROUP,  RESERVE.GROUP.INSIDE, RESERVE.GROUP.LOCATION, SUPERKINGDOM,	
-  PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES)
+  PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES, NCBI.TAXID, NCBI.TAXID.INC, NCBI.LEVEL)
+
+# check again
+long_table %>% select(SET.ID,REP.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT,
+  MH.PPS.LONG, RESERVE.GROUP,  RESERVE.GROUP.INSIDE, RESERVE.GROUP.LOCATION, SUPERKINGDOM,	
+  PHYLUM,	CLASS,	ORDER,	FAMILY,	GENUS,	SPECIES, NCBI.TAXID, NCBI.TAXID.INC, NCBI.LEVEL) %>%
+  distinct()
+
+long_table %<>% mutate(NCBI.LEVEL = ifelse(is.na(NCBI.LEVEL), "species", NCBI.LEVEL))
+long_table %<>% mutate(NCBI.TAXID.INC = ifelse(is.na(NCBI.TAXID.INC), FALSE, NCBI.TAXID.INC))
 
 
 #   7-Jul-21: 
@@ -326,11 +486,18 @@ long_table %<>% group_by(SET.ID) %>% mutate(UNIQ.REP.IDS = n_distinct(REP.ID))
 # VIII. Check data completness and citations
 # ==========================================
 
+long_table %<>% mutate(LOC.NAME = if(RESERVE.GROUP == "FI",  "Fiordland", LOC.NAME))
+
+long_table |> select(SET.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT, MH.PPS.LONG,
+  RESERVE.GROUP, RESERVE.GROUP.INSIDE, RESERVE.GROUP.LOCATION, SUPERKINGDOM,	
+  PHYLUM,	CLASS, ORDER,	FAMILY,	GENUS,	SPECIES) |> distinct()
+
+
 # safe table with citation info
 data_citataions <- lt_obis_results %>% ungroup() %>% select(bibliographicCitation) %>% filter(!is.na(bibliographicCitation)) %>% 
    distinct() %>% arrange(bibliographicCitation)#  %>% print(n = Inf) 
 
-write.xlsx(data_citataions, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx", asTable = TRUE, overwrite = FALSE)
+write.xlsx(data_citataions, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx", asTable = TRUE, overwrite = TRUE)
 
 
 # check data completeness - preformatting
@@ -339,9 +506,9 @@ OBIS_records <- ungroup(lt_obis_results) %>% select(id) %>% distinct() %>% renam
 OBIS_records %<>%  mutate(used = case_when(OBIS_record %in%  long_table$ASV ~ TRUE, TRUE ~ FALSE))
 
 # and numerical summaries for manuscript
-nrow(OBIS_records)
-sum(OBIS_records$used)
-sum(OBIS_records$used) / nrow(OBIS_records)
+nrow(OBIS_records)     # 5263
+sum(OBIS_records$used) # 5186
+sum(OBIS_records$used) / nrow(OBIS_records) # 0.9853696
 
 # XI. Save results and workspace
 # ==============================
@@ -352,7 +519,7 @@ write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online
 write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/998_r_map_and_add_obis__full_data_raw.csv")
 
 # saving workspace manually
-save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210705_998_r_map_and_add_obis.Rdata")
+save.image("/Users/paul/Documents/OU_eDNA/260705_r_workspaces/210705_998_r_map_and_add_obis__end.Rdata")
 save.image("/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_add_obis.Rdata")
 
 # for subsequent analyses

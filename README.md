@@ -542,11 +542,17 @@
     * saved workspace file to `/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210723_998_r_get_OBIS_and_map.Rdata`
     * commit `a43812d9e2ac15cbd4f0e98222b0c1c384776b37`
     * **next** continue in line `173`
-* **23-July-2021** - adding species observations from literature and OBIS with a wide-circle buffer
+* **24-July-2021** - adding species observations from literature and OBIS with a wide-circle buffer
   * revising `~/Documents/OU_eDNA/200901_scripts/995_r_get_PUBL_long_table.r` - adding grouping variables - **ok**
   * revising `/Users/paul/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r` - checking correct execution - **ok**
   * revising `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
-    * progressed to downloadeing OBIS data, line 205
+    * progressed to downloading OBIS data, line 205
+    * commit `3d3ea8c09e00af1b3c8bdfa9aabbade4102039c1`
+* **26-July-2021** - adding species observations from literature and OBIS with a wide-circle buffer
+  * revising `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
+    * added OBIS data with set ID 99
+    * formatted all other data (hopefully to completion)
+  * commit ``
 
 
 * **todo:**
