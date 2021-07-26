@@ -520,7 +520,7 @@ write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_fi
 
 # saving workspace manually
 save.image("/Users/paul/Documents/OU_eDNA/260705_r_workspaces/210705_998_r_map_and_add_obis__end.Rdata")
-save.image("/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_add_obis.Rdata")
+save.image("/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_add_obis__end.Rdata")
 
 # for subsequent analyses
 saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
