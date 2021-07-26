@@ -174,6 +174,10 @@ map_main <- ggplot() +
 # see filename - map saving originally implemented in 
 #  /Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r
 
+
+# save imgae for combination with other plots
+saveRDS(map_main, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
+
 ggsave("210401_998_r_summarize_results_fig1_draft.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1, width = 125, height = 175, units = c("mm"),
@@ -265,6 +269,10 @@ spc_in_nf <- tibble( SPECIES = c(
 
 gen_in_nf <- c("Ritterella")
 
+# saving workspace manually
+save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210705_998_r_map_and_add_obis__post_downloads.Rdata")
+
+
 # get basic species lists
 # -----------------------
 
@@ -334,7 +342,7 @@ spc <- spc |> mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))
 spc <- spc |> mutate(NCBI.TAXID.INC = ifelse(NCBI.TAXID == 0, TRUE, FALSE)) 
 spc <- spc |> mutate(SAMPLE.TYPE = "OBIS") |> mutate(ABUNDANCE = 1)
 
-# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210726_998_r_get_OBIS_and_map.Rdata")
+save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210726_998_r_get_OBIS_and_map.Rdata")
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210726_998_r_get_OBIS_and_map.Rdata")
 
 # combine columns 
@@ -434,7 +442,6 @@ long_table %<>% mutate(RESERVE.GROUP.LOCATION =
 
 long_table |> select (SET.ID, RESERVE.GROUP.LOCATION, RESERVE.GROUP, RESERVE.GROUP.INSIDE) |> distinct()
 
-
 # define unique observations by technique
 long_table %<>% mutate(BRUV.OBS.PRES = case_when(SAMPLE.TYPE == "BRUV" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
 long_table %<>% mutate(EDNA.OBS.PRES = case_when(SAMPLE.TYPE == "eDNA" & ABUNDANCE >= 1 ~ 1, TRUE ~ 0))
@@ -473,7 +480,6 @@ long_table %>% select(SET.ID,REP.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT,
 
 long_table %<>% mutate(NCBI.LEVEL = ifelse(is.na(NCBI.LEVEL), "species", NCBI.LEVEL))
 long_table %<>% mutate(NCBI.TAXID.INC = ifelse(is.na(NCBI.TAXID.INC), FALSE, NCBI.TAXID.INC))
-
 
 #   7-Jul-21: 
 #     in ~/Documents/OU_eDNA/200901_scripts/997_r_format_longtables.r

@@ -552,7 +552,13 @@
   * revising `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
     * added OBIS data with set ID 99
     * formatted all other data (hopefully to completion)
-  * commit `f3c3ac5a9d9db2a940ff638a911f8916fe9e6545`
+  * commit `9fdde5710e0d1feb6e6695b77df8313c3e6bef78`
+  * to correct errors in taxonomy - revised all scripts again
+    * from `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_PUBL_long_table.r`
+    * to `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * **next** - continue with analysis in script above
+  * commit ``
+
 
 
 * **todo:**

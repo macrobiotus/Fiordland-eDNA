@@ -299,7 +299,7 @@ get_anosim <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano =
 # ================
 
 # check input data of previous script
-system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx"\"")
+system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx\"")
 
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
 
@@ -311,7 +311,6 @@ long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_
 # - split "fish" and "full" data
 # - filter for data completeness **(possibly needs to be re-worked)**
 
-
 # clean taxonomy strings
 # ----------------------
 
@@ -320,14 +319,23 @@ long_table %<>% mutate(SPECIES = gsub("sp\\..*", "sp.", SPECIES))
 long_table %<>% mutate(SPECIES = gsub("cf. ", "", SPECIES))
 long_table %<>% mutate(SPECIES = str_replace(SPECIES, "\\s\\S*\\s\\S*(.*)", ""))
 
+long_table %<>% mutate(ORDER = ifelse(ORDER == "Squalidae", "Squaliformes", ORDER))
+long_table %<>% mutate(ORDER = ifelse(GENUS == "Callanthias", "Perciformes", ORDER))
 
 # add trivial names 
 # -----------------
 
-long_table %<>% mutate(TRIVIAL.SCPECIES = ifelse( is.na(SPECIES), NA,  sci2comm(SPECIES, db = "ncbi", simplify = TRUE))) 
-long_table %<>% tidyr::unnest(TRIVIAL.SCPECIES)
+# get trivial names
+species_vector <- ungroup(long_table) |> select(SPECIES) |> distinct() |> pull(SPECIES)
+trivial_obj <- sci2comm(species_vector, db = "ncbi", simplify = TRUE)
 
+# format trivial names for left join
+trivial_df <- data.frame(do.call(rbind , trivial_obj))
+trivial_df <- rownames_to_column(trivial_df, var = "SPECIES")
+trivial_df <- trivial_df |>  setNames( c("SPECIES", "TRIVIAL.SPECIES")) |> as_tibble()
 
+# add trivial names to object 
+long_table %<>% left_join(trivial_df)
 
 #  mark non-NZ species  **(possibly needs to be re-worked)**
 # ---------------------------------------------------------
@@ -348,13 +356,12 @@ long_table %<>% mutate(GENUS =
                                    GENUS %in% nonnz_othr ~ paste0(GENUS, "**"),
                                                     TRUE ~ GENUS)
                                                     )
-
 # save / load annotated object
 # ------------------------------
 
+save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__start_env.Rdata")
 saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
-
 
 # Filter for data completeness **(possibly needs to be re-worked)**
 # ------------------------------------------------------------------
@@ -372,31 +379,34 @@ long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_
 
 # for aggregation of identical taxonomic entities across multiple observations, copy observation typ to one
 #   uniting variable (used to be "BOTH.PRES")
-long_table %<>% mutate(ANY.OBS.PRES = case_when(BRUV.OBS.PRES == 1 ~ 1, EDNA.OBS.PRES == 1 ~ 1, OBIS.OBS.PRES == 1 ~ 1, TRUE ~ 0))
+long_table %<>% mutate(ANY.OBS.PRES = case_when(BRUV.OBS.PRES == 1 ~ 1, 
+                                                EDNA.OBS.PRES == 1 ~ 1, 
+                                                OBIS.OBS.PRES == 1 ~ 1,
+                                                PUBL.OBS.PRES == 1 ~ 1,
+                                                TRUE ~ 0))
 
 # Split "fish" and "full" data
 # ----------------------------
 full_biodiv <- long_table %>% distinct()
 fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes")) %>% filter(!(GENUS %in% c("Sardinops")))
 
+save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 
 
-# III. Get full flex table 
-# =========================
-
+# IV. What data is available for Fiordland - table summary for supplemnet
+# ========================================================================
 
 # format data for flex table
-
-obs_sums <- full_biodiv %>% ungroup() %>% group_by(SPECIES) %>%  
-  select(SPECIES, BRUV.OBS.PRES, EDNA.OBS.PRES, OBIS.OBS.PRES) %>% 
+obs_sums <- fish_biodiv %>% ungroup() %>% group_by(SPECIES) %>%  
+  select(SPECIES, BRUV.OBS.PRES, EDNA.OBS.PRES, OBIS.OBS.PRES, PUBL.OBS.PRES) %>%   
   summarize(BRUV.OBS.PRES.SUM = ifelse(sum(BRUV.OBS.PRES), sum(BRUV.OBS.PRES), NA),
             EDNA.OBS.PRES.SUM = ifelse(sum(EDNA.OBS.PRES), sum(EDNA.OBS.PRES), NA),
-            OBIS.OBS.PRES.SUM = ifelse(sum(OBIS.OBS.PRES), TRUE, NA)
+            OBIS.OBS.PRES.SUM = ifelse(sum(OBIS.OBS.PRES), TRUE, NA), 
+            PUBL.OBS.PRES.SUM = ifelse(sum(PUBL.OBS.PRES), TRUE, NA)
             )
  
-spcies_obs_sums <- ungroup(full_biodiv) %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SCPECIES) %>% distinct() %>%
+spcies_obs_sums <- ungroup(fish_biodiv) %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>%
   left_join(obs_sums) %>% arrange(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES) 
-
 
 # generate flex table - for merging with ggplot object
 ft_spcies_obs_sums <-  flextable(spcies_obs_sums) %>% 
@@ -414,18 +424,33 @@ ft_spcies_obs_sums <-  flextable(spcies_obs_sums) %>%
      FAMILY = "Family",
      GENUS = "Genus",
      SPECIES = "Species",
-     TRIVIAL.SCPECIES = "Common name",
+     TRIVIAL.SPECIES = "Common name",
      BRUV.OBS.PRES.SUM = "BRUV observations",
      EDNA.OBS.PRES.SUM = "eDNA observations",
-     OBIS.OBS.PRES.SUM  = "OBIS records")) %>%
+     OBIS.OBS.PRES.SUM = "OBIS records", 
+     PUBL.OBS.PRES.SUM = "Literature records" )) %>%
      fontsize(part = "all", size = 9) %>%
      fit_to_width(max_width = 12, inc = 1L, max_iter = 20)
-     # autofit(add_w = 0, add_h = 0, part = c("all"))
 
 save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.docx",
   pr_section = prop_section(
-    page_size = page_size(orient = "landscape"), type = "continuous"
+    page_size = page_size(orient = "portrait"), type = "continuous"
     ))
+
+save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.html")
+
+
+nrow(spcies_obs_sums)                                    # found 116 species across all data sets
+nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       106 Actinopteri
+nrow(spcies_obs_sums |> filter (CLASS == "Chondrichthyes")) #     10 Chondrichthyes
+
+nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 BRUV (in study area)
+nrow(spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)))  # 44 EDNA (in study area)
+nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 OBIS (in circle)
+nrow(spcies_obs_sums |> filter (!is.na(PUBL.OBS.PRES.SUM)))  # 59 PUBL (Fiordland)
+
+
+# continue here after 26-Jul-2021
 
 
 
@@ -567,6 +592,8 @@ ggsave("210712_998_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 2.5, width = 85, height = 85, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
+         
+# see saveRDS(map_main, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
 
 # Omitted - Get a tree 
 # =====================

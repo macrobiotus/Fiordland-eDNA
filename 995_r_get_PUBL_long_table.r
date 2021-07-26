@@ -164,7 +164,7 @@ spc <- spc |> group_by(PHYLUM) |> fill(SUPERKINGDOM, .direction = c("updown"))
 
 
 # plug holes manually 
-spc <- spc |> mutate(ORDER = ifelse(FAMILY == "Plesiopidae", "Ovalentaria", FAMILY)) 
+spc <- spc |> mutate(ORDER = ifelse(FAMILY == "Plesiopidae", "Ovalentaria", ORDER)) 
 
 spc <- spc |> mutate(FAMILY = ifelse(GENUS == "Cryptichthys", "Tripterygiidae", FAMILY)) 
 spc <- spc |> mutate(ORDER  = ifelse(GENUS == "Cryptichthys", "Blenniiformes" , ORDER)) 
@@ -178,7 +178,10 @@ spc <- spc |> mutate(ORDER  = ifelse(GENUS == "Modicus", "Gobiesociformes" , ORD
 spc <- spc |> mutate(FAMILY = ifelse(GENUS == "Notoclinops", "Tripterygiidae", FAMILY)) 
 spc <- spc |> mutate(ORDER  = ifelse(GENUS == "Notoclinops", "Blenniiformes" , ORDER)) 
 
-spc <- spc |> mutate(FAMILY = ifelse(FAMILY == "Callanthiidae", "Eupercaria", FAMILY)) 
+
+spc <- spc |> mutate(FAMILY = ifelse(GENUS == "Callanthias", "Callanthiidae", FAMILY)) 
+spc <- spc |> mutate(ORDER = ifelse(GENUS == "Callanthias", "Eupercaria", ORDER)) 
+
 
 # fill NA's that can be filled
 spc <- spc |> relocate(col_order) |> arrange(across( rev(col_order[1:(length(col_order)-1)]) ))
