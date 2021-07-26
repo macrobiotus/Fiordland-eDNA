@@ -74,18 +74,25 @@ get_euler_object = function(level, tibl){
   require("magrittr")
   
   # check if needed columns are in the input data
-  stopifnot(c("BRUV.OBS.PRES", "EDNA.OBS.PRES", "OBIS.OBS.PRES") %in% names(tibl))
-  stopifnot(level %in% c("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
+  stopifnot(c("BRUV.OBS.PRES", "EDNA.OBS.PRES", "OBIS.OBS.PRES", "PUBL.OBS.PRES") %in% names(tibl))
+  stopifnot(level %in% c("SUPERKINGDOM", "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
   
   # isolate realvant columns for summary
-  tibl %<>% select(SET.ID, BRUV.OBS.PRES, EDNA.OBS.PRES, OBIS.OBS.PRES, RESERVE.GROUP, RESERVE.GROUP.LOCATION, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) %>% distinct()
+  tibl %<>% select(BRUV.OBS.PRES, EDNA.OBS.PRES, OBIS.OBS.PRES, PUBL.OBS.PRES, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) %>% distinct()
+  
+  # debugging only
+  # print(tibl)
   
   # sum up unique presences fr Euler plot
   tibl %<>% group_by(get(level)) %>% summarise(eDNA = as.logical(sum(EDNA.OBS.PRES)),
-                                          BRUV = as.logical(sum(BRUV.OBS.PRES)),
-                                          OBIS = as.logical(sum(OBIS.OBS.PRES))
-                                          )
-  return(euler(tibl[ , 2:4]))
+                                               BRUV = as.logical(sum(BRUV.OBS.PRES)),
+                                               PUBL = as.logical(sum(PUBL.OBS.PRES)),
+                                               OBIS = as.logical(sum(OBIS.OBS.PRES))
+                                               )
+  # debugging only
+  print(tibl)
+  
+  return(euler(tibl[ , 2:5]))
 }
 
 # get Euler Ggplots 
@@ -96,7 +103,7 @@ get_euler_ggplot = function(level, euler_ob, plot_label = TRUE){
 
   # sanitize input
   stopifnot( class(euler_ob)[1] == "euler")
-  stopifnot(level %in% c("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
+  stopifnot(level %in% c("SUPERKINGDOM", "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
   
   euler_ggplot <- as.ggplot(
     plot(euler_ob, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels = list(font=1, cex=0.8))
@@ -302,7 +309,7 @@ get_anosim <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano =
 system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx\"")
 
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
-
+long_table <- ungroup(long_table)
 
 # III. Format data  
 # =================
@@ -450,37 +457,35 @@ nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 OBIS (in circl
 nrow(spcies_obs_sums |> filter (!is.na(PUBL.OBS.PRES.SUM)))  # 59 PUBL (Fiordland)
 
 
-# continue here after 26-Jul-2021
-
-
-
 # III. Get Euler plots
 # ====================
 
 # get euler analysis results for plotting / plot_label = TRUE shrinks plots a lot
-euler_obs_full_bio <- lapply(list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), get_euler_object, full_biodiv)
-euler_ggp_full_bio <- mapply(get_euler_ggplot, list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"),  euler_obs_full_bio, plot_label = FALSE, SIMPLIFY = FALSE)
+# euler_obs_full_bio <- lapply(list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), get_euler_object, full_biodiv)
+# euler_ggp_full_bio <- mapply(get_euler_ggplot, list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"),  euler_obs_full_bio, plot_label = FALSE, SIMPLIFY = FALSE)
 
 # plot euler analysis results
-euler_obs_fish_bio <- lapply(list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), get_euler_object, fish_biodiv)
-euler_ggp_fish_bio <- mapply(get_euler_ggplot, list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"),  euler_obs_fish_bio, plot_label = FALSE, SIMPLIFY = FALSE)
+euler_obs_fish_bio <- lapply(list("SUPERKINGDOM", "PHYLUM", "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), get_euler_object, fish_biodiv)
+euler_ggp_fish_bio <- mapply(get_euler_ggplot, list("SUPERKINGDOM", "PHYLUM", "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"),  euler_obs_fish_bio, plot_label = FALSE, SIMPLIFY = FALSE)
 
 # create compound plot with better labels then with plot_label = TRUE above
-ggarrange(
-  ggarrange(plotlist = euler_ggp_full_bio,  ncol = 1, nrow = 6,
-    labels = str_to_sentence(c("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES")),
-    font.label = list(size = 12, color = "black", face = "bold.italic", family = NULL),
-    vjust = 4.5
-    ),
-  ggarrange(plotlist = euler_ggp_fish_bio,  ncol = 1, nrow = 6), ncol = 2,
-    labels = c("a","b")
-  )
+ggarrange( plotlist = euler_ggp_fish_bio[4:7],
+           labels = str_to_sentence(c("ORDER",  "FAMILY",  "GENUS", "SPECIES")),
+           font.label = list(size = 12, color = "black", face = "bold.italic", family = NULL),
+           ncol = 2, nrow = 2)
+           )
 
 # save compound plot with better labels then with plot_label = TRUE above
 ggsave("210712_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1.5, width = 75, height = 175, units = c("mm"),
+         scale = 2.0, width = 100, height = 100, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
+
+
+# continue here after 26-Jul-2021
+
+
+
 
 # IV. get geographical maps with heat overlays
 # =============================================

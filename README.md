@@ -557,7 +557,10 @@
     * from `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_PUBL_long_table.r`
     * to `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
     * **next** - continue with analysis in script above
-  * commit ``
+  * commit `48894396fd709c0796ab3a148d082adb540b7986`
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * finished Euler plots
+    * commit ``
 
 
 
