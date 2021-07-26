@@ -155,11 +155,11 @@ get_bbox_anyloc <- function(tibl, location = c("RESERVE.GROUP.LOCATION")){
   }
   
   # calculate bounding box
-  bbox <- tibl %>% group_by(across(location)) %>%
+  bbox <- tibl %>% group_by(across(all_of(location))) %>%
   summarise(xmin = min(MH.PPS.LONG) -0.01 ,ymin = min(MH.GPS.LAT) -0.01, xmax=max(MH.PPS.LONG) +0.01,  ymax = max(MH.GPS.LAT) +0.01) %>%
   gather(x,lon,c('xmin','xmax')) %>% gather(y,lat,c('ymin','ymax')) %>%
   st_as_sf(coords=c('lon','lat'),crs=4326,remove=F) %>%
-  group_by(across(location)) %>% mutate(angle = calc_angle(lon,lat)) %>%
+  group_by(across(all_of(location))) %>% mutate(angle = calc_angle(lon,lat)) %>%
   arrange(angle) %>% summarise(do_union=FALSE) %>% st_cast('POLYGON')
   
   return(bbox)
@@ -482,7 +482,7 @@ ggsave("210712_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_p
          dpi = 500, limitsize = TRUE)  
 
 
-# continue here after 26-Jul-2021
+# *********** continue here after 26-Jul-2021 ***********
 
 
 
@@ -495,9 +495,11 @@ ggsave("210712_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_p
 # data preparation
 # ----------------
 
+# keep only data relevant for plotting 
+fish_biodiv_gh <- fish_biodiv |> filter(SAMPLE.TYPE %in% c("eDNA","BRUV","OBIS") & SET.ID %!in% c(98,99))
+
 # for mapping: get column-subset sf's with WGS 84 in degrees 
-full_biodiv_sf <- get_sf_biodiv(full_biodiv)
-fish_biodiv_sf <- get_sf_biodiv(fish_biodiv)
+fish_biodiv_sf <- get_sf_biodiv(fish_biodiv_gh)
 
 # for mapping: get map layers 
 nzshp_hires_WGS84_sf <- read_sf("/Users/paul/GIS/NZ_coast/NZ_Coast_isl.shp") %>% st_transform(crs = 4326)
@@ -507,13 +509,11 @@ nzshp_lores_WGS84_sf <- rmapshaper::ms_simplify(input = as(nzshp_hires_WGS84_sf,
 #  field work area & sample groups
 bbox_fwork <- st_as_sfc(st_bbox(c(xmin = (166.5-0.1), xmax = (167.0+0.1), ymax = (-46.04-0.1), ymin = (-45.52+0.1)), crs = st_crs(4326)))
 #  boxes around default value RESERVE.GROUP.LOCATION  
-bbox_rgl_full_biodiv <- get_bbox_anyloc(full_biodiv) # must use original object, not sf 
-bbox_rgl_fish_biodiv <- get_bbox_anyloc(fish_biodiv) # must use original object, not sf
+bbox_rgl_fish_biodiv <- get_bbox_anyloc(fish_biodiv_gh) # must use original object, not sf
 
 # for mapping and buffer calculations at correct scale: re-project all sf's to local km  
 get_reprojection <- function(sf) st_transform(sf, crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
 
-full_biodiv_sf_km <- get_reprojection(full_biodiv_sf)
 fish_biodiv_sf_km <- get_reprojection(fish_biodiv_sf)
 
 nzshp_hires_WGS84_sf_km <- get_reprojection(nzshp_hires_WGS84_sf)
@@ -521,21 +521,15 @@ nzshp_lores_WGS84_sf_km <- get_reprojection(nzshp_lores_WGS84_sf)
 
 bbox_fwork_km <- get_reprojection(bbox_fwork)
 
-bbox_rgl_full_biodiv_km <- get_reprojection(bbox_rgl_full_biodiv)
 bbox_rgl_fish_biodiv_km <- get_reprojection(bbox_rgl_fish_biodiv)
 
 # calculate 2.5 km buffers
-full_biodiv_sf_km_sid_buff <- full_biodiv_sf_km %>% select("SET.ID") %>% distinct %>% st_buffer(2.5)
 fish_biodiv_sf_km_sid_buff <- fish_biodiv_sf_km %>% select("SET.ID") %>% distinct %>% st_buffer(2.5)
 
 # get dataframes suitable for plotting with below functions - write as function
-full_biodiv_df_edna <- get_plot_df(full_biodiv_sf_km, "eDNA")
-full_biodiv_df_bruv <- get_plot_df(full_biodiv_sf_km, "BRUV")
-full_biodiv_df_obis <- get_plot_df(full_biodiv_sf_km, "OBIS")
-
 fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "eDNA")
-fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "BRUV")
-fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "OBIS")
+fish_biodiv_df_bruv <- get_plot_df(fish_biodiv_sf_km, "BRUV")
+fish_biodiv_df_obis <- get_plot_df(fish_biodiv_sf_km, "OBIS")
 
 # mapping
 # --------
@@ -545,28 +539,7 @@ fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "OBIS")
 map_inset <-  ggplot(data = nzshp_lores_WGS84_sf) + geom_sf(fill = "grey93", color = "red", lwd = 0.5) +
     geom_sf(data = bbox_fwork, fill = NA, color = "darkred", size = 1) + theme_void()
 
-plot_full_biodiv <- ggplot() +
-      geom_density_2d_filled(data = get_plot_df(full_biodiv_sf_km), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
-      facet_grid(. ~ SAMPLE.TYPE) +
-      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
-      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") + 
-      geom_sf(data = bbox_rgl_full_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) +
-      geom_sf_label(data=bbox_rgl_full_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
-      stat_sf_coordinates(data = full_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
-      stat_sf_coordinates(data = full_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "white", size = 1) +
-      coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
-      theme_bw() + 
-      theme(legend.position= "none",
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank()
-            )
-
+# original code
 plot_fish_biodiv <- ggplot() +
       geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
       facet_grid(. ~ SAMPLE.TYPE) +
@@ -588,6 +561,30 @@ plot_fish_biodiv <- ggplot() +
             panel.grid.major = element_blank(),
             panel.grid.minor = element_blank()
             )
+# trial code
+plot_fish_biodiv <- ggplot() +
+      geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "eDNA"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
+      # facet_grid(. ~ SAMPLE.TYPE) +
+      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
+      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
+      geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
+      geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
+      stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
+      stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "white", size = 1) +
+      coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
+      theme_bw() + 
+      theme(legend.position= "none",
+            axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank()
+            )
+
+
 
 ggarrange( plot_full_biodiv, plot_fish_biodiv,  
   ncol = 1, nrow = 2, labels = c("a","b") )
