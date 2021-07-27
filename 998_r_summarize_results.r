@@ -198,7 +198,7 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   stopifnot(group_col %in% names(tibl))
   stopifnot(group_row %in% c("SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
   # stopifnot(length(obs_methods) == 1)
-  stopifnot(obs_methods %in% c("BRUV", "eDNA", "OBIS", NULL))
+  stopifnot(obs_methods %in% c("BRUV", "eDNA", "OBIS", "PUBL", NULL))
   
   require(data.table) # re-use old code rather then finding out how to reimplement
   require(tidyverse)
@@ -227,7 +227,7 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   #   get counts of occurrences per location, per taxonomic entity for subsequent matrix 
   #   not sure if all taxonomy level are needed, implementing just in case
   if (group_row == "SPECIES") {
-    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "NCBI.TAXID", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES", "TRIVIAL.SCPECIES"), .SDcols=c("ANY.OBS.PRES") ]
+    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "NCBI.TAXID", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES", "TRIVIAL.SPECIES"), .SDcols=c("ANY.OBS.PRES") ]
   } else if (group_row == "GENUS") {
     dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY",  "GENUS"), .SDcols=c("ANY.OBS.PRES") ]
   } else if (group_row == "FAMILY") {
@@ -482,10 +482,6 @@ ggsave("210712_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_p
          dpi = 500, limitsize = TRUE)  
 
 
-# *********** continue here after 26-Jul-2021 ***********
-
-
-
 
 # IV. get geographical maps with heat overlays
 # =============================================
@@ -534,43 +530,19 @@ fish_biodiv_df_obis <- get_plot_df(fish_biodiv_sf_km, "OBIS")
 # mapping
 # --------
 
-# inset map for subsequent main map (see https://geocompr.github.io/post/2019/ggplot2-inset-maps/)
-#  using map in degrees, as scale may be too large for kms
-map_inset <-  ggplot(data = nzshp_lores_WGS84_sf) + geom_sf(fill = "grey93", color = "red", lwd = 0.5) +
-    geom_sf(data = bbox_fwork, fill = NA, color = "darkred", size = 1) + theme_void()
+# map 1: sampling map from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
+map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
 
-# original code
-plot_fish_biodiv <- ggplot() +
-      geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
-      facet_grid(. ~ SAMPLE.TYPE) +
-      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
-      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
-      geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
-      geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
-      stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
-      stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "white", size = 1) +
-      coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
-      theme_bw() + 
-      theme(legend.position= "none",
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank()
-            )
-# trial code
-plot_fish_biodiv <- ggplot() +
+# map 2: eDNA observations
+map_b <- ggplot() +
       geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "eDNA"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
       # facet_grid(. ~ SAMPLE.TYPE) +
       geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
       # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
       geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
-      geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
-      stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
-      stat_sf_coordinates(data = fish_biodiv_sf_km, aes(shape = RESERVE.GROUP), color = "white", size = 1) +
+      # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
+      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "eDNA")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
+      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "eDNA")}, aes(shape = RESERVE.GROUP), color = "white", size = 1) +
       coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
       theme_bw() + 
       theme(legend.position= "none",
@@ -584,60 +556,133 @@ plot_fish_biodiv <- ggplot() +
             panel.grid.minor = element_blank()
             )
 
+# map 2: BRUV observations
+map_c <- ggplot() +
+      geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "BRUV"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
+      # facet_grid(. ~ SAMPLE.TYPE) +
+      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
+      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
+      geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
+      # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
+      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "BRUV")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
+      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "BRUV")}, aes(shape = RESERVE.GROUP), color = "white", size = 1) +
+      coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
+      theme_bw() + 
+      theme(legend.position= "none",
+            axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank()
+            )
+
+# map 2: local OBIS observations
+map_d <- ggplot() +
+      geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "OBIS"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
+      # facet_grid(. ~ SAMPLE.TYPE) +
+      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
+      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
+      geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
+      # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
+      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "OBIS")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 2) +
+      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "OBIS")}, color = "white", size = 1) +
+      coord_sf(xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
+      theme_bw() + 
+      theme(legend.position= "none",
+            axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank()
+            )
+
+save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__mapping.Rdata")
 
 
-ggarrange( plot_full_biodiv, plot_fish_biodiv,  
-  ncol = 1, nrow = 2, labels = c("a","b") )
+# slooooooooow 
+ggarrange( 
+  ggarrange(map_a,               ncol = 1, nrow = 1, labels = c("a")),
+  ggarrange(map_b, map_c, map_d, ncol = 1, nrow = 3, labels = c("b","c", "d")),
+  widths = c(2, 1), ncol = 2, nrow = 1  
+  )
+  
 
 # save compound plot with better labels then with plot_label = TRUE above
 ggsave("210712_998_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 2.5, width = 85, height = 85, units = c("mm"),
+         scale = 1, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
+
+save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__mapping_done.Rdata")
          
-# see saveRDS(map_main, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
-
-# Omitted - Get a tree 
-# =====================
-
-# - omitted - 
-
-# use reticulate to call Python from within R (see https://cran.r-project.org/web/packages/reticulate/vignettes/calling_python.html)
-# use Python's ETE toolkit (see http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html)
-# ETE toolkit installed in conda environment "ete3" (http://etetoolkit.org/download/)
-
-# Sys.setenv(RETICULATE_PYTHON = "/Users/paul/Applications/miniconda3/envs/ete3/bin/python")
-# reticulate::use_condaenv("/Users/paul/Applications/miniconda3/envs/ete3",  required = TRUE) # ... in the righ environmnet...
-# reticulate::py_config()
-# source_python("/Users/paul/Documents/OU_eDNA/200901_scripts/get_tree_for_ncbi_taxid_vector.py") #  ...using the corrcet function
-# 
-# tax_ids <- c(9606, 9598, 10090, 7707, 8782)
-# 
-# # call python function (R multi-element vector should become list automatically)
-# get_tree_for_ncbi_taxid_vector(tax_ids)
-# 
-# 
-# # print obtained Newick tree using ggtree
-# #   https://www.molecularecologist.com/2017/02/08/phylogenetic-trees-in-r-using-ggtree/
-
-
 # V. Get biodiversity heat map and matching flex table
 # ====================================================
 
 # get plotting data sets
 # ----------------------
 
+fish_biodiv_tbls <-  fish_biodiv |> filter(!(SAMPLE.TYPE %in% c("OBIS") & SET.ID %in% c(1,3,4,5,7,8,9,10,11,12,17,18,19,21,22,23,24,26,27,28,29))) 
+  
+  # |>
+  # select(SET.ID, SAMPLE.TYPE, RESERVE.GROUP, RESERVE.GROUP.LOCATION) |>
+  # distinct()
+
 htmp_tibl_fish <- bind_rows(
-  get_matrix_or_table(fish_biodiv, obs_methods = "eDNA",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
-  get_matrix_or_table(fish_biodiv, obs_methods = "BRUV",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "BRUV"), 
-  get_matrix_or_table(fish_biodiv, obs_methods = "OBIS",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "OBIS"), 
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "eDNA",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "BRUV",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "BRUV"), 
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "OBIS",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "OBIS"),
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "PUBL",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "PUBL"),
 )
 
-htmp_tibl_full <- bind_rows(
-  get_matrix_or_table(full_biodiv, obs_methods = "eDNA",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
-  get_matrix_or_table(full_biodiv, obs_methods = "BRUV",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "BRUV"), 
-  get_matrix_or_table(full_biodiv, obs_methods = "OBIS",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "OBIS"), 
-)
+# add summary of BLAst results range for table object only - keep original object for tile plot!!!
+# -----------------------------------------------------------------------------------------------
+# original data (possibly) for tiling plot 
+htmp_tibl_fish
+
+# eDNA data with BLAST results
+fish_biodiv_blast <- fish_biodiv |> 
+  filter(SAMPLE.TYPE == "eDNA") |> 
+  select(ASV, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC)|>
+  distinct()
+
+# for reporting - summaries for gaps and query coverage
+nrow(fish_biodiv_blast) # 92 ASV resolved to species
+summary(fish_biodiv_blast$HSP.GAPS)
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#       0       0       0       1       1      10
+mean(fish_biodiv_blast$HSP.GAPS)      # 1
+sd(fish_biodiv_blast$HSP.GAPS)      # 1.839732
+
+summary(fish_biodiv_blast$HSP.IDENTITY.PERC)
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#  0.7868  0.8933  0.9702  0.9321  0.9763  1.0000 
+mean(fish_biodiv_blast$HSP.IDENTITY.PERC)    # 0.9320525
+sd(fish_biodiv_blast$HSP.IDENTITY.PERC)      # 0.06467619
+
+
+fish_biodiv_blast_cov <- fish_biodiv_blast |> 
+  group_by(SPECIES) |> 
+  summarize(BLAST.COV.RNG =  ifelse( signif(100*min(HSP.IDENTITY.PERC), 3) != signif(100*max(HSP.IDENTITY.PERC),3),
+                                     paste0( signif(100*min(HSP.IDENTITY.PERC), 3), "-", signif(100*max(HSP.IDENTITY.PERC),3), "%"),
+                                     paste0( signif(100*min(HSP.IDENTITY.PERC),3), "%")
+                                     ))
+  
+fish_biodiv_blast_gap <- fish_biodiv_blast |> 
+  group_by(SPECIES) |> 
+  summarize(BLAST.GAP.RNG =  ifelse( signif( min(HSP.GAPS), 3) != signif(max(HSP.GAPS),3),
+                                     paste0( signif(min(HSP.GAPS), 3), "-", signif(max(HSP.GAPS),3)),
+                                     paste0( signif(min(HSP.GAPS),3))
+                                     ))
+
+# extended data (possibly) for table plot 
+htmp_tibl_fish_blrngs <-  htmp_tibl_fish |> left_join(fish_biodiv_blast_cov) |> left_join(fish_biodiv_blast_gap) 
+
 
 # get margin sums 
 # h_total <- long_table_dt_agg_gen %>% 
@@ -671,7 +716,7 @@ htmp_tibl_full <- bind_rows(
 # -----------------------
 
 # format data for flex table
-tibl_plot <- htmp_tibl_full %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SCPECIES) %>% 
+tibl_plot <- htmp_tibl_fish_blrngs %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SPECIES, BLAST.COV.RNG, BLAST.GAP.RNG) %>% 
  distinct() %>% arrange(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES) 
  
  
@@ -691,12 +736,18 @@ ft <-  flextable(tibl_plot) %>%
      FAMILY = "Family",
      GENUS = "Genus",
      SPECIES = "Species",
-     TRIVIAL.SCPECIES = "Common name")) %>%
+     TRIVIAL.SPECIES = "Common name",
+     BLAST.COV.RNG = "Algn. covrg.",
+     BLAST.GAP.RNG = "Algn. gaps"
+     )) %>%
      fontsize(part = "all", size = 12) %>%
      autofit(add_w = 1, add_h = 0, part = c("all"))
 
+save_as_html(ft, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__spcies_obs_matching_tiles.html")
+
+
 # order factors in plotting object to match flex table  
-y_axis_label_order <- fct_relevel(htmp_tibl_full$SPECIES, rev(c(tibl_plot$SPECIES)))  # y_axis_label_order <- reorder(htmp_tibl_full$SPECIES, desc(htmp_tibl_full$SPECIES))
+y_axis_label_order <- fct_relevel(htmp_tibl_fish$SPECIES, rev(c(tibl_plot$SPECIES)))  # y_axis_label_order <- reorder(htmp_tibl_full$SPECIES, desc(htmp_tibl_full$SPECIES))
 
 
 # plot out data as tiles
@@ -704,12 +755,11 @@ y_axis_label_order <- fct_relevel(htmp_tibl_full$SPECIES, rev(c(tibl_plot$SPECIE
 # - needs vectors ordered with tree
 # - needs annotation of non NZ species
 # - may need margin sums
-
-plot_htmp <- ggplot(htmp_tibl_full, aes_string(x = "RESERVE.GROUP.LOCATION", y = y_axis_label_order)) +
+plot_htmp <- ggplot(htmp_tibl_fish, aes_string(x = "RESERVE.GROUP.LOCATION", y = y_axis_label_order)) +
     geom_tile(aes(fill = ANY.OBS.PRES) ) +
     scale_fill_gradient(low="black", high="red") +
     geom_text(size = 2, aes(label = ANY.OBS.PRES, color = "white")) +
-    facet_grid(. ~ SAMPLE.TYPE, scales = "fixed") + 
+    facet_grid(. ~ SAMPLE.TYPE, scales = "free") + 
     theme_bw() +
     theme(legend.position = "none", 
           strip.text.y = element_text(angle=0), 
@@ -720,6 +770,34 @@ plot_htmp <- ggplot(htmp_tibl_full, aes_string(x = "RESERVE.GROUP.LOCATION", y =
           ) +
     xlab("Sampling Locations") # + ylab("Species Observations")
 
+# adjust facet width - https://stackoverflow.com/questions/52341385/how-to-automatically-adjust-the-width-of-each-facet-for-facet-wrap/52422707
+# convert ggplot object to grob object
+grob_htmp <- ggplotGrob(plot_htmp)
+
+# optional: take a look at the grob object's layout
+gtable::gtable_show_layout(grob_htmp)
+
+# get gtable columns corresponding to the facets (5 & 9, in this case)
+facet.columns <- grob_htmp$layout$l[grepl("panel", grob_htmp$layout$name)]
+
+# get the number of unique x-axis values per facet (1 & 3, in this case)
+x.var <- sapply(ggplot_build(plot_htmp)$layout$panel_scales_x,
+                function(l) length(l$range$range))
+
+# change the relative widths of the facet columns based on
+# how many unique x-axis values are in each facet
+grob_htmp$widths[facet.columns] <- grob_htmp$widths[facet.columns] * x.var
+
+# plot result
+plot_htmp_adjusted <- as.ggplot(grob_htmp)
+
+
+ggsave("210712_998_r_summarize_results__biodiv_tiles_only.pdf", plot = plot_htmp_adjusted, 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 155, height = 297, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
 # Combine heatmap and flextable
 # ------------------------------
 
@@ -728,16 +806,21 @@ ft_raster <- as_raster(ft) # webshot and magick.
 ft_rgrob  <- rasterGrob(ft_raster)
 plot_ft <- ggplot() + theme_void() + annotation_custom(ft_rgrob, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)
 
-ggarrange(plot_ft, plot_htmp, ncol = 2, nrow = 1, labels = c("a","b"), widths = c(1,1))
+ggarrange(plot_ft, plot_htmp_adjusted, ncol = 2, nrow = 1, labels = c("a","b"), widths = c(1,1))
 
 ggsave("210712_998_r_summarize_results__biodiv_heat.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 2.5, width = 85, height = 85, units = c("mm"),
-         dpi = 500, limitsize = TRUE)  
+         scale = 1.5, width = 210, height = 297, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__dis_done.Rdata")
+
+# **** continue here after 27-Jul-2021 **** 
 
 
 # VI. ANOSIM of observation types and variables
 # ===============================================
+
 
 # testing function with one data set
 get_anosim(distance = "jaccard", tibl = full_biodiv, group_col = "SET.ID", group_row = c("SPECIES"), group_col_ano = "RESERVE.GROUP.LOCATION", obs_methods = "BRUV")

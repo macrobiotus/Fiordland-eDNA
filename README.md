@@ -563,7 +563,8 @@
     * commit `6dda994ad29940d4af7b91128b17a8e49ef577a6`
 * **27-July-2021** - getting new display items
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
-    * before extensive revisions of heat map plotting code, commit ``
+    * before extensive revisions of heat map plotting code, commit `3777c1961324b15aa5f901d60c0c6c10bb40c2cb`
+    * everything done - display items saved - but ANOVA stuff, commit ``
 
 
 
