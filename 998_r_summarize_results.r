@@ -447,6 +447,7 @@ save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_ma
 save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.html")
 
 
+# Summary: general species counts 
 nrow(spcies_obs_sums)                                    # found 116 species across all data sets
 nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       106 Actinopteri
 nrow(spcies_obs_sums |> filter (CLASS == "Chondrichthyes")) #     10 Chondrichthyes
@@ -456,6 +457,40 @@ nrow(spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)))  # 44 EDNA (in study
 nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 OBIS (in circle)
 nrow(spcies_obs_sums |> filter (!is.na(PUBL.OBS.PRES.SUM)))  # 59 PUBL (Fiordland)
 
+# Summary: OBIS data in small circles 
+fish_biodiv |> pull(SET.ID) |> unique() |> sort()
+fish_biodiv |> 
+  filter(SET.ID %!in% c(98, 99)) |>
+  filter(SAMPLE.TYPE == "OBIS") |> 
+  select(SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
+  distinct() |> pull(RESERVE.GROUP.LOCATION) |> unique()
+
+fish_biodiv |> 
+  filter(SET.ID %!in% c(98, 99)) |>
+  filter(SAMPLE.TYPE == "OBIS") |> 
+  select(SET.ID, SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
+  distinct() |> pull(SET.ID) |> unique()  
+  
+
+fish_biodiv |> 
+  filter(SET.ID %!in% c(98, 99)) |>
+  filter(SAMPLE.TYPE == "OBIS") |> 
+  select(SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
+  distinct(SPECIES)
+
+# Summary: Literture species counts
+fish_biodiv |> filter(SET.ID %in% c(98, 99)) |> select(SPECIES) |> distinct()
+
+# Summary: Fish in BRUV that ar not in literture
+bruv_species <- fish_biodiv |> 
+  select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "BRUV") |> 
+  distinct() |> pull(SPECIES)
+
+publ_species <- fish_biodiv |> 
+  select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %!in% c("BRUV", "eDNA")) |> 
+  distinct() |> pull(SPECIES)
+
+bruv_species[bruv_species %!in% publ_species] |> sort()
 
 # III. Get Euler plots
 # ====================
@@ -645,11 +680,17 @@ htmp_tibl_fish <- bind_rows(
 # original data (possibly) for tiling plot 
 htmp_tibl_fish
 
+# all asvs
+fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(SPECIES)
+fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(ASV)
+
 # eDNA data with BLAST results
 fish_biodiv_blast <- fish_biodiv |> 
   filter(SAMPLE.TYPE == "eDNA") |> 
   select(ASV, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC)|>
   distinct()
+  
+fish_biodiv_blast
 
 # for reporting - summaries for gaps and query coverage
 nrow(fish_biodiv_blast) # 92 ASV resolved to species
