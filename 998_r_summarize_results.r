@@ -641,7 +641,7 @@ save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_re
 
 fish_biodiv_tbls <- fish_biodiv |> filter(!(SAMPLE.TYPE %in% c("OBIS") & SET.ID %in% c(1,3,4,5,7,8,9,10,11,12,17,18,19,21,22,23,24,26,27,28,29))) 
 
-# export data fro analysi by MdL
+# export data fro analysis by MdL
 saveRDS(fish_biodiv_tbls, "/Users/paul/Documents/OU_eDNA/201028_Robjects/210703_998_r_summarize_results__data_gtestimate_accumulation_curves.Rds")
 
   # |>
