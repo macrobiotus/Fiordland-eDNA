@@ -567,6 +567,8 @@
     * everything done - display items saved - but ANOVA stuff, commit `4dd9307c14a8e6723c0f21eaf0725e945b6f8336`
 * **28-July-2021** - started on working abstract
   * added various data summary code section to `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+  * commit `6a0276177db5bfc0a87a68af2819989e73e10302`
+* **29-July-2021** - implemented ANOSIM
   * commit ``
 
 
