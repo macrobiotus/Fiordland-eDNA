@@ -569,6 +569,12 @@
   * added various data summary code section to `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
   * commit `6a0276177db5bfc0a87a68af2819989e73e10302`
 * **29-July-2021** - implemented ANOSIM
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * implemented ANOSIM
+  * commit `15e8f8d8870c607cdbd6b91e4c6b40c8fa4a44e6`
+    * implemented indicator species analysis
+    * erased older code
+    * saved object fro MdL
   * commit ``
 
 
