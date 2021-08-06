@@ -149,6 +149,9 @@ rows_outside <- c(nrow(lt_obis_lookup_sf_loc))
 lt_obis_lookup_sf_buffer_loc <- st_buffer(lt_obis_lookup_sf_loc[rows_inside,  ], 2.5)
 lt_obis_lookup_sf_buffer_loc <- rbind(lt_obis_lookup_sf_buffer_loc, st_buffer(lt_obis_lookup_sf_loc[rows_outside, ], 38))
 
+# central coordinate for paper: 166.8948 -45.80689
+lt_obis_lookup_sf_loc[rows_outside, ] %>% st_transform(crs = st_crs(" +proj=longlat +datum=WGS84 +no_defs +type=crs"))
+
 # map to check object and for publication - unit is in km
 #  check sf objects  - bounding box as defined per lt_obis_lookup_sf and 10 km in addition
 #  inset grob in degrees, but positioned in kilometers

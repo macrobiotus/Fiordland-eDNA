@@ -575,7 +575,12 @@
     * implemented indicator species analysis
     * erased older code
     * saved object fro MdL
-  * commit `b7c90e2de647ca75f13c3ca5bb9d0ed6e9eb37e4`
+  * commit `b7c90e2de647ca75f13c3ca5bb9d0ed6e9eb37e4` before proper save
+  * commit `9ffba95df4ff2ae183c793172cddc59d33cb1880`
+* **06-Aug-2021** - writing paper
+  * added barplot code script from MdL
+  * added big circle centerpoint code to `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
+  * commit ``
 
 * **todo:**
   * check `/Users/paul/Documents/OU_eDNA/200224_references/ES13-00257.1.pdf` for terminology of sites (MR vs commercial exclusion zones)
