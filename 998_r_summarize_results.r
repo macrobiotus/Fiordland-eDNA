@@ -689,8 +689,6 @@ fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct
 # eDNA data with BLAST results - test of poor assignments and associated wider distribution
 # ----------------------------------------------------------------------------------------
 
-# unifinished - consult ML
-# use multinomial regression?
 # https://www.google.com/search?client=firefox-b-d&q=r+multinomial+logistic+regression
 # https://stats.idre.ucla.edu/r/dae/multinomial-logistic-regression/
 # test - ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERCENT + NOT.NZ
@@ -698,29 +696,85 @@ fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct
 fish_biodiv_blast <- fish_biodiv |> 
   filter(SAMPLE.TYPE == "eDNA") |> 
   select(ASV, RESERVE.GROUP.LOCATION, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC) |>
-  arrange(FAMILY, GENUS, SPECIES) |> group_by(SPECIES)
+  arrange(FAMILY, GENUS, SPECIES)
 
-# count locations per species
-fish_asv_at_locs <- fish_biodiv_blast |> group_by(ASV) |> summarize(ASV.PER.LOC = n_distinct(RESERVE.GROUP.LOCATION)) |> arrange(ASV.PER.LOC) 
-fish_asv_at_locs_with_blast <- left_join(fish_asv_at_locs, select(fish_biodiv_blast, ASV, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC)) |> distinct()
+spc_per_loc <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(SPC.PER.LOC = n_distinct(RESERVE.GROUP.LOCATION)) |> arrange(SPECIES) 
+asv_per_spc <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(ASV.PER.SPC = n_distinct(ASV)) |> arrange(SPECIES)
+spc_avg_gap <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(SPC.AVG.GAP = mean(HSP.GAPS)) |> arrange(SPECIES)
+spc_avg_cov <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(SPC.AVG.COV = mean(HSP.IDENTITY.PERC)) |> arrange(SPECIES)
 
-# get a column with on-nz species as per above
-fish_asv_at_locs_with_blast <- fish_asv_at_locs_with_blast |> mutate(NOT.NZ = ifelse( grepl("*", SPECIES, fixed = TRUE), TRUE, FALSE))
+algn_test <- spc_per_loc |> left_join(asv_per_spc) |> left_join(spc_avg_gap) |> left_join(spc_avg_cov)
+algn_test <- mutate(algn_test, NOT.NZ = as.factor(ifelse( grepl("*", SPECIES, fixed = TRUE), TRUE, FALSE)))
 
-saveRDS({fish_asv_at_locs_with_blast  |> select(ASV.PER.LOC, HSP.GAPS, HSP.IDENTITY.PERC, NOT.NZ)}, "/Users/paul/Documents/OU_eDNA/201028_Robjects/210703_998_r_summarize_results__data_asv_distribution_vs_quality.Rds")
+# model test and plotting
+# ------------------------
+# https://www.learnbymarketing.com/tutorials/linear-regression-in-r/
 
-# test relationship ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ
-# ----------------------------------------------------------------------
+glm_mod <-  glm(SPC.PER.LOC ~ ASV.PER.SPC + SPC.AVG.GAP + SPC.AVG.COV + NOT.NZ, family = quasipoisson, data = algn_test)
+summary(glm_mod)
 
-# Mdld is looking as well....
 
-# using https://stats.idre.ucla.edu/r/dae/multinomial-logistic-regression/
-# glm(ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ, family = binomial(link = "logit"), data = as.data.frame(fish_asv_at_locs_with_blast))
-mnmod <- nnet::multinom(ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ, data = as.data.frame(fish_asv_at_locs_with_blast))
-summary(mnmod)
-z <- summary(mnmod)$coefficients/summary(mnmod)$standard.errors
-# 2-tailed z test
-p <- (1 - pnorm(abs(z), 0, 1)) * 2
+## some data to predict at: 
+# https://fromthebottomoftheheap.net/2018/12/10/confidence-intervals-for-glms/
+
+
+n_asvpspc <- tibble(ASV.PER.SPC = with(algn_test, sample(seq(min(ASV.PER.SPC):max(ASV.PER.SPC)), 10000, replace = TRUE, prob = NULL)))
+n_spcagap <- tibble(SPC.AVG.GAP = with(algn_test, runif(10000, min = min(SPC.AVG.GAP), max = max(SPC.AVG.GAP))))
+n_spcacov <- tibble(SPC.AVG.COV = with(algn_test, runif(10000, min = min(SPC.AVG.COV), max = max(SPC.AVG.COV))))
+n_nonnz <-  tibble(NOT.NZ = as.factor(sample(c(TRUE,FALSE), 10000, replace = TRUE)))
+                                           
+                          
+ndata = bind_cols(n_asvpspc, n_spcagap, n_spcacov, n_nonnz)
+head(ndata)
+
+## add the fitted values by predicting from the model for the new data
+ndata <- add_column(ndata, fit = predict(glm_mod, newdata = ndata, type = 'response'))
+
+## plot it
+plt <- ggplot(ndata, aes(x = ASV.PER.SPC, y = fit)) +
+    geom_smooth() +
+    # geom_rug(aes(y = visited, colour = lvisited), data = fish_asv_at_locs_with_blast) +
+    scale_colour_discrete(name = 'Visited') +
+    labs(x = 'asv per species', y = 'Species per location') + theme_bw()
+
+plt <- ggplot(ndata, aes(x = NOT.NZ, y = fit)) +
+    geom_violin() +
+    # geom_rug(aes(y = visited, colour = lvisited), data = fish_asv_at_locs_with_blast) +
+    scale_colour_discrete(name = 'Visited') +
+    labs(x = 'non-NZ species', y = 'Species per location') + theme_bw()
+
+plt <- ggplot(ndata, aes(x = SPC.AVG.GAP, y = fit)) +
+    geom_smooth() +
+    # geom_rug(aes(y = visited, colour = lvisited), data = fish_asv_at_locs_with_blast) +
+    scale_colour_discrete(name = 'Visited') +
+    labs(x = 'average gap count', y = 'Species per location') + theme_bw()
+
+plt <- ggplot(ndata, aes(x = SPC.AVG.COV, y = fit)) +
+    geom_smooth() +
+    # geom_rug(aes(y = visited, colour = lvisited), data = fish_asv_at_locs_with_blast) +
+    scale_colour_discrete(name = 'Visited') +
+    labs(x = 'query coverage', y = 'Species per location') + theme_bw()
+
+
+
+
+
+
+
+
+sjPlot::plot_model(glm_mod, vline.color = "red",  show.values = TRUE) + theme_bw()
+
+
+plot_model(glm_mod, type = "pred", terms = c("ASV.PER.SPC", "NOT.NZ", "SPC.AVG.GAP"))
+
+
+
+
+
+
+
+
+
 
 
 # eDNA data with BLAST results - other reporting 
