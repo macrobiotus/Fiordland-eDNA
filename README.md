@@ -580,7 +580,15 @@
 * **06-Aug-2021** - writing paper
   * added barplot code script from MdL
   * added big circle centerpoint code to `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
-  * commit ``
+  * commit `d9e1e2b79c3620267d3a7d68414a239510279e6a`
+* **09-Aug-2021** - preparing talk
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+  * added code to generte individual display items
+  * no commit yet
+* **12-Aug-2021** - adding brief ASV overlap analysis
+  * working on `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+  * commit prior to further changes: 
+  
 
 * **todo:**
   * check `/Users/paul/Documents/OU_eDNA/200224_references/ES13-00257.1.pdf` for terminology of sites (MR vs commercial exclusion zones)

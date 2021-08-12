@@ -546,6 +546,12 @@ fish_biodiv_df_obis <- get_plot_df(fish_biodiv_sf_km, "OBIS")
 # map 1: sampling map from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
 map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
 
+ggsave("210809_998_r_summarize_results_map_main.pdf", plot = map_a, 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 152, height = 121, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
 # map 2: eDNA observations
 map_b <- ggplot() +
       geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "eDNA"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
@@ -568,6 +574,11 @@ map_b <- ggplot() +
             panel.grid.major = element_blank(),
             panel.grid.minor = element_blank()
             )
+
+ggsave("210809_998_r_summarize_results_map_edna.pdf", plot = map_b, 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 152, height = 121, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
 
 # map 2: BRUV observations
 map_c <- ggplot() +
@@ -592,6 +603,12 @@ map_c <- ggplot() +
             panel.grid.minor = element_blank()
             )
 
+ggsave("210809_998_r_summarize_results_map_bruv.pdf", plot = map_c, 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 152, height = 121, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+
 # map 2: local OBIS observations
 map_d <- ggplot() +
       geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "OBIS"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
@@ -614,6 +631,11 @@ map_d <- ggplot() +
             panel.grid.major = element_blank(),
             panel.grid.minor = element_blank()
             )
+
+ggsave("210809_998_r_summarize_results_map_obis.pdf", plot = map_d, 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 152, height = 121, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__mapping.Rdata")
 
