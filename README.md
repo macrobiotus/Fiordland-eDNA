@@ -587,22 +587,17 @@
   * no commit yet
 * **12-Aug-2021** - adding brief ASV overlap analysis
   * working on `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
-  * commit prior to further changes: 
-  
+  * commit prior to further changes: `3d742087e425120f60c7dc5c03235f2dea364a52`
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * started adding code code for `ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERCENT + NOT.NZ`
+    * emailed object to MdL
+  * commit ``
 
 * **todo:**
+  * from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * add ASV key numbers to manuscript
+  * add results to manuscript: - `ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERCENT + NOT.NZ`
   * check `/Users/paul/Documents/OU_eDNA/200224_references/ES13-00257.1.pdf` for terminology of sites (MR vs commercial exclusion zones)
-  * include blue cod in OBIS data
-  * get di with fish biodiversity only
-  * **discuss** analysis
-  * finish draft analysis
-  * possibly re-mark non-nz fish species
-  * **discuss, test**, and possibly redo Blast assignments
-  * **discuss**, and possibly shrink OBIS buffers with while losing samples
-  * **export table for reanalysing by Mdl - request re-analysis by MDl**
-  
-  
-
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
   * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
     *  "after data cleaning and assignment of NCBI taxonomy 826 of 1020 OBIS records were retained fro analysis (81%)"

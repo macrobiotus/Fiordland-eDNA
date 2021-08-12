@@ -495,7 +495,6 @@ ggsave("210712_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_p
          dpi = 500, limitsize = TRUE)  
 
 
-
 # IV. get geographical maps with heat overlays
 # =============================================
 
@@ -550,7 +549,6 @@ ggsave("210809_998_r_summarize_results_map_main.pdf", plot = map_a,
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)
-
 
 # map 2: eDNA observations
 map_b <- ggplot() +
@@ -677,7 +675,7 @@ htmp_tibl_fish <- bind_rows(
   get_matrix_or_table(fish_biodiv_tbls, obs_methods = "PUBL",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "PUBL"),
 )
 
-# add summary of BLAst results range for table object only - keep original object for tile plot!!!
+# add summary of BLAST results range for table object only - keep original object for tile plot!!!
 # -----------------------------------------------------------------------------------------------
 # original data (possibly) for tiling plot
 
@@ -687,7 +685,47 @@ htmp_tibl_fish
 fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(SPECIES)
 fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(ASV)
 
-# eDNA data with BLAST results
+
+# eDNA data with BLAST results - test of poor assignments and associated wider distribution
+# ----------------------------------------------------------------------------------------
+
+# unifinished - consult ML
+# use multinomial regression?
+# https://www.google.com/search?client=firefox-b-d&q=r+multinomial+logistic+regression
+# https://stats.idre.ucla.edu/r/dae/multinomial-logistic-regression/
+# test - ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERCENT + NOT.NZ
+
+fish_biodiv_blast <- fish_biodiv |> 
+  filter(SAMPLE.TYPE == "eDNA") |> 
+  select(ASV, RESERVE.GROUP.LOCATION, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC) |>
+  arrange(FAMILY, GENUS, SPECIES) |> group_by(SPECIES)
+
+# count locations per species
+fish_asv_at_locs <- fish_biodiv_blast |> group_by(ASV) |> summarize(ASV.PER.LOC = n_distinct(RESERVE.GROUP.LOCATION)) |> arrange(ASV.PER.LOC) 
+fish_asv_at_locs_with_blast <- left_join(fish_asv_at_locs, select(fish_biodiv_blast, ASV, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC)) |> distinct()
+
+# get a column with on-nz species as per above
+fish_asv_at_locs_with_blast <- fish_asv_at_locs_with_blast |> mutate(NOT.NZ = ifelse( grepl("*", SPECIES, fixed = TRUE), TRUE, FALSE))
+
+saveRDS({fish_asv_at_locs_with_blast  |> select(ASV.PER.LOC, HSP.GAPS, HSP.IDENTITY.PERC, NOT.NZ)}, "/Users/paul/Documents/OU_eDNA/201028_Robjects/210703_998_r_summarize_results__data_asv_distribution_vs_quality.Rds")
+
+# test relationship ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ
+# ----------------------------------------------------------------------
+
+# Mdld is looking as well....
+
+# using https://stats.idre.ucla.edu/r/dae/multinomial-logistic-regression/
+# glm(ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ, family = binomial(link = "logit"), data = as.data.frame(fish_asv_at_locs_with_blast))
+mnmod <- nnet::multinom(ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ, data = as.data.frame(fish_asv_at_locs_with_blast))
+summary(mnmod)
+z <- summary(mnmod)$coefficients/summary(mnmod)$standard.errors
+# 2-tailed z test
+p <- (1 - pnorm(abs(z), 0, 1)) * 2
+
+
+# eDNA data with BLAST results - other reporting 
+# ----------------------------------------------
+
 fish_biodiv_blast <- fish_biodiv |> 
   filter(SAMPLE.TYPE == "eDNA") |> 
   select(ASV, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC)|>
@@ -1052,12 +1090,6 @@ summary(mpatt_results_fish[[4]])
 # Signif. codes:  0 Ô***Õ 0.001 Ô**Õ 0.01 Ô*Õ 0.05 Ô.Õ 0.1 Ô Õ 1 
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__multipatt_done.Rdata")
-
-
-
-
-# VIII. Export data for MDL
-# =========================
 
 
 
