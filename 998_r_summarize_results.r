@@ -698,6 +698,9 @@ fish_biodiv_blast <- fish_biodiv |>
   select(ASV, RESERVE.GROUP.LOCATION, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC) |>
   arrange(FAMILY, GENUS, SPECIES)
 
+# !!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# SPC.PER.LOC is misleading - should be renamed to LOC.PER.SPC as per below
+
 spc_per_loc <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(SPC.PER.LOC = n_distinct(RESERVE.GROUP.LOCATION)) |> arrange(SPECIES) 
 asv_per_spc <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(ASV.PER.SPC = n_distinct(ASV)) |> arrange(SPECIES)
 spc_avg_gap <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(SPC.AVG.GAP = mean(HSP.GAPS)) |> arrange(SPECIES)
@@ -706,71 +709,68 @@ spc_avg_cov <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(SPC.AVG.COV =
 algn_test <- spc_per_loc |> left_join(asv_per_spc) |> left_join(spc_avg_gap) |> left_join(spc_avg_cov)
 algn_test <- mutate(algn_test, NOT.NZ = as.factor(ifelse( grepl("*", SPECIES, fixed = TRUE), TRUE, FALSE)))
 
-# model test and plotting
-# ------------------------
+# model test and plotting: version 1 - averages
+# ----------------------------------------------
 # https://www.learnbymarketing.com/tutorials/linear-regression-in-r/
 
 glm_mod <-  glm(SPC.PER.LOC ~ ASV.PER.SPC + SPC.AVG.GAP + SPC.AVG.COV + NOT.NZ, family = quasipoisson, data = algn_test)
 summary(glm_mod)
 
-
-## some data to predict at: 
-# https://fromthebottomoftheheap.net/2018/12/10/confidence-intervals-for-glms/
-
-
-n_asvpspc <- tibble(ASV.PER.SPC = with(algn_test, sample(seq(min(ASV.PER.SPC):max(ASV.PER.SPC)), 10000, replace = TRUE, prob = NULL)))
-n_spcagap <- tibble(SPC.AVG.GAP = with(algn_test, runif(10000, min = min(SPC.AVG.GAP), max = max(SPC.AVG.GAP))))
-n_spcacov <- tibble(SPC.AVG.COV = with(algn_test, runif(10000, min = min(SPC.AVG.COV), max = max(SPC.AVG.COV))))
-n_nonnz <-  tibble(NOT.NZ = as.factor(sample(c(TRUE,FALSE), 10000, replace = TRUE)))
-                                           
-                          
-ndata = bind_cols(n_asvpspc, n_spcagap, n_spcacov, n_nonnz)
-head(ndata)
-
-## add the fitted values by predicting from the model for the new data
-ndata <- add_column(ndata, fit = predict(glm_mod, newdata = ndata, type = 'response'))
-
-## plot it
-plt <- ggplot(ndata, aes(x = ASV.PER.SPC, y = fit)) +
-    geom_smooth() +
-    # geom_rug(aes(y = visited, colour = lvisited), data = fish_asv_at_locs_with_blast) +
-    scale_colour_discrete(name = 'Visited') +
-    labs(x = 'asv per species', y = 'Species per location') + theme_bw()
-
-plt <- ggplot(ndata, aes(x = NOT.NZ, y = fit)) +
-    geom_violin() +
-    # geom_rug(aes(y = visited, colour = lvisited), data = fish_asv_at_locs_with_blast) +
-    scale_colour_discrete(name = 'Visited') +
-    labs(x = 'non-NZ species', y = 'Species per location') + theme_bw()
-
-plt <- ggplot(ndata, aes(x = SPC.AVG.GAP, y = fit)) +
-    geom_smooth() +
-    # geom_rug(aes(y = visited, colour = lvisited), data = fish_asv_at_locs_with_blast) +
-    scale_colour_discrete(name = 'Visited') +
-    labs(x = 'average gap count', y = 'Species per location') + theme_bw()
-
-plt <- ggplot(ndata, aes(x = SPC.AVG.COV, y = fit)) +
-    geom_smooth() +
-    # geom_rug(aes(y = visited, colour = lvisited), data = fish_asv_at_locs_with_blast) +
-    scale_colour_discrete(name = 'Visited') +
-    labs(x = 'query coverage', y = 'Species per location') + theme_bw()
-
-
-
-
-
-
-
-
 sjPlot::plot_model(glm_mod, vline.color = "red",  show.values = TRUE) + theme_bw()
+plot_model(glm_mod, type = "pred", terms = c("ASV.PER.SPC",  "SPC.AVG.GAP", "NOT.NZ"))  + theme_bw()
 
+# !!!!!!!!!!!!!!!!!!!! END ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-plot_model(glm_mod, type = "pred", terms = c("ASV.PER.SPC", "NOT.NZ", "SPC.AVG.GAP"))
+# model test and plotting: version 2 - ASV level
+# ----------------------------------------------
 
+# count locations per species
+fish_asv_at_locs <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(LOC.PER.SPC = n_distinct(RESERVE.GROUP.LOCATION)) |> arrange(LOC.PER.SPC) 
+fish_asv_at_locs <- fish_biodiv_blast |> select(ASV, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC) |>  left_join(fish_asv_at_locs)
 
+# get a column with non-nz species as per above
+fish_asv_at_locs <- fish_asv_at_locs |> mutate(NOT.NZ = as.factor(ifelse( grepl("*", SPECIES, fixed = TRUE), TRUE, FALSE)))
 
+# save object for further inspection if desirable
+saveRDS({fish_asv_at_locs |> select(LOC.PER.SPC, HSP.GAPS, HSP.IDENTITY.PERC, NOT.NZ)}, "/Users/paul/Documents/OU_eDNA/201028_Robjects/210703_998_r_summarize_results__data_spc_distribution_vs_quality.Rds")
 
+# test relationship SPC.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ
+# ----------------------------------------------------------------------
+# https://www.learnbymarketing.com/tutorials/linear-regression-in-r/
 
+glm_mod <-  glm(LOC.PER.SPC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ, family = quasipoisson, data = fish_asv_at_locs)
+plot(glm_mod)
+summary(glm_mod)
+
+coeff_plot <- sjPlot::plot_model(glm_mod, vline.color = "red",  show.values = TRUE) +
+  theme_bw() +
+  scale_x_discrete(labels = c("Is Non-native", "Query cvg.", "Gap count")) +
+  ggtitle("Model coefficients: influences on location count per spcies")
+  
+ggsave("210712_998_r_summarize_results__coeff_plot.pdf", plot = coeff_plot, 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 200, height = 135, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+
+model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.GAPS", "HSP.IDENTITY.PERC", "NOT.NZ")) +
+                theme_bw() +       
+                ylab("Locations where species found (max.: n = 6)") +
+                xlab("Gap count in ASV used for species assignment") +
+                ggtitle("Species at each location against eDNA alignmnet gaps, query coverage, or native status") +
+                labs(col = "Query coverage") +
+                theme(legend.position = c(.2, .95),
+                      legend.justification = c("right", "top"),
+                      legend.box.just = "left",
+                      legend.box.background = element_rect(color="grey30", size=0.5)
+                      )
+
+ggsave("210712_998_r_summarize_results__asv_regression.pdf", plot = last_plot(), 
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+         scale = 1, width = 200, height = 135, units = c("mm"),
+         dpi = 500, limitsize = TRUE)
+              
+
+# continue her after 13-Aug-2021
 
 
 
@@ -1014,12 +1014,12 @@ save_as_html(ft_anosim, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__anaosim_done.Rdata")
 
+
 # VII. Indicator species analysis for significant ANOMSIM results
 # ==============================================================
 
 # testing indicator species analysis - note flag "map" set to TRUE
 get_vegan(distance = "jaccard", tibl = fish_biodiv_local, group_col = "SET.ID", group_row = c("SPECIES"), group_col_ano = "RESERVE.GROUP.LOCATION", obs_methods = "BRUV", mp = TRUE)
-
 
 # Analysis for fish (as per eDNA markers) for BRUV and eDNA (data complete across all sets)
 # ----------------------------------------------------------------------------------------------

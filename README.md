@@ -591,12 +591,15 @@
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
     * started adding code code for `ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERCENT + NOT.NZ`
     * emailed object to MdL
-  * commit ``
+* **13-Aug-2021** - analysed alignment parameters against species overlap
+  * for `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * had other branch open - but not needed
+    * continue code at line `773` to complete ASV summaries
+  * commit `foo`
 
 * **todo:**
   * from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
-    * add ASV key numbers to manuscript
-  * add results to manuscript: - `ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERCENT + NOT.NZ`
+    * adding brief ASV overlap analysis
   * check `/Users/paul/Documents/OU_eDNA/200224_references/ES13-00257.1.pdf` for terminology of sites (MR vs commercial exclusion zones)
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
   * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
