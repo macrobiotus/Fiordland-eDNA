@@ -742,6 +742,9 @@ glm_mod <-  glm(LOC.PER.SPC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ, family = qu
 plot(glm_mod)
 summary(glm_mod)
 
+# check_observation among true/false for figure legend
+fish_asv_at_locs |> group_by(NOT.NZ) |> summarise(across(c("SPECIES", "ASV"), list(n_distinct)))
+
 coeff_plot <- sjPlot::plot_model(glm_mod, vline.color = "red",  show.values = TRUE) +
   theme_bw() +
   scale_x_discrete(labels = c("Is Non-native", "Query cvg.", "Gap count")) +
@@ -752,7 +755,7 @@ ggsave("210712_998_r_summarize_results__coeff_plot.pdf", plot = coeff_plot,
          scale = 1, width = 200, height = 135, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.GAPS", "HSP.IDENTITY.PERC", "NOT.NZ")) +
+model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.GAPS", "HSP.IDENTITY.PERC", "NOT.NZ"), show.data = TRUE, jitter = 0.1, ci.lvl = 0.95) +
                 theme_bw() +       
                 ylab("Locations where species found (max.: n = 6)") +
                 xlab("Gap count in ASV used for species assignment") +
@@ -768,38 +771,35 @@ ggsave("210712_998_r_summarize_results__asv_regression.pdf", plot = last_plot(),
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1, width = 200, height = 135, units = c("mm"),
          dpi = 500, limitsize = TRUE)
-              
 
-# continue her after 13-Aug-2021
-
-
-
-
-
+tab_model(glm_mod)
 
 # eDNA data with BLAST results - other reporting 
 # ----------------------------------------------
 
-fish_biodiv_blast <- fish_biodiv |> 
-  filter(SAMPLE.TYPE == "eDNA") |> 
-  select(ASV, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC)|>
-  distinct()
-  
-fish_biodiv_blast
-
 # for reporting - summaries for gaps and query coverage
-nrow(fish_biodiv_blast) # 92 ASV resolved to species
-summary(fish_biodiv_blast$HSP.GAPS)
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#       0       0       0       1       1      10
-mean(fish_biodiv_blast$HSP.GAPS)      # 1
-sd(fish_biodiv_blast$HSP.GAPS)      # 1.839732
+fish_biodiv_blast_unq <- fish_biodiv_blast |> distinct(across(c("ASV","FAMILY", "SPECIES","NCBI.LEVEL", "NCBI.TAXDB.INC", "NCBI.TAXID", "NCBI.TAXID.INC", "HSP.GAPS", "HSP.IDENTITY.PERC")))
+nrow(fish_biodiv_blast_unq) # 92 ASV resolved to species
 
-summary(fish_biodiv_blast$HSP.IDENTITY.PERC)
+fish_biodiv_blast_unq |> filter(HSP.GAPS == 0) |> filter(HSP.IDENTITY.PERC == 1) 
+
+fish_biodiv_blast_unq |> filter(HSP.IDENTITY.PERC != 1)
+fish_biodiv_blast_unq |> filter(HSP.IDENTITY.PERC != 0) |> pull("FAMILY") |> unique()
+
+fish_biodiv_blast_unq |> filter(HSP.GAPS != 0)
+fish_biodiv_blast_unq |> filter(HSP.GAPS != 0) |> pull("FAMILY") |> unique()
+
+summary(fish_biodiv_blast_unq$HSP.IDENTITY.PERC)
 #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #  0.7868  0.8933  0.9702  0.9321  0.9763  1.0000 
-mean(fish_biodiv_blast$HSP.IDENTITY.PERC)    # 0.9320525
-sd(fish_biodiv_blast$HSP.IDENTITY.PERC)      # 0.06467619
+mean(fish_biodiv_blast_unq$HSP.IDENTITY.PERC)    # 0.9320525
+sd(fish_biodiv_blast_unq$HSP.IDENTITY.PERC)      # 0.06863656
+
+summary(fish_biodiv_blast_unq$HSP.GAPS)
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#       0       0       0       1       1      10
+mean(fish_biodiv_blast_unq$HSP.GAPS)      # 1
+sd(fish_biodiv_blast_unq$HSP.GAPS)      # 1.839732
 
 
 fish_biodiv_blast_cov <- fish_biodiv_blast |> 
@@ -818,7 +818,6 @@ fish_biodiv_blast_gap <- fish_biodiv_blast |>
 
 # extended data (possibly) for table plot 
 htmp_tibl_fish_blrngs <-  htmp_tibl_fish |> left_join(fish_biodiv_blast_cov) |> left_join(fish_biodiv_blast_gap) 
-
 
 # get margin sums 
 # h_total <- long_table_dt_agg_gen %>% 
@@ -855,8 +854,7 @@ htmp_tibl_fish_blrngs <-  htmp_tibl_fish |> left_join(fish_biodiv_blast_cov) |> 
 tibl_plot <- htmp_tibl_fish_blrngs %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SPECIES, BLAST.COV.RNG, BLAST.GAP.RNG) %>% 
  distinct() %>% arrange(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES) 
  
- 
-# generate flex table - for merging with ggplot object
+ # generate flex table - for merging with ggplot object
 ft <-  flextable(tibl_plot) %>% 
    merge_v(j = "PHYLUM", target = "PHYLUM") %>%
    merge_v(j = "CLASS", target = "CLASS") %>%
@@ -884,7 +882,6 @@ save_as_html(ft, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_
 
 # order factors in plotting object to match flex table  
 y_axis_label_order <- fct_relevel(htmp_tibl_fish$SPECIES, rev(c(tibl_plot$SPECIES)))  # y_axis_label_order <- reorder(htmp_tibl_full$SPECIES, desc(htmp_tibl_full$SPECIES))
-
 
 # plot out data as tiles
 # -----------------------
@@ -926,7 +923,6 @@ grob_htmp$widths[facet.columns] <- grob_htmp$widths[facet.columns] * x.var
 
 # plot result
 plot_htmp_adjusted <- as.ggplot(grob_htmp)
-
 
 ggsave("210712_998_r_summarize_results__biodiv_tiles_only.pdf", plot = plot_htmp_adjusted, 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",

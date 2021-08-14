@@ -595,11 +595,16 @@
   * for `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
     * had other branch open - but not needed
     * continue code at line `773` to complete ASV summaries
-  * commit `foo`
+  * commit `31496fed427e8c75494cc1ad983cdc6264b1045c`
+* **14-Aug-2021** - finished main text and mailed off, started on SI
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * improved model plotting code
+    * included code for results section of main text
+  * commit ``
 
-* **todo:**
-  * from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
-    * adding brief ASV overlap analysis
+* **todo (last updated 14-Aug-2021):**
+  * check labelling of figure 4 and associated text passages
+  * finish SI
   * check `/Users/paul/Documents/OU_eDNA/200224_references/ES13-00257.1.pdf` for terminology of sites (MR vs commercial exclusion zones)
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
   * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
