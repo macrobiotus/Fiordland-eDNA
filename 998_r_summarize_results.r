@@ -28,6 +28,10 @@ library("officer")     # format species lists as tables https://ardata-fr.github
 library("magick")      # convert flext table to ggplot grob
 library("grid")        # convert flext table to ggplot grob
 
+
+library("sjPlot")     # model plots
+
+
 # not in 
 # -------
 '%!in%' <- function(x,y)!('%in%'(x,y))
@@ -447,7 +451,7 @@ fish_biodiv |>
   filter(SET.ID %!in% c(98, 99)) |>
   filter(SAMPLE.TYPE == "OBIS") |> 
   select(SET.ID, SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
-  distinct() |> pull(SET.ID) |> unique()  
+  distinct() |> pull(SET.ID) |> unique()  # 7  9 11 12 17 18 19 21 26
   
 
 fish_biodiv |> 
@@ -455,6 +459,20 @@ fish_biodiv |>
   filter(SAMPLE.TYPE == "OBIS") |> 
   select(SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
   distinct(SPECIES)
+
+# 1 Acanthoclinus matti     
+# 2 Lepidoperca tasmanica   
+# 3 Pseudolabrus miles      
+# 4 Parapercis colias       
+# 5 Notolabrus cinctus      
+# 6 Notolabrus fucicola     
+# 7 Notolabrus celidotus    
+# 8 Nemadactylus macropterus
+# 9 Latris lineata          
+# 10 Pseudophycis barbata    
+# 11 Scorpaena papillosa     
+# 12 Carcharodon carcharias
+
 
 # Summary: Literture species counts
 fish_biodiv |> filter(SET.ID %in% c(98, 99)) |> select(SPECIES) |> distinct()
@@ -486,13 +504,12 @@ ggarrange( plotlist = euler_ggp_fish_bio[4:7],
            labels = str_to_sentence(c("ORDER",  "FAMILY",  "GENUS", "SPECIES")),
            font.label = list(size = 12, color = "black", face = "bold.italic", family = NULL),
            ncol = 2, nrow = 2)
-           )
-
+           
 # save compound plot with better labels then with plot_label = TRUE above
 ggsave("210712_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 2.0, width = 100, height = 100, units = c("mm"),
-         dpi = 500, limitsize = TRUE)  
+         dpi = 500, limitsize = TRUE)
 
 
 # IV. get geographical maps with heat overlays
@@ -606,7 +623,6 @@ ggsave("210809_998_r_summarize_results_map_bruv.pdf", plot = map_c,
          scale = 1, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-
 # map 2: local OBIS observations
 map_d <- ggplot() +
       geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "OBIS"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
@@ -681,10 +697,11 @@ htmp_tibl_fish <- bind_rows(
 
 htmp_tibl_fish
 
-# all asvs
+# all species
 fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(SPECIES)
-fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(ASV)
 
+# all asvs
+fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(ASV)
 
 # eDNA data with BLAST results - test of poor assignments and associated wider distribution
 # ----------------------------------------------------------------------------------------
@@ -698,28 +715,6 @@ fish_biodiv_blast <- fish_biodiv |>
   select(ASV, RESERVE.GROUP.LOCATION, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC) |>
   arrange(FAMILY, GENUS, SPECIES)
 
-# !!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# SPC.PER.LOC is misleading - should be renamed to LOC.PER.SPC as per below
-
-spc_per_loc <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(SPC.PER.LOC = n_distinct(RESERVE.GROUP.LOCATION)) |> arrange(SPECIES) 
-asv_per_spc <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(ASV.PER.SPC = n_distinct(ASV)) |> arrange(SPECIES)
-spc_avg_gap <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(SPC.AVG.GAP = mean(HSP.GAPS)) |> arrange(SPECIES)
-spc_avg_cov <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(SPC.AVG.COV = mean(HSP.IDENTITY.PERC)) |> arrange(SPECIES)
-
-algn_test <- spc_per_loc |> left_join(asv_per_spc) |> left_join(spc_avg_gap) |> left_join(spc_avg_cov)
-algn_test <- mutate(algn_test, NOT.NZ = as.factor(ifelse( grepl("*", SPECIES, fixed = TRUE), TRUE, FALSE)))
-
-# model test and plotting: version 1 - averages
-# ----------------------------------------------
-# https://www.learnbymarketing.com/tutorials/linear-regression-in-r/
-
-glm_mod <-  glm(SPC.PER.LOC ~ ASV.PER.SPC + SPC.AVG.GAP + SPC.AVG.COV + NOT.NZ, family = quasipoisson, data = algn_test)
-summary(glm_mod)
-
-sjPlot::plot_model(glm_mod, vline.color = "red",  show.values = TRUE) + theme_bw()
-plot_model(glm_mod, type = "pred", terms = c("ASV.PER.SPC",  "SPC.AVG.GAP", "NOT.NZ"))  + theme_bw()
-
-# !!!!!!!!!!!!!!!!!!!! END ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # model test and plotting: version 2 - ASV level
 # ----------------------------------------------
@@ -731,16 +726,28 @@ fish_asv_at_locs <- fish_biodiv_blast |> select(ASV, FAMILY, GENUS, SPECIES, NCB
 # get a column with non-nz species as per above
 fish_asv_at_locs <- fish_asv_at_locs |> mutate(NOT.NZ = as.factor(ifelse( grepl("*", SPECIES, fixed = TRUE), TRUE, FALSE)))
 
+# 21.08.2021 -re-scale percentages as per MdL - for CIs more easily understandable
+fish_asv_at_locs <- fish_asv_at_locs |> mutate(HSP.IDENTITY.PERC = 100 * HSP.IDENTITY.PERC)
+
 # save object for further inspection if desirable
 saveRDS({fish_asv_at_locs |> select(LOC.PER.SPC, HSP.GAPS, HSP.IDENTITY.PERC, NOT.NZ)}, "/Users/paul/Documents/OU_eDNA/201028_Robjects/210703_998_r_summarize_results__data_spc_distribution_vs_quality.Rds")
 
-# test relationship SPC.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ
-# ----------------------------------------------------------------------
+# 22.08.2021: count fraction of NOT.NZ species among unique eDNA assignments - not done yet
+fish_asv_at_locs |> select(ASV, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
+  arrange(NOT.NZ) # 92 ASV: 39 False (42.4% True) / 53 True (57% True)
+
+fish_asv_at_locs |> select(SPECIES, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
+  arrange(NOT.NZ) # 44 SPECIES: 25 False (56.8% True) / 19 True (43.1% True)
+
+# test relationship SPC.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ - version A [PC]
+# ---------------------------------------------------------------------------------
 # https://www.learnbymarketing.com/tutorials/linear-regression-in-r/
 
 glm_mod <-  glm(LOC.PER.SPC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ, family = quasipoisson, data = fish_asv_at_locs)
 plot(glm_mod)
 summary(glm_mod)
+exp(confint(glm_mod))
+
 
 # check_observation among true/false for figure legend
 fish_asv_at_locs |> group_by(NOT.NZ) |> summarise(across(c("SPECIES", "ASV"), list(n_distinct)))
@@ -755,12 +762,12 @@ ggsave("210712_998_r_summarize_results__coeff_plot.pdf", plot = coeff_plot,
          scale = 1, width = 200, height = 135, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.GAPS", "HSP.IDENTITY.PERC", "NOT.NZ"), show.data = TRUE, jitter = 0.1, ci.lvl = 0.95) +
+model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.IDENTITY.PERC", "NOT.NZ"), show.data = TRUE, jitter = 0.1, ci.lvl = 0.95) +
                 theme_bw() +       
                 ylab("Locations where species found (max.: n = 6)") +
-                xlab("Gap count in ASV used for species assignment") +
-                ggtitle("Species at each location against eDNA alignmnet gaps, query coverage, or native status") +
-                labs(col = "Query coverage") +
+                xlab("query coverage for eDNA assignmnets") +
+                ggtitle("Species distribution, query coverage, and non-native status") +
+                labs(col = "Not NZ") +
                 theme(legend.position = c(.2, .95),
                       legend.justification = c("right", "top"),
                       legend.box.just = "left",
@@ -768,11 +775,28 @@ model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.GAPS", "HSP.IDEN
                       )
 
 ggsave("210712_998_r_summarize_results__asv_regression.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 200, height = 135, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
+       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+       scale = 1, width = 200, height = 135, units = c("mm"),
+       dpi = 500, limitsize = TRUE)
+
+# MdLs model
+model_plot_b <- plot_model(m, type = "pred", terms = c("HSP.GAPS", "HSP", "NOT.NZ"), show.data = TRUE, jitter = 0.1, ci.lvl = 0.95) +
+  theme_bw() +       
+  ylab("Locations where species found (max.: n = 6)") +
+  xlab("Gap count in ASVs used for species assignment") +
+  ggtitle("Species distribution against eDNA alignmnet gaps, query coverage, or non-native status") +
+  labs(col = "Query coverage") +
+  theme(legend.position = c(.2, .95),
+        legend.justification = c("right", "top"),
+        legend.box.just = "left",
+        legend.box.background = element_rect(color="grey30", size=0.5)
+  )
+
 
 tab_model(glm_mod)
+
+# MdLs model
+tab_model(m)
 
 # eDNA data with BLAST results - other reporting 
 # ----------------------------------------------
@@ -1063,7 +1087,7 @@ summary(mpatt_results_fish[[1]])
 #                        stat p.value  
 # Bodianus unimaculatus 0.725  0.0282 *
 # ---
-# Signif. codes:  0 Ô***Õ 0.001 Ô**Õ 0.01 Ô*Õ 0.05 Ô.Õ 0.1 Ô Õ 1 
+# Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1 
 
 summary(mpatt_results_fish[[2]])
 
@@ -1087,7 +1111,7 @@ summary(mpatt_results_fish[[2]])
 #           stat p.value  
 # Bodianus 0.725    0.03 *
 # ---
-# Signif. codes:  0 Ô***Õ 0.001 Ô**Õ 0.01 Ô*Õ 0.05 Ô.Õ 0.1 Ô Õ 1 
+# Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1 
 
 
 summary(mpatt_results_fish[[3]])
@@ -1112,7 +1136,7 @@ summary(mpatt_results_fish[[3]])
 #          stat p.value  
 # Labridae 0.67  0.0385 *
 # ---
-# Signif. codes:  0 Ô***Õ 0.001 Ô**Õ 0.01 Ô*Õ 0.05 Ô.Õ 0.1 Ô Õ 1 
+# Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1 
 
 
 summary(mpatt_results_fish[[4]])
@@ -1137,7 +1161,7 @@ summary(mpatt_results_fish[[4]])
 #              stat p.value  
 # Perciformes 0.699  0.0301 *
 # ---
-# Signif. codes:  0 Ô***Õ 0.001 Ô**Õ 0.01 Ô*Õ 0.05 Ô.Õ 0.1 Ô Õ 1 
+# Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1 
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__multipatt_done.Rdata")
 

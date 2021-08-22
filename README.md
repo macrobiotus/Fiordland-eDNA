@@ -600,10 +600,18 @@
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
     * improved model plotting code
     * included code for results section of main text
-  * commit ``
+  * commit `5ea60d60c94cc46c869cc812c2f94337949ac980`
+* **22-Aug-2021** - starting revisions for submission
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * lot's of changed based on chat with MdL
+    * removing regression code based on averages
+    * rescaling coverage fractions to percentage
+    * recalculating confidence itervalls
+    * re-did
 
 * **todo (last updated 14-Aug-2021):**
-  * check labelling of figure 4 and associated text passages
+  * finish code run
+  * add MdLs comments
   * finish SI
   * check `/Users/paul/Documents/OU_eDNA/200224_references/ES13-00257.1.pdf` for terminology of sites (MR vs commercial exclusion zones)
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
