@@ -720,24 +720,37 @@ fish_asv_at_locs |> select(SPECIES, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
 
 
 
-# test relationship via Poisson regression - incorrcet due to 
-# ---------------------------------------------------------------------------------
-# https://www.learnbymarketing.com/tutorials/linear-regression-in-r/
-# https://www.google.com/search?client=firefox-b-d&q=r+multinomial+logistic+regression
-# https://stats.idre.ucla.edu/r/dae/multinomial-logistic-regression/
-# test - ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERCENT + NOT.NZ
-
-glm_mod <-  glm(LOC.PER.SPC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ, family = quasipoisson, data = fish_asv_at_locs)
-plot(glm_mod)
-summary(glm_mod)
-exp(confint(glm_mod))
-
-# test relationship SPC.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ - version B [PC]
-# ---------------------------------------------------------------------------------
+# test relationship between  SPC.PER.LOC / HSP.GAPS / HSP.IDENTITY.PERC / NOT.NZ
+# ------------------------------------------------------------------------------
 
 # binomial regression
 glm_mod <-  glm(NOT.NZ ~ HSP.GAPS + HSP.IDENTITY.PERC, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
 summary(glm_mod)
+
+# Call:
+# glm(formula = NOT.NZ ~ HSP.GAPS + HSP.IDENTITY.PERC, family = binomial, 
+#     data = fish_asv_at_locs, weights = LOC.PER.SPC)
+# 
+# Deviance Residuals: 
+#    Min      1Q  Median      3Q     Max  
+# -4.959  -1.983   1.008   1.839   2.472  
+# 
+# Coefficients:
+#                   Estimate Std. Error z value Pr(>|z|)    
+# (Intercept)       -6.49027    1.91292  -3.393 0.000692 ***
+# HSP.GAPS           0.33279    0.08460   3.934 8.36e-05 ***
+# HSP.IDENTITY.PERC  0.07174    0.01997   3.592 0.000328 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# (Dispersion parameter for binomial family taken to be 1)
+# 
+#     Null deviance: 572.60  on 141  degrees of freedom
+# Residual deviance: 552.31  on 139  degrees of freedom
+# AIC: 558.31
+# 
+# Number of Fisher Scoring iterations: 5
+
 
 # Calculating CIS on the scale of the link function and not the response scale
 #   https://fromthebottomoftheheap.net/2018/12/10/confidence-intervals-for-glms/
@@ -746,57 +759,50 @@ fam <- family(glm_mod)
 ilink <- fam$linkinv
 ilink(confint(glm_mod, level = 0.95))
 
+# Waiting for profiling to be done...
+#                          2.5 %     97.5 %
+# (Intercept)       3.339469e-05 0.05834373
+# HSP.GAPS          5.435871e-01 0.62425910
+# HSP.IDENTITY.PERC 5.082516e-01 0.52786043
 
 # check_observation among true/false for figure legend
 fish_asv_at_locs |> group_by(NOT.NZ) |> summarise(across(c("SPECIES", "ASV"), list(n_distinct)))
 
+# # A tibble: 2 × 3
+#   NOT.NZ SPECIES_1 ASV_1
+#   <fct>      <int> <int>
+# 1 FALSE         25    39
+# 2 TRUE          19    53
+
 coeff_plot <- sjPlot::plot_model(glm_mod, vline.color = "red",  show.values = TRUE) +
   theme_bw() +
-  scale_x_discrete(labels = c("Is Non-native", "Query cvg.", "Gap count")) +
-  ggtitle("Model coefficients: influences on location count per spcies")
+  scale_x_discrete(labels = c("Algn. Cov.", "Gaps")) +
+  ggtitle("Influence of alignment quality on non-native status")
   
 ggsave("210712_998_r_summarize_results__coeff_plot.pdf", plot = coeff_plot, 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1, width = 200, height = 135, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-
-
-model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.IDENTITY.PERC", "HSP.GAPS"), show.data = TRUE, jitter = 0.1, ci.lvl = 0.95) +
+model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.IDENTITY.PERC", "HSP.GAPS"), show.data = TRUE, jitter = 0.0, ci.lvl = 0.95) +
                 theme_bw() +       
-                ylab("Percentage of non-native species across trials (max. n. = 6)") +
+                ylab("Probabilty of observing non-native species") +
                 xlab("Alignment identity percentage") +
-                ggtitle("Species distribution, identity percentage, and non-native status") +
+                ggtitle("Predicted probabilities of non-native status") +
                 labs(col = "Gaps") +
-                theme(legend.position = c(.2, .95),
+                theme(legend.position = c(.9, .5),
                       legend.justification = c("right", "top"),
                       legend.box.just = "left",
                       legend.box.background = element_rect(color="grey30", size=0.5)
                       )
 
-ggsave("210712_998_r_summarize_results__asv_regression.pdf", plot = last_plot(), 
+ggsave("210712_998_r_summarize_results__asv_bin_regression.pdf", plot = last_plot(), 
        device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
        scale = 1, width = 200, height = 135, units = c("mm"),
        dpi = 500, limitsize = TRUE)
 
-# MdLs model
-model_plot_b <- plot_model(m, type = "pred", terms = c("HSP.GAPS", "HSP", "NOT.NZ"), show.data = TRUE, jitter = 0.1, ci.lvl = 0.95) +
-  theme_bw() +       
-  ylab("Locations where species found (max.: n = 6)") +
-  xlab("Gap count in ASVs used for species assignment") +
-  ggtitle("Species distribution against eDNA alignmnet gaps, query coverage, or non-native status") +
-  labs(col = "Query coverage") +
-  theme(legend.position = c(.2, .95),
-        legend.justification = c("right", "top"),
-        legend.box.just = "left",
-        legend.box.background = element_rect(color="grey30", size=0.5)
-  )
-
-
 tab_model(glm_mod)
 
-# MdLs model
-tab_model(m)
 
 # eDNA data with BLAST results - other reporting 
 # ----------------------------------------------
@@ -825,7 +831,6 @@ summary(fish_biodiv_blast_unq$HSP.GAPS)
 mean(fish_biodiv_blast_unq$HSP.GAPS)      # 1
 sd(fish_biodiv_blast_unq$HSP.GAPS)      # 1.839732
 
-
 fish_biodiv_blast_cov <- fish_biodiv_blast |> 
   group_by(SPECIES) |> 
   summarize(BLAST.COV.RNG =  ifelse( signif(100*min(HSP.IDENTITY.PERC), 3) != signif(100*max(HSP.IDENTITY.PERC),3),
@@ -843,33 +848,6 @@ fish_biodiv_blast_gap <- fish_biodiv_blast |>
 # extended data (possibly) for table plot 
 htmp_tibl_fish_blrngs <-  htmp_tibl_fish |> left_join(fish_biodiv_blast_cov) |> left_join(fish_biodiv_blast_gap) 
 
-# get margin sums 
-# h_total <- long_table_dt_agg_gen %>% 
-#   group_by(GENUS) %>% 
-#   summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
-#   mutate(RESERVE.GROUP.LOCATION = 'TOTAL')
-# 
-# v_total <- long_table_dt_agg_gen %>% 
-#   group_by(RESERVE.GROUP.LOCATION) %>% 
-#   summarise(BOTH.PRES = sum(BOTH.PRES)) %>% 
-#   mutate(GENUS = 'TOTAL')
-#   
-# add margin sums column for merging
-# v_total <- v_total %>% mutate(GENUS.SUM = BOTH.PRES) %>% select(RESERVE.GROUP.LOCATION, GENUS.SUM)
-# h_total <- h_total %>% mutate(RESERVE.GROUP.LOCATION.SUM = BOTH.PRES) %>% select(GENUS, RESERVE.GROUP.LOCATION.SUM)
-
-# aggregate discrete observation of wither method ("BOTH.PRES") per sampling area (RESERVE.GROUP.LOCATION) on GENUS level  
-#   https://stackoverflow.com/questions/16513827/summarizing-multiple-columns-with-data-table
-# long_table_dt_agg_gen <- long_table_dt[, lapply(.SD, sum, na.rm=TRUE), by=c("RESERVE.GROUP.LOCATION", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS"), .SDcols=c("BOTH.PRES") ]
-# 
-# RESERVE.GROUP.LOCATION.LABS <- list(
-#   "LS MR"   = "LS MR\n (n = 4)",
-#   "LS CTRL" = "LS CTRL\n (n = 4)",
-#   "FF MR"   = "FF MR\n (n = 2)",
-#   "FF CTRL" = "FF CTRL\n (n = 3)",
-#   "WJ MR"   = "WJ MR\n (n = 4)",
-#   "WJ CTRL" = "WJ CTRL\n (n = 4)"
-# )
 
 # get matching flex table
 # -----------------------
@@ -902,7 +880,6 @@ ft <-  flextable(tibl_plot) %>%
      autofit(add_w = 1, add_h = 0, part = c("all"))
 
 save_as_html(ft, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__spcies_obs_matching_tiles.html")
-
 
 # order factors in plotting object to match flex table  
 y_axis_label_order <- fct_relevel(htmp_tibl_fish$SPECIES, rev(c(tibl_plot$SPECIES)))  # y_axis_label_order <- reorder(htmp_tibl_full$SPECIES, desc(htmp_tibl_full$SPECIES))
@@ -970,7 +947,6 @@ ggsave("210712_998_r_summarize_results__biodiv_heat.pdf", plot = last_plot(),
          dpi = 500, limitsize = TRUE)
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__dis_done.Rdata")
-
 
 # VI. ANOSIM of observation types and variables
 # ===============================================
@@ -1138,7 +1114,6 @@ summary(mpatt_results_fish[[3]])
 # ---
 # Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1 
 
-
 summary(mpatt_results_fish[[4]])
 
 # Multilevel pattern analysis
@@ -1164,16 +1139,4 @@ summary(mpatt_results_fish[[4]])
 # Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1 
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__multipatt_done.Rdata")
-
-
-
-
-
-
-
-
-
-
-
-
 

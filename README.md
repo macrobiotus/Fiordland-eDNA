@@ -611,6 +611,14 @@
   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
     * implemented binomial regression and many other things
   * **commit** before erasing Poisson regression
+  * adjusted regressions
+  * ran through code completely
+    * table formatting is different - results of other computer?
+    * p-values are slightly different in ANOSIM - due to permutation testing
+    * copying files with DIs from macmini
+  * **commit** at code end with checked script
+
+    
 
 
 * **todo (last updated 14-Aug-2021):**
