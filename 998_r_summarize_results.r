@@ -12,30 +12,24 @@ options(tibble.print_max = Inf)
 # I. Load packages and define functions
 # =====================================
 
-library("tidyverse")   # because we can't stop using it anymore
-library("magrittr")    # get the %<>% pipe
+library("tidyverse")	# because we can't stop using it anymore
+library("magrittr")		# get the %<>% pipe
+library("taxize")		# look up trivial names
+library("ggpubr")		# combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
+library("sf")			# simple feature objects
+library("flextable")	# format species lists as tables https://ardata-fr.github.io/flextable-book/
+library("officer")		# format species lists as tables https://ardata-fr.github.io/flextable-book/
+library("magick")		# convert flext table to ggplot grob
+library("grid")			# convert flext table to ggplot grob
+library("sjPlot")		# model plots
 
-library("taxize")      # look up trivial names
+# API key for taxcise
 Sys.setenv(ENTREZ_KEY="a634c6e9c96c3859bca27a2771f6d2872f08")
 Sys.getenv("ENTREZ_KEY")
-
-library("ggpubr") # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
-
-library("sf")           # simple feature objects
-
-library("flextable")   # format species lists as tables https://ardata-fr.github.io/flextable-book/
-library("officer")     # format species lists as tables https://ardata-fr.github.io/flextable-book/
-library("magick")      # convert flext table to ggplot grob
-library("grid")        # convert flext table to ggplot grob
-
-
-library("sjPlot")     # model plots
-
 
 # not in 
 # -------
 '%!in%' <- function(x,y)!('%in%'(x,y))
-
 
 # get Euler objects for plotting
 # ------------------------------
@@ -382,7 +376,7 @@ fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", 
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 
 
-# IV. What data is available for Fiordland - table summary for supplement
+# III. What data is available for Fiordland - table summary for supplement
 # =======================================================================
 
 # format data for flex table
@@ -428,7 +422,6 @@ save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_ma
 
 save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.html")
 
-
 # Summary: general species counts 
 nrow(spcies_obs_sums)                                    # found 116 species across all data sets
 nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       106 Actinopteri
@@ -473,7 +466,6 @@ fish_biodiv |>
 # 11 Scorpaena papillosa     
 # 12 Carcharodon carcharias
 
-
 # Summary: Literture species counts
 fish_biodiv |> filter(SET.ID %in% c(98, 99)) |> select(SPECIES) |> distinct()
 
@@ -488,7 +480,7 @@ publ_species <- fish_biodiv |>
 
 bruv_species[bruv_species %!in% publ_species] |> sort()
 
-# III. Get Euler plots
+# IV. Get Euler plots
 # ====================
 
 # get euler analysis results for plotting / plot_label = TRUE shrinks plots a lot
@@ -512,7 +504,7 @@ ggsave("210712_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_p
          dpi = 500, limitsize = TRUE)
 
 
-# IV. get geographical maps with heat overlays
+# V. Get geographical maps with heat overlays
 # =============================================
 
 # compare script  ~/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r
@@ -623,7 +615,7 @@ ggsave("210809_998_r_summarize_results_map_bruv.pdf", plot = map_c,
          scale = 1, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-# map 2: local OBIS observations
+# map 3: local OBIS observations
 map_d <- ggplot() +
       geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "OBIS"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
       # facet_grid(. ~ SAMPLE.TYPE) +
@@ -660,7 +652,6 @@ ggarrange(
   widths = c(2, 1), ncol = 2, nrow = 1  
   )
   
-
 # save compound plot with better labels then with plot_label = TRUE above
 ggsave("210712_998_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
@@ -669,11 +660,11 @@ ggsave("210712_998_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__mapping_done.Rdata")
          
-# V. Get biodiversity heat map and matching flex table
+# VI. Get biodiversity heat map and matching flex table
 # ====================================================
 
-# get plotting data sets
-# ----------------------
+# a.) get plotting data sets
+# --------------------------
 
 fish_biodiv_tbls <- fish_biodiv |> filter(!(SAMPLE.TYPE %in% c("OBIS") & SET.ID %in% c(1,3,4,5,7,8,9,10,11,12,17,18,19,21,22,23,24,26,27,28,29))) 
 
@@ -691,62 +682,69 @@ htmp_tibl_fish <- bind_rows(
   get_matrix_or_table(fish_biodiv_tbls, obs_methods = "PUBL",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "PUBL"),
 )
 
-# add summary of BLAST results range for table object only - keep original object for tile plot!!!
-# -----------------------------------------------------------------------------------------------
-# original data (possibly) for tiling plot
+# b.) add and analyse eDNA BLAST results
+# --------------------------------------------
 
-htmp_tibl_fish
-
-# all species
+# summary for ms - all species
 fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(SPECIES)
 
-# all asvs
+# summary for ms - all asvs
 fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(ASV)
 
-# eDNA data with BLAST results - test of poor assignments and associated wider distribution
-# ----------------------------------------------------------------------------------------
-
-# https://www.google.com/search?client=firefox-b-d&q=r+multinomial+logistic+regression
-# https://stats.idre.ucla.edu/r/dae/multinomial-logistic-regression/
-# test - ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERCENT + NOT.NZ
-
+# for regression analysis - isolate BLAST results from raw data 
 fish_biodiv_blast <- fish_biodiv |> 
   filter(SAMPLE.TYPE == "eDNA") |> 
-  select(ASV, RESERVE.GROUP.LOCATION, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC) |>
+  select(ASV, RESERVE.GROUP.LOCATION, EDNA.OBS.PRES, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC) |>
   arrange(FAMILY, GENUS, SPECIES)
 
-
-# model test and plotting: version 2 - ASV level
-# ----------------------------------------------
-
-# count locations per species
+# for regression analysis - add  count locations per species and asv
 fish_asv_at_locs <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(LOC.PER.SPC = n_distinct(RESERVE.GROUP.LOCATION)) |> arrange(LOC.PER.SPC) 
-fish_asv_at_locs <- fish_biodiv_blast |> select(ASV, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC) |>  left_join(fish_asv_at_locs)
+fish_asv_at_locs <- fish_biodiv_blast |> select(ASV, EDNA.OBS.PRES, FAMILY, GENUS, SPECIES, RESERVE.GROUP.LOCATION, HSP.GAPS, HSP.IDENTITY.PERC) |>  left_join(fish_asv_at_locs)
 
-# get a column with non-nz species as per above
+# for regression analysis - get a column with non-nz species as per above
 fish_asv_at_locs <- fish_asv_at_locs |> mutate(NOT.NZ = as.factor(ifelse( grepl("*", SPECIES, fixed = TRUE), TRUE, FALSE)))
 
-# 21.08.2021 -re-scale percentages as per MdL - for CIs more easily understandable
+# for regression analysis - re-scale percentages as per MdL - for CIs more easily understandable
 fish_asv_at_locs <- fish_asv_at_locs |> mutate(HSP.IDENTITY.PERC = 100 * HSP.IDENTITY.PERC)
 
-# save object for further inspection if desirable
-saveRDS({fish_asv_at_locs |> select(LOC.PER.SPC, HSP.GAPS, HSP.IDENTITY.PERC, NOT.NZ)}, "/Users/paul/Documents/OU_eDNA/201028_Robjects/210703_998_r_summarize_results__data_spc_distribution_vs_quality.Rds")
+# for regression analysis -  save object for external inspection if desirable
+# saveRDS({fish_asv_at_locs |> select(LOC.PER.SPC, HSP.GAPS, HSP.IDENTITY.PERC, NOT.NZ)}, "/Users/paul/Documents/OU_eDNA/201028_Robjects/210703_998_r_summarize_results__data_spc_distribution_vs_quality.Rds")
+saveRDS(fish_asv_at_locs, "/Users/paul/Documents/OU_eDNA/201028_Robjects/210703_998_r_summarize_results__data_spc_distribution_vs_quality.Rds")
 
-# 22.08.2021: count fraction of NOT.NZ species among unique eDNA assignments - not done yet
+# for manuscript - count fraction of NOT.NZ species among unique eDNA assignments
 fish_asv_at_locs |> select(ASV, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
   arrange(NOT.NZ) # 92 ASV: 39 False (42.4% True) / 53 True (57% True)
 
 fish_asv_at_locs |> select(SPECIES, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
   arrange(NOT.NZ) # 44 SPECIES: 25 False (56.8% True) / 19 True (43.1% True)
 
-# test relationship SPC.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ - version A [PC]
+
+
+# test relationship via Poisson regression - incorrcet due to 
 # ---------------------------------------------------------------------------------
 # https://www.learnbymarketing.com/tutorials/linear-regression-in-r/
+# https://www.google.com/search?client=firefox-b-d&q=r+multinomial+logistic+regression
+# https://stats.idre.ucla.edu/r/dae/multinomial-logistic-regression/
+# test - ASV.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERCENT + NOT.NZ
 
 glm_mod <-  glm(LOC.PER.SPC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ, family = quasipoisson, data = fish_asv_at_locs)
 plot(glm_mod)
 summary(glm_mod)
 exp(confint(glm_mod))
+
+# test relationship SPC.PER.LOC ~ HSP.GAPS + HSP.IDENTITY.PERC + NOT.NZ - version B [PC]
+# ---------------------------------------------------------------------------------
+
+# binomial regression
+glm_mod <-  glm(NOT.NZ ~ HSP.GAPS + HSP.IDENTITY.PERC, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
+summary(glm_mod)
+
+# Calculating CIS on the scale of the link function and not the response scale
+#   https://fromthebottomoftheheap.net/2018/12/10/confidence-intervals-for-glms/
+#   getting inverse link function for calculating CIS
+fam <- family(glm_mod)
+ilink <- fam$linkinv
+ilink(confint(glm_mod, level = 0.95))
 
 
 # check_observation among true/false for figure legend
@@ -762,12 +760,14 @@ ggsave("210712_998_r_summarize_results__coeff_plot.pdf", plot = coeff_plot,
          scale = 1, width = 200, height = 135, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.IDENTITY.PERC", "NOT.NZ"), show.data = TRUE, jitter = 0.1, ci.lvl = 0.95) +
+
+
+model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.IDENTITY.PERC", "HSP.GAPS"), show.data = TRUE, jitter = 0.1, ci.lvl = 0.95) +
                 theme_bw() +       
-                ylab("Locations where species found (max.: n = 6)") +
-                xlab("query coverage for eDNA assignmnets") +
-                ggtitle("Species distribution, query coverage, and non-native status") +
-                labs(col = "Not NZ") +
+                ylab("Percentage of non-native species across trials (max. n. = 6)") +
+                xlab("Alignment identity percentage") +
+                ggtitle("Species distribution, identity percentage, and non-native status") +
+                labs(col = "Gaps") +
                 theme(legend.position = c(.2, .95),
                       legend.justification = c("right", "top"),
                       legend.box.just = "left",

@@ -606,8 +606,12 @@
     * lot's of changed based on chat with MdL
     * removing regression code based on averages
     * rescaling coverage fractions to percentage
-    * recalculating confidence itervalls
-    * re-did
+    * recalculating confidence intervals
+* **23-Aug-2021** - starting revisions for submission
+  * in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * implemented binomial regression and many other things
+  * **commit** before erasing Poisson regression
+
 
 * **todo (last updated 14-Aug-2021):**
   * finish code run
