@@ -617,13 +617,12 @@
     * p-values are slightly different in ANOSIM - due to permutation testing
     * copying files with DIs from macmini
   * **commit** at code end with checked script
+* **27-Aug-2021** - continuing manuscript revisions
+  * "finished" main text
+  * file `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
+    * likely in final state - but needs to be re-run on macmini for correct display items 
 
-    
-
-
-* **todo (last updated 14-Aug-2021):**
-  * finish code run
-  * add MdLs comments
+* **todo (last updated 24-Aug-2021):**
   * finish SI
   * check `/Users/paul/Documents/OU_eDNA/200224_references/ES13-00257.1.pdf` for terminology of sites (MR vs commercial exclusion zones)
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`

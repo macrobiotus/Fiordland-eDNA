@@ -752,9 +752,13 @@ summary(glm_mod)
 # Number of Fisher Scoring iterations: 5
 
 
+confint(glm_mod, level = 0.95) # probabilities
+
 # Calculating CIS on the scale of the link function and not the response scale
 #   https://fromthebottomoftheheap.net/2018/12/10/confidence-intervals-for-glms/
 #   getting inverse link function for calculating CIS
+
+# unit changes of predictors
 fam <- family(glm_mod)
 ilink <- fam$linkinv
 ilink(confint(glm_mod, level = 0.95))
@@ -790,7 +794,7 @@ model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.IDENTITY.PERC", 
                 xlab("Alignment identity percentage") +
                 ggtitle("Predicted probabilities of non-native status") +
                 labs(col = "Gaps") +
-                theme(legend.position = c(.9, .5),
+                theme(legend.position = c(.9, .6),
                       legend.justification = c("right", "top"),
                       legend.box.just = "left",
                       legend.box.background = element_rect(color="grey30", size=0.5)
