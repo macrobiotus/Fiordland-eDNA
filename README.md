@@ -617,14 +617,24 @@
     * p-values are slightly different in ANOSIM - due to permutation testing
     * copying files with DIs from macmini
   * **commit** at code end with checked script
-* **27-Aug-2021** - continuing manuscript revisions
+* **26-Aug-2021** - continuing manuscript revisions
   * "finished" main text
   * file `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r`
     * likely in final state - but needs to be re-run on macmini for correct display items 
-
-* **todo (last updated 24-Aug-2021):**
-  * finish SI
-  * check `/Users/paul/Documents/OU_eDNA/200224_references/ES13-00257.1.pdf` for terminology of sites (MR vs commercial exclusion zones)
+* **27-Aug-2021** - implementing additions requested by MK
+  * checking `~/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
+* **10-Sep-2021** - collating data for online upload
+  * use `find . -type f -newermt '05/13/2021 0:00:00'`
+    * include folders `201028_Robjects`
+    * include folders `210705_r_workspaces`
+    * include folders `200901_scripts`
+    * include folders `201126_preprocessing`
+  * find slahes in script files - get a list of files that possibly need archiving
+    * `find . -type f -exec grep -H '/' {} +* >> /Users/paul/Documents/OU_eDNA/200403_manuscript/210910_file_names.txt`
+  * see script `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/210910_collate_files.sh`
+  * commit ``
+    
+* **todo (last updated 10-Sep-2021):**
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
   * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
     *  "after data cleaning and assignment of NCBI taxonomy 826 of 1020 OBIS records were retained fro analysis (81%)"
