@@ -632,8 +632,20 @@
   * find slahes in script files - get a list of files that possibly need archiving
     * `find . -type f -exec grep -H '/' {} +* >> /Users/paul/Documents/OU_eDNA/200403_manuscript/210910_file_names.txt`
   * see script `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/210910_collate_files.sh`
-  * commit ``
-    
+  * commit `b3c4f7b703fb8ff9c43d68c8b4109f94b45ae7b0`
+  * Zenodo upload and temporary file cleaning
+    * compressing for Zenodo upload: `tar -czvf 210910_SI_for_review.tar.gz /Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/collated_files`
+    * erasing duplicated files that can be re-collated: `rm -rfd /Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/collated_files/*`
+    * after upload to Zenodo: `rm /Users/paul/Documents/OU_eDNA/200403_manuscript/210910_SI_for_review.tar.gz`
+* **26-Apr-2022** - preparing re-submission to **ACS Environmental Science & Technology**
+  * as per guidelines `/Users/paul/Documents/OU_eDNA/200403_manuscript/220425_ACS-EST_guidelines.pdf`
+    * create a TOC graphic
+* **29-Apr-2022** - preparing re-submission to **ACS Environmental Science & Technology**
+  * finishing manuscript, upload to ACS, and distribution of submission proof
+  * soft-linking `/Users/paul/Documents/OU_eDNA/200403_manuscript/7_si_auxillary_files` to 
+    * `/Users/paul/Documents/OU_eDNA/200403_manuscript/220219_CONL-21-0339_rejection`
+    * `/Users/paul/Documents/OU_eDNA/200403_manuscript/220407_ACS/7_si_auxillary_files`
+
 * **todo (last updated 10-Sep-2021):**
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
   * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
