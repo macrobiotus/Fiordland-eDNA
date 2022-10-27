@@ -645,8 +645,21 @@
   * soft-linking `/Users/paul/Documents/OU_eDNA/200403_manuscript/7_si_auxillary_files` to 
     * `/Users/paul/Documents/OU_eDNA/200403_manuscript/220219_CONL-21-0339_rejection`
     * `/Users/paul/Documents/OU_eDNA/200403_manuscript/220407_ACS/7_si_auxillary_files`
+* **20-Sep-2022** - preparing second submission to **Environmental DNA**
+  * slightly re-sorting files and updating links
+  * notes on first rejection are can be found at `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/220916_response_text.docx`
+  * see `/Users/paul/Documents/OU_eDNA/200403_manuscript/README.md` for more detailed information
+* **27-Oct-2022** - preparing second submission to **Environmental DNA**
+  * starting re-analysis on MacBook
+  * full back up of old project is on MacMini
+  * include new Blast results
+  * include new fish table from Roberts et al. 2019
+  * include Meta-Fish lib
 
-* **todo (last updated 10-Sep-2021):**
+
+
+* **todo and keep in mind (last updated 27-Oct-2021):**
+  * do not overwrite full back up of old project is on MacMini (27.10.2022)
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
   * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
     *  "after data cleaning and assignment of NCBI taxonomy 826 of 1020 OBIS records were retained fro analysis (81%)"
