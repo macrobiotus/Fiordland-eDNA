@@ -655,11 +655,14 @@
   * include new Blast results
   * include new fish table from Roberts et al. 2019
   * include Meta-Fish lib
-
+  * commit prior to re-analysis is `e418d2bac877465426dc475f11617e8fe17fa5cb`
+  * adjusting and executing `/OU_eDNA/200901_scripts/000_r_in_silico_pcr.R` - ok
+  * commit ``
 
 
 * **todo and keep in mind (last updated 27-Oct-2021):**
-  * do not overwrite full back up of old project is on MacMini (27.10.2022)
+  * new files have been saved for images and SI, starting with 27-Oct-2022
+  * include those new files into manuscript and main text
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
   * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
     *  "after data cleaning and assignment of NCBI taxonomy 826 of 1020 OBIS records were retained fro analysis (81%)"
