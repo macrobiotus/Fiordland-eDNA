@@ -1,4 +1,4 @@
-# Fiordland project 03-12-2020
+# Fiordland project 22-10-2022
 #
 # Read cells from 
 #   "/Users/paul/Documents/OU_eDNA/200128_lab_work/200907_plate_layouts.xlsx"
@@ -15,8 +15,6 @@ library("tidyverse")
 library("openxlsx") # write Excel tables
 
 rm(list = ls())
-
-
 
 # Read in sample data
 # ===================
@@ -187,7 +185,7 @@ smpl <- left_join(smpl, pr_fwd, by = c("key.x" = "key"),copy = TRUE, keep = TRUE
 smpl <- select(smpl, -c("key.x", "key.y", "key")) %>% filter(complete.cases(.))
 smpl %>% print(n = Inf)
 
-# write data to clibboard fr pasting into Excel
+# write data to clipboard for pasting into Excel
 clip <- pipe("pbcopy", "w")                       
 write.table(smpl, file=clip)                               
 close(clip)
@@ -277,7 +275,7 @@ write.xlsx(big_table,"/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadat
 # Get file for deconvolution using cutadapt >=3.0
 # ===============================================
 
-# selcet relavant columns for clarity
+# select relavant columns for clarity
 demux_table <- big_table %>% select(key, primer_direction, sample_name, index, templateprimer)
 
 # modify questionable characters for bash compatibility
@@ -298,7 +296,6 @@ demux_table <- demux_table %>% filter(f_primer != "NANA" & r_primer != "NANA") %
 #reverse complemnet 3' tagged preimer
 strReverse <- function(x) sapply(lapply(strsplit(x, NULL), rev), paste, collapse = "")
 demux_table <- demux_table %>% mutate(r_primer, strReverse(chartr("acgtACGT", "tgcaTGCA", r_primer))) %>% rename(r_primer_rc = `strReverse(chartr("acgtACGT", "tgcaTGCA", r_primer))`)
-
 
 # write four-column-text file for bash parsing
 write_delim(demux_table, file = "/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/200_cutadapt_barcode_input.txt", delim = " ", append = FALSE, col_names = FALSE, quote_escape = "none", eol = "\n")

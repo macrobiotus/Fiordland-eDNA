@@ -657,8 +657,18 @@
   * include Meta-Fish lib
   * commit prior to re-analysis is `e418d2bac877465426dc475f11617e8fe17fa5cb`
   * adjusting and executing `/OU_eDNA/200901_scripts/000_r_in_silico_pcr.R` - ok
-  * commit ``
-
+  * commit `defc7ac2021d9542a4e2585cad3ca0ac475dd13b`
+* **29-Oct-2022** - preparing second submission to **Environmental DNA**
+  * checking and running - with partial re-saves
+  * `/Users/paul/Documents/OU_eDNA/200901_scripts/100_r_quantification_analysis.R`
+  * `/Users/paul/Documents/OU_eDNA/200901_scripts/200_r_metadata_management.R`
+  * checking  - without re-saves
+  * `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh`
+  * `/Users/paul/Documents/OU_eDNA/200901_scripts/350_bash_count_reads_and_mv_empty_fastqs.sh`
+  * `/Users/paul/Documents/OU_eDNA/200901_scripts/400_r_qiime_manifest.R`
+  * `/Users/paul/Documents/OU_eDNA/200901_scripts/500_q2_import.sh`
+  * `/Users/paul/Documents/OU_eDNA/200901_scripts/600_q2_denoise.sh`
+  * commit `
 
 * **todo and keep in mind (last updated 27-Oct-2021):**
   * new files have been saved for images and SI, starting with 27-Oct-2022

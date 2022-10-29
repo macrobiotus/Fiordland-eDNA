@@ -1,4 +1,4 @@
-# Fiordland project 03-12-2020 and 01-02-2021
+# Fiordland project 03-12-2020 and 01-02-2021 and 27-10-2022
 #
 # Create Qiime manifest
 #   - using files in `/Users/paul/Documents/OU_eDNA/201126_preprocessing/cutadapt`

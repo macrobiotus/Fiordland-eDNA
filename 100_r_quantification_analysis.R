@@ -1,7 +1,7 @@
 # *****************************************************************************
 # * associating fluorescence signal with DNA concentrations, lab book page 48 *
 # *****************************************************************************
-# 17-Sep-2020
+# 27-Oct-2022
 
 # load packages
 # =============
@@ -78,7 +78,7 @@ plot(new_concs[ ,1] ,  tib_msr[!complete.cases(tib_msr), ]$picg,
   xlab = "[ng/µl]")
   matlines(new_concs, tib_msr[!complete.cases(tib_msr), ]$picg , lwd=1)
     
-# backtransform concentration values - not used  - formerly contained function call 
+# backt-transform concentration values - not used  - formerly contained function call 
 tib_imp <- cbind( tib_msr[!complete.cases(tib_msr), ],  data.frame( conc = c( new_concs[ ,1])))
 tib_imp <- tib_imp[, !duplicated(colnames(tib_imp), fromLast = TRUE)]
 
@@ -105,6 +105,8 @@ plate <- matrix( round(tib_new$conc, digits = 2), nrow = 8, ncol = 12, dimnames 
 plate <- replace(plate, which(plate < 0), NA)
 plate
 
-write.xlsx(plate, "/Users/paul/Documents/OU_eDNA/200128_lab_work/200917_Uplate2_ng-ul.xlsx", 
-  rowNames = TRUE, colNames = TRUE, overwrite = FALSE)
+# write.xlsx(plate, "/Users/paul/Documents/OU_eDNA/200128_lab_work/200917_Uplate2_ng-ul.xlsx", 
+#   rowNames = TRUE, colNames = TRUE, overwrite = FALSE)
 
+write.xlsx(plate, "/Users/paul/Documents/OU_eDNA/200128_lab_work/221027_Uplate2_ng-ul.xlsx", 
+  rowNames = TRUE, colNames = TRUE, overwrite = FALSE)
