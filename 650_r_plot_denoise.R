@@ -18,7 +18,15 @@ ggplot (denoised, aes(x = sample_id, y = value, fill = variable)) +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 45, hjust=1, size = 5))
 
+# paths outdated:
+# ggsave("210202_650_denoised_libraries.pdf", plot = last_plot(), 
+#          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
+#          scale = 3, width = 200, height = 50, units = c("mm"),
+#          dpi = 500, limitsize = TRUE)
+
+# path change:
 ggsave("210202_650_denoised_libraries.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_si_auxilliary_files",
+         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/7_si_auxillary_files",
          scale = 3, width = 200, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
+

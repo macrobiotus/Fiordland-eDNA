@@ -10,6 +10,13 @@
 # If executed on cluster install reference db via script in "Transport" folder.
 # As parser use  "http://sing-group.org/blasterjs/" and '-outfmt "0"' or '-outfmt "5"' 
 
+# 27.10.2022 - **during revision possibly attempting re-blast**
+# ========================================================
+# - this script is **depreciated**
+# - new reference data has since become available via NCBI as per most recent reviewers literature highlights
+# - Blast should now be done on NESI
+# - negative GI list is probably outdated
+# - MetaFish lib is available as well and should be used
 
 # safety settings 
 #   "-u" makes it an error to reference a non-existent environment variable 

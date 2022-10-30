@@ -660,17 +660,50 @@
   * commit `defc7ac2021d9542a4e2585cad3ca0ac475dd13b`
 * **29-Oct-2022** - preparing second submission to **Environmental DNA**
   * checking and running - with partial re-saves
-  * `/Users/paul/Documents/OU_eDNA/200901_scripts/100_r_quantification_analysis.R`
-  * `/Users/paul/Documents/OU_eDNA/200901_scripts/200_r_metadata_management.R`
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/100_r_quantification_analysis.R`
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/200_r_metadata_management.R`
   * checking  - without re-saves
-  * `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh`
-  * `/Users/paul/Documents/OU_eDNA/200901_scripts/350_bash_count_reads_and_mv_empty_fastqs.sh`
-  * `/Users/paul/Documents/OU_eDNA/200901_scripts/400_r_qiime_manifest.R`
-  * `/Users/paul/Documents/OU_eDNA/200901_scripts/500_q2_import.sh`
-  * `/Users/paul/Documents/OU_eDNA/200901_scripts/600_q2_denoise.sh`
-  * commit `
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/300_bash_cutadapt_demultiplex.sh`
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/350_bash_count_reads_and_mv_empty_fastqs.sh`
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/400_r_qiime_manifest.R`
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/500_q2_import.sh`
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/600_q2_denoise.sh`
+  * commit `48466a1dc8d8fe71098f4a32258296fd30874ba9`
+  * checking and running - with partial re-saves
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/650_r_plot_denoise.R`
+    * notes on `/Users/paul/Documents/OU_eDNA/200901_scripts/750_bash_fasta_blast.sh`
+      * code is now depreciated:
+      * during revision possibly attempting re-blast
+      * new reference data has since become available via NCBI as per most recent reviewers literature highlights
+      * Blast should now be done on NESI
+      * negative GI list is probably outdated
+      * MetaFishLib is available as well and should be used
+  * **finished** to adjust transport scripts in `/Users/paul/Documents/OU_eDNA/221027_nesi_transport`
+    * commit is `c6ab245ee3ede3c8ef6c819af76197422ba9df96`
+  * **starting** to work on `/Users/paul/Documents/OU_eDNA/200901_scripts/751_bash_fasta_blast_nesi.sh`
+  * see `https://support.nesi.org.nz/hc/en-gb/articles/208619807-BLAST`
+  * downloading new negative GI list
+    * 20008447 entries
+    * link was `https://www.ncbi.nlm.nih.gov/nuccore/?term=%22environmental%20samples%22[organism]%20OR%20metagenomes[orgn]`
+    * new file will be `/Users/paul/Documents/OU_eDNA/201126_preprocessing/blast/221027_gi_list_environmental.txt`
+* **29-Oct-2022** - preparing second submission to **Environmental DNA**
+  * finished `/Users/paul/Documents/OU_eDNA/200901_scripts/751_bash_fasta_blast_nesi.sh`
+  * creating custom BLAST database with sequences created by MetaFishLibNZ 
+  * in `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ`
+  * see `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/README.md`
+  * adjusted script names - one for full `nt` db, one for `221030_MetaFishLibNZ`
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/751_bash_fasta_blast_fullnt.sh`
+    * `/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_metafishlib.sh`
+  * running on local: `/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_metafishlib.sh`
+ 
 
-* **todo and keep in mind (last updated 27-Oct-2021):**
+
+* **todo and keep in mind (last updated 29-Oct-2021):**
+  * run * finished `/Users/paul/Documents/OU_eDNA/200901_scripts/751_bash_fasta_blast_nesi.sh`
+  * continue
+    * NESI Blasting script
+    * NSESI Transport scripts
+  * compress using `pigz /Users/paul/Documents/OU_eDNA/201126_preprocessing/blast/221027_gi_list_environmental.txt`
   * new files have been saved for images and SI, starting with 27-Oct-2022
   * include those new files into manuscript and main text
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
