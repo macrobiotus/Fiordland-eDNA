@@ -695,15 +695,15 @@
     * `/Users/paul/Documents/OU_eDNA/200901_scripts/751_bash_fasta_blast_fullnt.sh`
     * `/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_metafishlib.sh`
   * running on local: `/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_metafishlib.sh`
- 
-
+  * checked results in Megan - no taxonomy visible
 
 * **todo and keep in mind (last updated 29-Oct-2021):**
-  * run * finished `/Users/paul/Documents/OU_eDNA/200901_scripts/751_bash_fasta_blast_nesi.sh`
-  * continue
-    * NESI Blasting script
-    * NSESI Transport scripts
-  * compress using `pigz /Users/paul/Documents/OU_eDNA/201126_preprocessing/blast/221027_gi_list_environmental.txt`
+  * run finished `/Users/paul/Documents/OU_eDNA/200901_scripts/751_bash_fasta_blast_nesi.sh`
+  * get taxonomy information for MetaFishLib
+    * email Ruppert - how to do this?
+    * possibly get `https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz`
+    * possibly get `https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz.md5`
+    * find possibly find out how to map these files in MEGAN
   * new files have been saved for images and SI, starting with 27-Oct-2022
   * include those new files into manuscript and main text
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
