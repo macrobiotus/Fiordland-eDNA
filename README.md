@@ -696,6 +696,9 @@
     * `/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_metafishlib.sh`
   * running on local: `/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_metafishlib.sh`
   * checked results in Megan - no taxonomy visible
+  * to try added files below downloaded 31-Oct-2022 - doesn't work  
+    * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.btd`
+    * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.bti`
 
 * **todo and keep in mind (last updated 29-Oct-2021):**
   * run finished `/Users/paul/Documents/OU_eDNA/200901_scripts/751_bash_fasta_blast_nesi.sh`
@@ -709,4 +712,7 @@
   * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
   * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
     *  "after data cleaning and assignment of NCBI taxonomy 826 of 1020 OBIS records were retained fro analysis (81%)"
-  
+  * delete outdated 
+    * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.btd`
+    * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.bti`
+
