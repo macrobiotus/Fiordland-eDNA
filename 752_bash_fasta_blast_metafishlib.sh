@@ -85,7 +85,7 @@ if [ -d "$BASEPATH" ]; then
   # diagnostic message
   printf "\n${bold}$(date):${normal} Syncing files from \"$BASEPATH\" to \"$NOBACKUP\"...\n"
   
-  rsync -azui --delete-after --progress "$BASEPATH" "$(dirname "$NOBACKUP")" 
+  rsync -azi --delete-after --progress "$BASEPATH" "$(dirname "$NOBACKUP")" 
   
 fi 
 

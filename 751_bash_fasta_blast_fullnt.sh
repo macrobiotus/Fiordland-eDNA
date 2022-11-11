@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 
 #SBATCH --job-name      BLAST
-#SBATCH --time          05:00:00
-#SBATCH --mem           200G  # 50 GB for running - 150 GB for database
+#SBATCH --time          06:00:00
+#SBATCH --mem           550G  # 50 GB for running - 2 * 250 GB for database
 #SBATCH --ntasks        1
 #SBATCH --cpus-per-task 36    # half a node
+#SBATCH --account=uoo03176
+#SBATCH --mail-user=p.czechowski@otago.ac.nz
+#SBATCH --mail-type=ALL
+#SBATCH --output 221111_OUeDNA.%j.out
+#SBATCH --error  221111_OUeDNA.%j.err
 
-# 29.10.2022 - Paul Czechowski - paul.czechowski@gmail.com 
+# 11.11.2022 - Paul Czechowski - paul.czechowski@gmail.com 
 # ========================================================
 
 # * Blast `fasta` against NCBI's nt database. See
@@ -50,16 +55,18 @@ if [[ "$HOSTNAME" != "Pauls-MacBook-Pro.local" ]] && [[ "$HOSTNAME" != "mbpro.lo
   # load Blast Modules on NESI 
   module purge
   module load BLAST/2.10.0-GCC-9.2.0
-  module load BLASTDB/2021-05
+  module load BLASTDB/2022-10
   
   # check available db versions using the command below and alter the date in the previous line accordingly
-  ls "$BLASTDB"
+  # cd "$BLASTDB" && cd .. && ls
 
   # copy BLASTDB to RAM
-  cp "$BLASTDB"/{"$DB",taxdb}* "$TMPDIR"/ 
+  # check files: `ls "/opt/nesi/db/blast/2022-10"/{nt,taxdb}*`
+  # check memory requirements `du -bch  "/opt/nesi/db/blast/2022-10"/{nt,taxdb}* | tail -n 1`
+  cp "/opt/nesi/db/blast/2022-10"/{nt,taxdb}* "$TMPDIR"/ 
   
   # export path and other variables
-  export BLASTDB="$TMPDIR"
+  export BLASTDB="$TMPDIR"/nt
   export BASEPATH="/nesi/project/uoo03176/OU_eDNA"
   export NOBACKUP="/nesi/nobackup/uoo03176/OU_eDNA"
   export CPUS="$SLURM_CPUS_PER_TASK"
@@ -84,7 +91,7 @@ if [ -d "$BASEPATH" ]; then
   # diagnostic message
   printf "\n${bold}$(date):${normal} Syncing files from \"$BASEPATH\" to \"$NOBACKUP\"...\n"
   
-  rsync -azui --delete-after --progress "$BASEPATH" "$(dirname "$NOBACKUP")" 
+  rsync -azi --delete-after --progress "$BASEPATH" "$(dirname "$NOBACKUP")" 
   
 fi 
 
@@ -179,7 +186,7 @@ if [ -d "$NOBACKUP" ]; then
   # diagnostic message
   printf "\n${bold}$(date):${normal} Syncing files from \"$NOBACKUP\" to \"$BASEPATH\"...\n"
   
-  rsync -avzuin --progress --delete-after --delete-after --progress "$NOBACKUP" "$(dirname "$BASEPATH")" 
+  rsync -avzui --progress --delete-after --delete-after --progress "$NOBACKUP" "$(dirname "$BASEPATH")" 
   
 fi
 
