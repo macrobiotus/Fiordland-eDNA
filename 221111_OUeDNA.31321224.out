@@ -1,0 +1,61 @@
+
+[1mSat Nov 12 20:26:46 NZDT 2022:[m Blasting on remote...
+
+[1mSat Nov 12 20:29:51 NZDT 2022:[m Syncing files from "/nesi/project/uoo03176/OU_eDNA" to "/nesi/nobackup/uoo03176/OU_eDNA"...
+.d..t...... OU_eDNA/200901_scripts/
+>f.st...... OU_eDNA/200901_scripts/221107_OUeDNA.31259485.err
+        1216 100%    0.00kB/s    0:00:00        1216 100%    0.00kB/s    0:00:00 (xfer#1, to-check=2771/4095)
+>f.st...... OU_eDNA/200901_scripts/221107_OUeDNA.31259485.out
+        2527 100%    2.41MB/s    0:00:00        2527 100%    2.41MB/s    0:00:00 (xfer#2, to-check=2770/4095)
+>f+++++++++ OU_eDNA/200901_scripts/221111_OUeDNA.31321224.err
+         129 100%  125.98kB/s    0:00:00         129 100%  125.98kB/s    0:00:00 (xfer#3, to-check=2769/4095)
+>f+++++++++ OU_eDNA/200901_scripts/221111_OUeDNA.31321224.out
+         749 100%  731.45kB/s    0:00:00         749 100%  731.45kB/s    0:00:00 (xfer#4, to-check=2768/4095)
+>f.st...... OU_eDNA/200901_scripts/751_bash_fasta_blast_fullnt.sh
+        6515 100%  289.20kB/s    0:00:00        6515 100%  289.20kB/s    0:00:00 (xfer#5, to-check=2760/4095)
+>f.st...... OU_eDNA/200901_scripts/README.md
+       32768  58%  864.86kB/s    0:00:00       56360 100%    1.31MB/s    0:00:00 (xfer#6, to-check=2746/4095)
+.d..t...... OU_eDNA/200901_scripts/.git/
+>f.st...... OU_eDNA/200901_scripts/.git/COMMIT_EDITMSG
+         573 100%   13.32kB/s    0:00:00         573 100%   13.32kB/s    0:00:00 (xfer#7, to-check=2743/4095)
+>f.stp..... OU_eDNA/200901_scripts/.git/index
+        2662 100%   61.90kB/s    0:00:00        2662 100%   61.90kB/s    0:00:00 (xfer#8, to-check=2737/4095)
+>f.st...... OU_eDNA/200901_scripts/.git/logs/HEAD
+       27074 100%  267.07kB/s    0:00:00       27074 100%  267.07kB/s    0:00:00 (xfer#9, to-check=2720/4095)
+>f.st...... OU_eDNA/200901_scripts/.git/logs/refs/heads/master
+       25390 100%  198.36kB/s    0:00:00       25390 100%  198.36kB/s    0:00:00 (xfer#10, to-check=2716/4095)
+.d..t...... OU_eDNA/200901_scripts/.git/objects/2c/
+>f+++++++++ OU_eDNA/200901_scripts/.git/objects/2c/afc5f3522b6c9d4f4fb3ec59427b768927dbaf
+         768 100%    0.00kB/s    0:00:00         768 100%    0.00kB/s    0:00:00 (xfer#11, to-check=2561/4095)
+.d..t...... OU_eDNA/200901_scripts/.git/objects/6b/
+>f+++++++++ OU_eDNA/200901_scripts/.git/objects/6b/67724e1a76bbe934d69f1fac5e7a1a0667dd2d
+         682 100%  666.02kB/s    0:00:00         682 100%  666.02kB/s    0:00:00 (xfer#12, to-check=2360/4095)
+.d..t...... OU_eDNA/200901_scripts/.git/objects/92/
+>f+++++++++ OU_eDNA/200901_scripts/.git/objects/92/ab91ece39a0302b96da1cb1a8d142bbdfa77a4
+        2610 100%    2.49MB/s    0:00:00        2610 100%    2.49MB/s    0:00:00 (xfer#13, to-check=2215/4095)
+.d..t...... OU_eDNA/200901_scripts/.git/objects/b8/
+>f+++++++++ OU_eDNA/200901_scripts/.git/objects/b8/629f773582e5b280101f56bbbadd2dd7a1a4ca
+        2353 100%    2.24MB/s    0:00:00        2353 100%    1.12MB/s    0:00:00 (xfer#14, to-check=2095/4095)
+.d..t...... OU_eDNA/200901_scripts/.git/objects/da/
+>f+++++++++ OU_eDNA/200901_scripts/.git/objects/da/a95abd5709bd070305e0a4ac53848ea0db4d36
+         187 100%   91.31kB/s    0:00:00         187 100%   91.31kB/s    0:00:00 (xfer#15, to-check=1982/4095)
+.d..t...... OU_eDNA/200901_scripts/.git/objects/e5/
+>f+++++++++ OU_eDNA/200901_scripts/.git/objects/e5/8a1afd01177de0872a2b0e91b5359414dd7c31
+       17737 100%    1.13MB/s    0:00:00       17737 100%    1.13MB/s    0:00:00 (xfer#16, to-check=1951/4095)
+.d..t...... OU_eDNA/200901_scripts/.git/objects/f6/
+>f+++++++++ OU_eDNA/200901_scripts/.git/objects/f6/e4eaf41e10d804a31914446d27b3a30421b8cf
+        1181 100%   72.08kB/s    0:00:00        1181 100%   72.08kB/s    0:00:00 (xfer#17, to-check=1901/4095)
+.d..t...... OU_eDNA/200901_scripts/.git/refs/heads/
+>f..tp..... OU_eDNA/200901_scripts/.git/refs/heads/master
+          41 100%    2.50kB/s    0:00:00          41 100%    2.50kB/s    0:00:00 (xfer#18, to-check=1871/4095)
+.d..t...... OU_eDNA/201126_preprocessing/blast/
+*deleting   OU_eDNA/201126_preprocessing/blast/751_12S_single_end_ee3-seq_blast-noenv.xml
+*deleting   OU_eDNA/201126_preprocessing/blast/221027_gi_list_environmental.txt
+
+[1mSat Nov 12 20:29:57 NZDT 2022:[m Decompressing neagtive GI List...
+
+[1mSat Nov 12 20:29:58 NZDT 2022:[m Finding fasta files...
+
+[1mSat Nov 12 20:29:58 NZDT 2022:[m Querying "/nesi/nobackup/uoo03176/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.fasta.gz" against "/dev/shm/jobs/31321224/nt"...
+
+[1mSat Nov 12 22:25:18 NZDT 2022:[m Blastn failed on "/nesi/nobackup/uoo03176/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.fasta.gz". 

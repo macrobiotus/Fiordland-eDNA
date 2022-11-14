@@ -1,0 +1,12 @@
+
+The following modules were not unloaded:
+   (Use "module --force purge" to unload all):
+
+  1) XALT/minimal   2) slurm   3) NeSI
+terminate called after throwing an instance of 'ncbi::CSerialException'
+  what():  NCBI C++ Exception:
+    T41 "/scale_wlg_persistent/filesets/opt_nesi/CS400_centos7_bdw/easybuild-resources/build/BLAST/2.10.0/GCC-9.2.0/ncbi-blast-2.10.0+-src/c++/src/serial/objistrasnb.cpp", line 499: Error: byte 62: overflow error ( at [].[].gi)
+    T41 "/scale_wlg_persistent/filesets/opt_nesi/CS400_centos7_bdw/easybuild-resources/build/BLAST/2.10.0/GCC-9.2.0/ncbi-blast-2.10.0+-src/c++/src/serial/member.cpp", line 769: Error: ncbi::CMemberInfoFunctions::ReadWithSetFlagMember() - error while reading seqid ( at Blast-def-line-set.[].[].seqid.[].[].gi)
+
+/var/spool/slurm/job31321224/slurm_script: line 130: 251162 Done                    gzip -dc "$fasta"
+     251163 Aborted                 | blastn -db "$BLASTDB" -task blastn -evalue 1e-10 -max_hsps 5 -outfmt 5 -max_target_seqs 5 -out "$NOBACKUP"/201126_preprocessing/blast/"$tgt_file" -num_threads "$CPUS" -qcov_hsp_perc 95 -perc_identity 75 -negative_gilist "$NOBACKUP"/201126_preprocessing/blast/221027_gi_list_environmental.txt
