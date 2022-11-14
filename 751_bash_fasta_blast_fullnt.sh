@@ -8,8 +8,8 @@
 #SBATCH --account=uoo03176
 #SBATCH --mail-user=p.czechowski@otago.ac.nz
 #SBATCH --mail-type=ALL
-#SBATCH --output 221111_OUeDNA.%j.out
-#SBATCH --error  221111_OUeDNA.%j.err
+#SBATCH --output 221114_OUeDNA.%j.out
+#SBATCH --error  221114_OUeDNA.%j.err
 
 # 14.11.2022 - Paul Czechowski - paul.czechowski@gmail.com 
 # ========================================================
