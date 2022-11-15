@@ -912,21 +912,51 @@
   * commit `d93005ac6e090b70140c73e8b012805aeb58e4b1`
 
 ## **14-Nov-2022** - re-attempting BLAST on cluster
+ 
  * checked syntax in `/Users/paul/Documents/OU_eDNA/200901_scripts/751_bash_fasta_blast_fullnt.sh`
  * bumped up requested BLAST version
  * commit and push to cluster
 
-## **todo and keep in mind (last updated 31-Oct-2021):**
-  * run finished full nt Blast `/Users/paul/Documents/OU_eDNA/200901_scripts/751_bash_fasta_blast_nesi.sh`
-  * run finished MetaFishLib Blast`/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_nesi.sh`
-  * get taxonomy information for MetaFishLib
-    * email Ruppert - how to do this? - MEGAN / Blast
-  * new files have been saved for images and SI, starting with 27-Oct-2022
-  * include those new files into manuscript and main text
-  * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
-  * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
-    *  "after data cleaning and assignment of NCBI taxonomy 826 of 1020 OBIS records were retained fro analysis (81%)"
-  * delete outdated 
-    * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.btd`
-    * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.bti`
+## **15-Nov-2022** - BLAST done on cluster
 
+ * files pulled to local
+ * created `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
+   * to parse new BLAST results
+   * to calculate Bit-score cutoff as per (Liu et al. 2010)
+ * installing package `taxonomizr` in R
+ * installing `taxonomizr` database in `/Users/paul/Sequences/References/taxonomizr`
+   * probably done despite error, for further setup see `https://cran.r-project.org/web/packages/taxonomizr/vignettes/usage.html`
+
+
+
+
+
+## **important queue (last updated 15-Nov-2021):**
+  * step through ``/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
+  * set Bit-Score threshold using a linear model as in (Liu et al. 2010)
+
+## **Miscellaneous todo (last updated 30-10-2022):**
+ 
+ * run finished MetaFishLib Blast`/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_nesi.sh`
+ * get taxonomy information for MetaFishLib
+   * email Ruppert - how to do this? - MEGAN / Blast
+ * new files have been saved for images and SI, starting with 27-Oct-2022
+ * include those new files into manuscript and main text
+ * in supplement cross-reference `/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx`
+ * **add comment regarding OBIS data completeness** calculated in `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r`
+   *  "after data cleaning and assignment of NCBI taxonomy 826 of 1020 OBIS records were retained fro analysis (81%)"
+ * delete outdated 
+  * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.btd`
+  * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.bti`
+
+## Notes on depreciated scripts and why they are depreciated
+
+* `/Users/paul/Documents/OU_eDNA/200901_scripts/750_bash_fasta_blast.sh`
+  * used Cornell cluster
+  * re-implemented and run on 14-Nov-2022 in `/Users/paul/Documents/OU_eDNA/200901_scripts/751_bash_fasta_blast_fullnt.sh`
+* `/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_metafishlib.sh`
+  * unused so far - can be adjusted if MetafishLib can be used for Blasting, if needed
+* `/Users/paul/Documents/OU_eDNA/200901_scripts/800_r_get_q2_tax-tab.r`
+  * used until 21-Jun-2022 for "eDNA" submission
+  * superseded for "eDNA"  resubmission after 26-Aug-2022 by `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
+  
