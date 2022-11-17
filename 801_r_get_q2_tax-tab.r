@@ -22,7 +22,7 @@ library("taxonomizr") # query taxon names
 # --------------------------
 
 # define file path components for listing 
-blast_results_folder <- "/Users/paul/Documents/OU_eDNA/201126_preprocessing/blast/"
+blast_results_folder <- "/Users/paul/Documents/OU_eDNA/201126_preprocessing/blast"
 blast_results_pattern <- "*.xml$"
 
 # read all file into lists for `lapply()` -  new file: 68M Aug  4 13:11
@@ -34,16 +34,43 @@ plan(multicore)
 # takes 7-10 hours on four cores - avoid by reloading full object from disk 
 blast_results_list <- furrr::future_map(blast_results_files, blastxml_dump, form = "tibble", .progress = TRUE) 
 
+# -- delete this line and continue here after 17.11.2022 --- 
+
 names(blast_results_list) <- blast_results_files # works
 
-# save(blast_results_list, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast_results_list.Rdata")
-load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast_results_list.Rdata", verbose = TRUE)
+# save(blast_results_list, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221117_get_q2_tax-tab__blast_results_list.Rdata")
+load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221117_get_q2_tax-tab__blast_results_list.Rdata", verbose = TRUE)
+
+# --- new below on 17.11.2022 ----
+
+# flatten blast list for further use
+flat_blast_results_list <- blast_results_list %>% 
+                             bind_rows(, .id = "src" ) %>%        # add source file names as column elements
+                             clean_names(.) %>%                   # clean columns names 
+                             group_by(iteration_query_def)
+
+# create Bit score cut-off as per Liu B, Gibbons T, Ghodsi M, and Pop M. 2010. MetaPhyler: Taxonomic profiling for metagenomic sequences. 2010 IEEE International Conference on Bioinformatics and Biomedicine (BIBM).
+fit1 <- lm(hsp_bit_score ~ iteration_query_len, data = flat_blast_results_list)
+summary(fit1)
+
+# inspect bit scores 
+ggplot(flat_blast_results_list, aes(x = iteration_query_len, y= hsp_bit_score)) + 
+    geom_hex() +
+    geom_smooth(method = "lm") + 
+    theme_bw() +
+    ggtitle("raw blast results") + 
+    ylab("Bit score") + xlab("query sequence length")
+
+
+# --- new above on 17.11.2022 --- 
+
 
 # create one large item from many few, while keeping source file info fo grouping or subsetting
-blast_results_list %>% bind_rows(, .id = "src" ) %>%        # add source file names as column elements
-                       clean_names(.) %>%                   # clean columns names 
-                       group_by(iteration_query_def) %>%    # isolate groups of hits per sequence hash
-                       slice(which.max(hsp_bit_score)) -> blast_results # save subset
+blast_results <- blast_results_list %>% 
+                   bind_rows(, .id = "src" ) %>%        # add source file names as column elements
+                   clean_names(.) %>%                   # clean columns names 
+                   group_by(iteration_query_def) %>%    # isolate groups of hits per sequence hash
+                   slice(which.max(hsp_bit_score))      # save subset
 
 # save object and some time by reloading it - comment in if necessary
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

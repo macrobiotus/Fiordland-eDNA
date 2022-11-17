@@ -927,7 +927,10 @@
  * installing `taxonomizr` database in `/Users/paul/Sequences/References/taxonomizr`
    * probably done despite error, for further setup see `https://cran.r-project.org/web/packages/taxonomizr/vignettes/usage.html`
 
+## **17-Nov-2022** - experimenting with Bit-Score cutoff
 
+  * stated in `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
+  * next calculate cutoff values
 
 
 
