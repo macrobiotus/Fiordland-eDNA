@@ -1,7 +1,7 @@
 # Import Blast results, format, get new taxonomy strings, and write out compatible with Qiime 2 
 # ==============================================================================================
 
-# last run 7-Dec-2020, then 2-Feb-2021 
+# last run 7-Dec-2020, then 2-Feb-2021, then after 18-Nov-2022 
 # see https://ropensci.org/tutorials/taxize_tutorial/
 #  for handling blast data and getting correct taxonomy strings from the net
 
@@ -16,6 +16,7 @@ library("blastxml")   # read blast xml - get via `library(devtools); install_git
 library("tidyverse")  # work using tibbles
 library("janitor")    # clean column names
 library("taxonomizr") # query taxon names
+library("ggpubr")     # stat_regline_equation
 # library("purrr")      # dplyr applies
 
 # Part I: Load Blast results
@@ -43,26 +44,40 @@ load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221117_get_q2_tax-tab__
 
 # --- new below on 17.11.2022 ----
 
-# flatten blast list for further use
+# flatten blast list for further use - add factor indicating highest bit score
 flat_blast_results_list <- blast_results_list %>% 
-                             bind_rows(, .id = "src" ) %>%        # add source file names as column elements
-                             clean_names(.) %>%                   # clean columns names 
-                             group_by(iteration_query_def)
+                             bind_rows(, .id = "src" ) %>%  # add source file names as column elements
+                             clean_names(.) %>%             # clean columns names 
+                             group_by(iteration_query_def) %>%  # group by sequence hash    
+                             mutate(max_hsp_bit_score = max(hsp_bit_score)) %>%
+                             mutate(max_hsp_bit_score_lgl = if_else(hsp_bit_score == max_hsp_bit_score, TRUE, FALSE ))
 
-# create Bit score cut-off as per Liu B, Gibbons T, Ghodsi M, and Pop M. 2010. MetaPhyler: Taxonomic profiling for metagenomic sequences. 2010 IEEE International Conference on Bioinformatics and Biomedicine (BIBM).
+
+flat_blast_results_list[c("iteration_query_def", "hsp_bit_score", "max_hsp_bit_score", "max_hsp_bit_score_lgl")] %>% print(n = 50)
+
+# for reviewers
+# investigate Bit score cut-off as per Liu B, Gibbons T, Ghodsi M, and Pop M. 2010. 
+# MetaPhyler: Taxonomic profiling for metagenomic sequences. 2010 IEEE International
+# Conference on Bioinformatics and Biomedicine (BIBM).
+
+# inspect bit scores vs sequence lengths graphically 
+#   to show sequences how are bit score in comparison to the average
+ggplot(flat_blast_results_list, aes(x = iteration_query_len, y= hsp_bit_score)) + 
+    geom_hex(aes(fill = factor(max_hsp_bit_score_lgl), colour = after_stat(count))) +
+    geom_smooth(method = "lm") + 
+    stat_regline_equation(label.x.npc = "center") + 
+    theme_bw() +
+    ggtitle("sequence query length vs. bit scores of raw blast results") + 
+    ylab("bit score") + xlab("query sequence length") +
+    scale_fill_discrete(name = "highest bit score\nper query")
+
+ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/221118_analysis_outputs/221118_801_bash_bitscore_seqlen_regression_plot.pdf")
+
+# inspect bit scores vs sequence lengths using a model
 fit1 <- lm(hsp_bit_score ~ iteration_query_len, data = flat_blast_results_list)
 summary(fit1)
 
-# inspect bit scores 
-ggplot(flat_blast_results_list, aes(x = iteration_query_len, y= hsp_bit_score)) + 
-    geom_hex() +
-    geom_smooth(method = "lm") + 
-    theme_bw() +
-    ggtitle("raw blast results") + 
-    ylab("Bit score") + xlab("query sequence length")
-
-
-# --- new above on 17.11.2022 --- 
+# --- continue here after 18.11.2022 --- 
 
 
 # create one large item from many few, while keeping source file info fo grouping or subsetting

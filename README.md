@@ -929,9 +929,13 @@
 
 ## **17-Nov-2022** - experimenting with Bit-Score cutoff
 
-  * stated in `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
+  * started in `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
   * next calculate cutoff values
+  * commit `193efc06aa60a897b34b33a7fc420c5ab9cfab4f`
 
+## **18-Nov-2022** - experimenting with Bit-Score cutoff
+  * continued in `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
+  * plotted and exported bit score assignments in comparison to the average values
 
 
 ## **important queue (last updated 15-Nov-2021):**
