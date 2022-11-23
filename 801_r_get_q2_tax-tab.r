@@ -11,6 +11,7 @@ rm(list = ls(all.names = TRUE))
 gc()
 
 library("Biostrings") # read fasta file 
+library("magrittr")   # more pipes
 library("furrr")      # parallel purrrs - for loading 
 library("blastxml")   # read blast xml - get via `library(devtools); install_github("BigelowLab/blastxml")`
 library("tidyverse")  # work using tibbles
@@ -35,33 +36,49 @@ plan(multicore)
 # takes 7-10 hours on four cores - avoid by reloading full object from disk 
 blast_results_list <- furrr::future_map(blast_results_files, blastxml_dump, form = "tibble", .progress = TRUE) 
 
-# -- delete this line and continue here after 17.11.2022 --- 
-
 names(blast_results_list) <- blast_results_files # works
 
 # save(blast_results_list, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221117_get_q2_tax-tab__blast_results_list.Rdata")
 load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221117_get_q2_tax-tab__blast_results_list.Rdata", verbose = TRUE)
 
-# --- new below on 17.11.2022 ----
+# code below inserted after 17.11.2022 for EDNA revision
 
-# flatten blast list for further use - add factor indicating highest bit score
+# flatten blast list for further use
 flat_blast_results_list <- blast_results_list %>% 
                              bind_rows(, .id = "src" ) %>%  # add source file names as column elements
                              clean_names(.) %>%             # clean columns names 
-                             group_by(iteration_query_def) %>%  # group by sequence hash    
-                             mutate(max_hsp_bit_score = max(hsp_bit_score)) %>%
-                             mutate(max_hsp_bit_score_lgl = if_else(hsp_bit_score == max_hsp_bit_score, TRUE, FALSE ))
-
-
-flat_blast_results_list[c("iteration_query_def", "hsp_bit_score", "max_hsp_bit_score", "max_hsp_bit_score_lgl")] %>% print(n = 50)
+                             group_by(iteration_query_def)  # group by sequence hash    
+                             
+# add variable and factor indicating highest bit score
+flat_blast_results_list  %<>%  mutate(max_hsp_bit_score = max(hsp_bit_score))
+flat_blast_results_list  %<>%  mutate(max_hsp_bit_score_lgl = if_else(hsp_bit_score == max_hsp_bit_score, TRUE, FALSE ))
 
 # for reviewers
 # investigate Bit score cut-off as per Liu B, Gibbons T, Ghodsi M, and Pop M. 2010. 
 # MetaPhyler: Taxonomic profiling for metagenomic sequences. 2010 IEEE International
 # Conference on Bioinformatics and Biomedicine (BIBM).
 
+# add variable marking above average bit scores
+# - get the relationship between bitscore and query length
+bs_vs_qlen <- lm(hsp_bit_score ~ iteration_query_len, data = flat_blast_results_list)
+summary(bs_vs_qlen)
+
+# - average bit score ("avgbits") is 1.7480 x query length
+avgbits <- coefficients(bs_vs_qlen)[2]
+
+# - define average Bit for given query length
+flat_blast_results_list %<>% mutate(avg_hsp_bit_score = iteration_query_len * avgbits)
+
+# - mark above-average maximum-bitscored hsps as TRUE 
+flat_blast_results_list %<>% mutate(abvavg_max_hsp_bit_score_lgl = if_else(max_hsp_bit_score >= avg_hsp_bit_score, TRUE, FALSE ))
+
+# inspect Blast-score related variables
+# - to verify previous mutates
+flat_blast_results_list[c("iteration_query_def", "hsp_bit_score", "avg_hsp_bit_score",  "max_hsp_bit_score", "max_hsp_bit_score_lgl", "abvavg_max_hsp_bit_score_lgl")] %>% print(n = 50)
+
+
 # inspect bit scores vs sequence lengths graphically 
-#   to show sequences how are bit score in comparison to the average
+#  -  to show sequences how are bit score in comparison to the average
 ggplot(flat_blast_results_list, aes(x = iteration_query_len, y= hsp_bit_score)) + 
     geom_hex(aes(fill = factor(max_hsp_bit_score_lgl), colour = after_stat(count))) +
     geom_smooth(method = "lm") + 
@@ -73,23 +90,12 @@ ggplot(flat_blast_results_list, aes(x = iteration_query_len, y= hsp_bit_score)) 
 
 ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/221118_analysis_outputs/221118_801_bash_bitscore_seqlen_regression_plot.pdf")
 
-# inspect bit scores vs sequence lengths using a model
-fit1 <- lm(hsp_bit_score ~ iteration_query_len, data = flat_blast_results_list)
-summary(fit1)
-
-# --- continue here after 18.11.2022 --- 
-
-
-# create one large item from many few, while keeping source file info fo grouping or subsetting
-blast_results <- blast_results_list %>% 
-                   bind_rows(, .id = "src" ) %>%        # add source file names as column elements
-                   clean_names(.) %>%                   # clean columns names 
-                   group_by(iteration_query_def) %>%    # isolate groups of hits per sequence hash
-                   slice(which.max(hsp_bit_score))      # save subset
+# keep only highest-scoring bit scores across iteration_query_def groups (n=1,927)
+blast_results <- flat_blast_results_list %>%  slice(which.max(hsp_bit_score))      # save subset
 
 # save object and some time by reloading it - comment in if necessary
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-nrow(blast_results) # 1914 now, was 2171 after denoising
+nrow(blast_results) # 1927 now, was 1914 after last blasting, from orginally 2171 after denoising
 
 # Part II: Re-annotate Blast results
 # ----------------------------------
@@ -100,12 +106,15 @@ nrow(blast_results) # 1914 now, was 2171 after denoising
 # prepareDatabase(sqlFile = "accessionTaxa.sql", tmpDir = "/Users/paul/Sequences/References/taxonomizR/", vocal = TRUE) # takes a very long time - avoid by reloading full object from disk
 
 # function for mutate to convert NCBI accession numbers to taxonomic IDs
-#  path updated to external value 17.04.2020
-get_taxid <- function(x) {accessionToTaxa(x, "/Volumes/HGST1TB/Users/paul/Sequences/References/taxonomizR/accessionTaxa.sql", version='base')}
+# - path updated to external drive 17.04.2020 - defunct, but kept this db at "/Users/paul/Sequences/References/"
+#   get_taxid <- function(x) {accessionToTaxa(x, "/Volumes/HGST1TB/Users/paul/Sequences/References/taxonomizR/accessionTaxa.sql", version='base')}
+# - path updated to newly downloaded databse (from 15.11.22) on 23.11.2022
+get_taxid <- function(x) {accessionToTaxa(x, "/Users/paul/Sequences/References/taxonomizR_221115/taxonomizr.sqlite", version = 'base')}
 
 # function for mutate to use taxonomic IDs and add taxonomy strings
-#  path updated to external value 17.04.2020
-get_strng <- function(x) {getTaxonomy(x,"/Volumes/HGST1TB/Users/paul/Sequences/References/taxonomizR/accessionTaxa.sql")}
+get_strng <- function(x) {getTaxonomy(x, "/Users/paul/Sequences/References/taxonomizR_221115/taxonomizr.sqlite")}
+
+# continue here after 23.11.2022
 
 # add tax ids to table for string lookup - probably takes long time
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

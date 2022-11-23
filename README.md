@@ -899,12 +899,12 @@
 
 ## **7-Nov-2022** Attempting third  BLAST on NESI 
 
-  * edited `751_bash_fasta_blast_fullnt.sh` attempt to re-run
+ * edited `751_bash_fasta_blast_fullnt.sh` attempt to re-run
 
 ## **11-Nov-2022** - BLAST run failed
 
-  * I do not understand the error message, and can't find informetion on it, filing issue
-  * upping memory, updating dates, committing, re-attempt
+ * I do not understand the error message, and can't find informetion on it, filing issue
+ * upping memory, updating dates, committing, re-attempt
 
 ## **12-Nov-2022** - BLAST run failed again
 
@@ -934,11 +934,23 @@
   * commit `193efc06aa60a897b34b33a7fc420c5ab9cfab4f`
 
 ## **18-Nov-2022** - experimenting with Bit-Score cutoff
+
   * continued in `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
   * plotted and exported bit score assignments in comparison to the average values
+  * commit `52078808b2dea9f4d35506cc2dd5f255a5a7b8fb`
 
+## **23-Nov-2022** - experimenting with Bit-Score cutoff
+ 
+ * continued in `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
+ * see chnage history, added variables to indicate above or below-average max. hsp bit score
+ * re-installing Taxonomizr data base
+   * see `https://cran.r-project.org/web/packages/taxonomizr/vignettes/usage.html`
+   * R: `httr::timeout(5 * 3600) # increase curl's maximum request time`
+   * R: `taxonomizr::prepareDatabase("accessionTaxa.sql", tmpDir =  "/Users/paul/Sequences/References/taxonomizR_221115")`
+ * commit ``  
 
 ## **important queue (last updated 15-Nov-2021):**
+
   * step through ``/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
   * set Bit-Score threshold using a linear model as in (Liu et al. 2010)
 
