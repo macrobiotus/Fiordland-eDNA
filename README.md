@@ -939,20 +939,31 @@
   * plotted and exported bit score assignments in comparison to the average values
   * commit `52078808b2dea9f4d35506cc2dd5f255a5a7b8fb`
 
-## **23-Nov-2022** - experimenting with Bit-Score cutoff
+## **23-Nov-2022** - defined Bit-Score cutoff variables, starting taxonomic annotation from NCBI
  
  * continued in `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
- * see chnage history, added variables to indicate above or below-average max. hsp bit score
- * re-installing Taxonomizr data base
+ * see change history, added variables to indicate above or below-average max. hsp bit score
+ * re-installing `taxonomizR` data base
    * see `https://cran.r-project.org/web/packages/taxonomizr/vignettes/usage.html`
    * R: `httr::timeout(5 * 3600) # increase curl's maximum request time`
    * R: `taxonomizr::prepareDatabase("accessionTaxa.sql", tmpDir =  "/Users/paul/Sequences/References/taxonomizR_221115")`
- * commit ``  
+ * commit `74218f36d1e8085ec687fc5281437454fe6fef63`  
+
+## **24-Nov-2022** - defined Bit-Score cutoff variables, starting taxonomic annotation from NCBI
+ 
+ * `prepareDatabase()` fails repeatedly
+ * checking `https://github.com/sherrillmix/taxonomizr/issues/33`
+ * downloading accession to taxid manually:
+   * `~/Sequences/References/taxonomizR_221115$ wget https://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz` 
+ * preparing sqlite file:
+   * `read.accession2taxid("/Users/paul/Sequences/References/taxonomizR_221115/nucl_gb.accession2taxid.gz","/Users/paul/Sequences/References/taxonomizR_221115/nucl_gb.accession2taxid.sqlite", vocal=TRUE)`
+ * continued in `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
+   * stopped at line 189 - `Part II: Format taxonomy table for export and export`
+ * commit 
 
 ## **important queue (last updated 15-Nov-2021):**
 
-  * step through ``/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
-  * set Bit-Score threshold using a linear model as in (Liu et al. 2010)
+  * finish stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
 
 ## **Miscellaneous todo (last updated 30-10-2022):**
  

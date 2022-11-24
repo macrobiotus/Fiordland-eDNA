@@ -95,7 +95,7 @@ blast_results <- flat_blast_results_list %>%  slice(which.max(hsp_bit_score))   
 
 # save object and some time by reloading it - comment in if necessary
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-nrow(blast_results) # 1927 now, was 1914 after last blasting, from orginally 2171 after denoising
+nrow(blast_results) # 1927 now, was 1914 after last blasting, from originally 2171 after denoising
 
 # Part II: Re-annotate Blast results
 # ----------------------------------
@@ -109,24 +109,32 @@ nrow(blast_results) # 1927 now, was 1914 after last blasting, from orginally 217
 # - path updated to external drive 17.04.2020 - defunct, but kept this db at "/Users/paul/Sequences/References/"
 #   get_taxid <- function(x) {accessionToTaxa(x, "/Volumes/HGST1TB/Users/paul/Sequences/References/taxonomizR/accessionTaxa.sql", version='base')}
 # - path updated to newly downloaded databse (from 15.11.22) on 23.11.2022
-get_taxid <- function(x) {accessionToTaxa(x, "/Users/paul/Sequences/References/taxonomizR_221115/taxonomizr.sqlite", version = 'base')}
+# - done manually 24.11.2022 - see README.md
+
+get_taxid <- function(x) {accessionToTaxa(x, "/Users/paul/Sequences/References/taxonomizR_221115/nucl_gb.accession2taxid.sqlite", version = 'base')}
 
 # function for mutate to use taxonomic IDs and add taxonomy strings
-get_strng <- function(x) {getTaxonomy(x, "/Users/paul/Sequences/References/taxonomizR_221115/taxonomizr.sqlite")}
+get_strng <- function(x) {getTaxonomy(x, "/Users/paul/Sequences/References/taxonomizR_221115/nameNode.sqlite")}
 
-# continue here after 23.11.2022
+# redo until here - continue here after 25.11.2022
 
 # add tax ids to table for string lookup - probably takes long time
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 blast_results_appended <- blast_results %>% mutate(tax_id = get_taxid(hit_accession)) # takes some time... 
 length(blast_results_appended$tax_id) 
 
+# old save / load
 # save(blast_results_appended, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_sliced_taxonomy.Rdata")
-load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_sliced_taxonomy.Rdata", verbose=TRUE)
+# load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_sliced_taxonomy.Rdata", verbose=TRUE)
+
+# new save / load - after re-blasting - 25.11.2022
+# save(blast_results_appended, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221124_get_q2_tax-tab__blast-noenv_sliced_taxonomy.Rdata")
+load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221124_get_q2_tax-tab__blast-noenv_sliced_taxonomy.Rdata", verbose=TRUE)
+
+
 
 # look up taxonomy table - takes a long time, needs external database.
 tax_table <- as_tibble(get_strng(blast_results_appended$tax_id), rownames = "tax_id") %>% mutate(tax_id= as.numeric(tax_id))
-
 nrow(tax_table) 
 
 # getting a tax table without duplicates to enable proper join command later
@@ -136,12 +144,14 @@ tax_table <- tax_table %>% arrange(tax_id) %>% distinct(tax_id, superkingdom, ph
 head(tax_table)
 nrow(tax_table)
 all(!duplicated(tax_table)) #        and no duplicated tax ids anymore
-lapply(list(blast_results_appended,tax_table), nrow) # first 10302, second deduplicated and with 2761 - ok 
+lapply(list(blast_results_appended,tax_table), nrow) # old: first 10302, second deduplicated and with 2761 - ok 
+                                                     # new: first  1927, second deduplicated and with  956 - ok 
+
 
 # https://stackoverflow.com/questions/5706437/whats-the-difference-between-inner-join-left-join-right-join-and-full-join
 blast_results_final <- left_join(blast_results_appended, tax_table, copy = TRUE) 
-nrow(blast_results_final) # 10302 - table has correct length now 
-
+nrow(blast_results_final) # old: 10302 - table has correct length now 
+                          # new:  1927 - table may have correct length now? 
 # Part III: Format Blast results for export
 # -----------------------------------------
 
@@ -167,8 +177,15 @@ ggplot(blast_results_final, aes(x = src, y = phylum, fill = phylum)) +
 
 # save object and some time by reloading it
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# old save and load (prior to 24.11.2022)
 # save(blast_results_final, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
-load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
+# load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
+
+# new save and load (prior to 24.11.2022)
+# save(blast_results_final, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221124_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
+load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221124_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
+
 
 # Part II: Format taxonomy table for export and export  
 # -----------------------------------------------------
