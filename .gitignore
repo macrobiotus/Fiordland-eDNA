@@ -2,3 +2,7 @@
 
 *.err
 *.out
+
+# R workspaces and objects
+
+*.Rdata

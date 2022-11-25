@@ -959,11 +959,18 @@
    * `read.accession2taxid("/Users/paul/Sequences/References/taxonomizR_221115/nucl_gb.accession2taxid.gz","/Users/paul/Sequences/References/taxonomizR_221115/nucl_gb.accession2taxid.sqlite", vocal=TRUE)`
  * continued in `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
    * stopped at line 189 - `Part II: Format taxonomy table for export and export`
- * commit 
+   * to continue load `/Users/paul/Documents/OU_eDNA/200901_scripts/ou_edna_workspace.Rdata`
+ * commit `0665dab8e626e3133b5a41a623a7262842b6559f`
 
-## **important queue (last updated 15-Nov-2021):**
+## **25-Nov-2022** - stepping through script
 
-  * finish stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
+ * stepped through `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
+ * inspected exported `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/801_12S_single_end_ee3-seq_q2taxtable.tsv`
+ * `open -a "Microsoft Excel" /Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/801_12S_single_end_ee3-seq_q2taxtable.tsv`
+
+## **important queue (last updated 24-Nov-2021):**
+
+ * step through `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`
 
 ## **Miscellaneous todo (last updated 30-10-2022):**
  

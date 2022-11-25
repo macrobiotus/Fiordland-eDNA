@@ -131,8 +131,6 @@ length(blast_results_appended$tax_id)
 # save(blast_results_appended, file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221124_get_q2_tax-tab__blast-noenv_sliced_taxonomy.Rdata")
 load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221124_get_q2_tax-tab__blast-noenv_sliced_taxonomy.Rdata", verbose=TRUE)
 
-
-
 # look up taxonomy table - takes a long time, needs external database.
 tax_table <- as_tibble(get_strng(blast_results_appended$tax_id), rownames = "tax_id") %>% mutate(tax_id= as.numeric(tax_id))
 nrow(tax_table) 
@@ -146,7 +144,6 @@ nrow(tax_table)
 all(!duplicated(tax_table)) #        and no duplicated tax ids anymore
 lapply(list(blast_results_appended,tax_table), nrow) # old: first 10302, second deduplicated and with 2761 - ok 
                                                      # new: first  1927, second deduplicated and with  956 - ok 
-
 
 # https://stackoverflow.com/questions/5706437/whats-the-difference-between-inner-join-left-join-right-join-and-full-join
 blast_results_final <- left_join(blast_results_appended, tax_table, copy = TRUE) 
@@ -192,9 +189,11 @@ load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221124_get_q2_tax-tab__
 
 # Formatting taxonomy table - selecting relevant columns
 #   to match `#OTUID`, `taxonomy`, `confidence`
-q2taxtable <- blast_results_final %>% 
-  select("iteration_query_def", "superkingdom", "phylum", "class", "order", "family",
-    "genus", "species", "hsp_bit_score") %>% mutate_all(replace_na, "undefined")
+q2taxtable <- blast_results_final %>%
+  select("iteration_query_def", "superkingdom", "phylum", "class", "order", "family", "genus", "species", "hsp_bit_score") %>%
+  mutate(across(c("iteration_query_def", "superkingdom", "phylum", "class", "order", "family", "genus", "species"), ~replace_na(.x, "undefined")))
+
+q2taxtable %>% print(n = 100)
 
 # - Insert further cleanup code here if desirable - 
 
@@ -203,26 +202,29 @@ q2taxtable <- q2taxtable %>% unite(taxonomy, c("superkingdom", "phylum", "class"
   "family", "genus", "species"), sep = ";", remove = TRUE, na.rm = FALSE)
 
 names(q2taxtable) <- c("#OTUID", "taxonomy", "confidence")
+nrow(q2taxtable)
 
 # Extending taxonomy table from fasta file 
 # ----------------------------------------
 
 # read fasta used for Blasting
-fnapth <- "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.fasta"
-fna = readDNAStringSet(fnapth)
+fnapth <- "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.fasta.gz"
+fna <- readDNAStringSet(fnapth)
 length(names(fna)) # back to 2171
 
 # get length of main table without missing hash values
 length(q2taxtable$taxonomy) # 1914 as expected
+                            # 1927 as expected, subsequently
 
 # add missing hash values from fasta to main table to get complete table  
 q2taxtable <- left_join(enframe(names(fna), value = '#OTUID'), q2taxtable, by = c('#OTUID'))
+nrow(q2taxtable)            # 2171 now
 
 # add indicative taxonomy strings
-q2taxtable <- q2taxtable %>% mutate_at(vars(taxonomy), ~replace_na(., "nomatch;nomatch;nomatch;nomatch;nomatch;nomatch;nomatch"))
-q2taxtable <- q2taxtable %>% mutate_at(vars(confidence), ~replace_na(., "0"))
+q2taxtable <- q2taxtable %>% mutate(taxonomy = replace_na(taxonomy, "nomatch;nomatch;nomatch;nomatch;nomatch;nomatch;nomatch"))
+q2taxtable <- q2taxtable %>% mutate(confidence = replace_na(confidence, 0))
 
-q2taxtable$name <- NULL
+q2taxtable %<>% select(-name)
 
 # Part VI: Export tsv  
 # -----------------------------------------------------
@@ -230,5 +232,8 @@ q2taxtable$name <- NULL
 # qiime2R compatibility, added 4-May-2020, doesn't help
 # names(q2taxtable) <- c("Feature.ID", "Taxon", "Confidence")
 
-write_tsv(q2taxtable, file = "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.tsv",
+# write_tsv(q2taxtable, file = "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/800_12S_single_end_ee3-seq_q2taxtable.tsv",
+#  append = FALSE, col_names = TRUE)
+
+write_tsv(q2taxtable, file = "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/801_12S_single_end_ee3-seq_q2taxtable.tsv",
   append = FALSE, col_names = TRUE)
