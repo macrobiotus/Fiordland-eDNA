@@ -987,12 +987,14 @@
  * creating copy for editing `901_q2_summary.sh` - **ran successfully**
  * creating copy for editing `981_q2_export_objects` - **ran successfully**
  * stepping through copied `991_r_get_eDNA_long_table.r`
-   * completed until line 455 - commit ``
+   * completed until line 455
+ * commit `e80c09e3857aa624e2379e61572b6d8e86b412fe` - line 454
+ * commit `` - line 533
 
 
 ## **important queue (last updated 25-Nov-2022):**
 
- * continue stepping through `991_r_get_eDNA_long_table.r` - line 454
+ * continue stepping through `991_r_get_eDNA_long_table.r` - line 533
 
 
 ## **Miscellaneous todo (last updated 30-10-2022):**

@@ -473,6 +473,11 @@ psob_molten %>% group_by(KEY) %>% summarise(KEY = KEY, CNTROL = SAMPLE.TYPE ) %>
 #  blank         eDNA        empty   ncntrl-pcr  ncntrol-xtr pcntrol-blnd 
 #    33          101            3           12            9            2 
 
+#  blank         eDNA   ncntrl-pcr  ncntrol-xtr pcntrol-blnd 
+#     27           80            7            9            2 
+
+
+
 # split data types and print text summaries
 # ------------------------------------------
 dna_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("blank"))
@@ -481,10 +486,10 @@ neg_cntrl <- psob_molten %>% filter(SAMPLE.TYPE %in% c("ncntrl-pcr", "ncntrol-xt
 dna_smpls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("eDNA"))
 
 # some cross contamination - but really low, should affect results if removed check summaries
-capture.output(get_molten_ps_description(dna_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-dna_cntrl_summary.txt")
-capture.output(get_molten_ps_description(pos_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-pos_cntrl_summary.txt")
-capture.output(get_molten_ps_description(neg_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-neg_cntrl_summary.txt")
-capture.output(get_molten_ps_description(dna_smpls) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-dna_smpls_summary.txt")
+capture.output(get_molten_ps_description(dna_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/220912_991_r_get_eDNA_phyloseq__psob-dna_cntrl_summary.txt")
+capture.output(get_molten_ps_description(pos_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/220912_991_r_get_eDNA_phyloseq__psob-pos_cntrl_summary.txt")
+capture.output(get_molten_ps_description(neg_cntrl) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/220912_991_r_get_eDNA_phyloseq__psob-neg_cntrl_summary.txt")
+capture.output(get_molten_ps_description(dna_smpls) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/220912_991_r_get_eDNA_phyloseq__psob-dna_smpls_summary.txt")
 
 # Check cross contamination - visualize positive control data
 # ----------------------------------------------------------
@@ -498,14 +503,14 @@ psob_molten_fish_controls <- get_tidy_molten_ps(psob) %>% mutate(ABUNDANCE = ife
 # show distribution of positive controls across plates
 # reads only visible in the right places at this scale
 show_plate_loading(psob_molten_fish_controls,  ggply = "ABUNDANCE")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-read-counts_chordates_only.pdf", plot = last_plot(), 
+ggsave("221209_991_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-read-counts_chordates_only.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 show_plate_loading(psob_molten_fish_controls,  ggply = "ASVPRESENT")
 # some cross contamination in 3 samples
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-asv-counts_chordates_only.pdf", plot = last_plot(), 
+ggsave("221209_991_r_get_eDNA_phyloseq__psob-pcontrol-plate-loading-asv-counts_chordates_only.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
@@ -525,7 +530,7 @@ treshhold <- qpois(0.95, lmbda$estimate) # will remove 18S with 18 reads or less
 
 rm(psob_molten_fish_controls)
 
-# VI. Check  cross contamination with package `decontam`
+# VI. Check cross-contamination with package `decontam`
 # ======================================================
 # following:
 #   "https://benjjneb.github.io/decontam/vignettes/decontam_intro.html"
