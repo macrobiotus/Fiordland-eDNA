@@ -530,6 +530,9 @@ treshhold <- qpois(0.95, lmbda$estimate) # will remove 18S with 18 reads or less
 
 rm(psob_molten_fish_controls)
 
+# continue here after 9-Dec-2022
+
+
 # VI. Check cross-contamination with package `decontam`
 # ======================================================
 # following:

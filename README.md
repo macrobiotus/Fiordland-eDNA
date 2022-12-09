@@ -988,9 +988,8 @@
  * creating copy for editing `981_q2_export_objects` - **ran successfully**
  * stepping through copied `991_r_get_eDNA_long_table.r`
    * completed until line 455
- * commit `e80c09e3857aa624e2379e61572b6d8e86b412fe` - line 454
- * commit `` - line 533
-
+ * commit `e80c09e3857aa624e2379e61572b6d8e86b412fe` - line 455
+ * commit `ac53d517f3b76cd5e280d1c203ddec9b49d6ccd9` - line 533
 
 ## **important queue (last updated 25-Nov-2022):**
 
