@@ -84,6 +84,7 @@ metadata$`long-dd` <- enc2utf8(metadata$`long-dd`)
 
 #  Write Qiime2-compatible metadata file
 # =======================================
+# omitted on run 9-Dec-2002
 
 p_compl <- "/Users/paul/Documents/OU_eDNA/201126_preprocessing/metadata/850_prep_q2_predictor-tab__metadata.tsv"
 write_tsv(metadata, p_compl, append = FALSE, col_names = TRUE)

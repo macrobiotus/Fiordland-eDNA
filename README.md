@@ -967,13 +967,36 @@
  * stepped through `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
  * inspected exported `/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/801_12S_single_end_ee3-seq_q2taxtable.tsv`
  * `open -a "Microsoft Excel" /Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/801_12S_single_end_ee3-seq_q2taxtable.tsv`
+ * commit `00180b3563a0055d8c103482360891e60288dfa9`
 
-## **important queue (last updated 24-Nov-2021):**
+## **12-Dec-2022** - continuing analysis refresh for manuscript resubmission
 
- * step through `/Users/paul/Documents/OU_eDNA/200901_scripts/850_r_prep_q2_predictor-tab.r`
+ * stepped through `850_r_prep_q2_predictor-tab.r`
+ * running  `/Users/paul/Documents/OU_eDNA/200901_scripts/900_q2_summary.sh`
+    * using `qiime2-2021.4`, not as previously `qiime2-2020.8` - **ok**
+    * converting taxonomy file with new Blast results from `tsv` to Qiime as done **03-Feb-2021* :
+      `qiime tools import \
+         --input-path  "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/801_12S_single_end_ee3-seq_q2taxtable.tsv" \
+         --output-path "/Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/801_12S_single_end_ee3-seq_q2taxtable.qza" \
+         --type 'FeatureData[Taxonomy]' \
+         --input-format HeaderlessTSVTaxonomyFormat || { echo 'Taxonomy import failed' ; exit 1; }`
+ 
+ * running `/Users/paul/Documents/OU_eDNA/200901_scripts/980_q2_export_objects.sh`  - **ok**
+ * inspected `900_q2_summary.sh` - skipping
+ * inspected `980_q2_export_objects.sh` - skipping
+ * creating copy for editing `901_q2_summary.sh` - **ran successfully**
+ * creating copy for editing `981_q2_export_objects` - **ran successfully**
+ * stepping through copied `991_r_get_eDNA_long_table.r`
+   * completed until line 455 - commit ``
+
+
+## **important queue (last updated 25-Nov-2022):**
+
+ * continue stepping through `991_r_get_eDNA_long_table.r` - line 454
+
 
 ## **Miscellaneous todo (last updated 30-10-2022):**
- 
+ * keep in mind that new plots have been generated e.g. by script 990
  * run finished MetaFishLib Blast`/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_nesi.sh`
  * get taxonomy information for MetaFishLib
    * email Ruppert - how to do this? - MEGAN / Blast
