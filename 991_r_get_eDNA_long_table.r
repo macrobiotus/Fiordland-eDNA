@@ -561,7 +561,7 @@ ggplot(data = psob_df, aes(x=Index, y=LibrarySize, color=sample.type)) + geom_po
           xlab("libraries, sorted by size") + 
           ylab("read counts")
 
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered_library_size_per_sample_type.pdf", plot = last_plot(), 
+ggsave("221210_991_r_get_eDNA_phyloseq__psob-unfiltered_library_size_per_sample_type.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 75, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
@@ -584,7 +584,7 @@ which(contamdf.freq$contaminant) # indices for contaminant ASVs
 plot_frequency(psob_input, taxa_names(psob)[which(contamdf.freq$contaminant)], conc="ng.ul") +
     xlab("DNA Concentration (PicoGreen fluorescent intensity)")
 
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-unfiltered_likely_contaminants.pdf", plot = last_plot(), 
+ggsave("221012_991_r_get_eDNA_phyloseq__psob-unfiltered_likely_contaminants.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 250, height = 125, units = c("mm"),
          dpi = 500, limitsize = TRUE)
@@ -614,8 +614,8 @@ psob_cont_molten_chrd <- psob_cont_molten %>% mutate(ABUNDANCE = ifelse(PHYLUM %
 psob_eDNA_molten_chrd <- psob_eDNA_molten %>% mutate(ABUNDANCE = ifelse(PHYLUM %in% c("Chordata"), ABUNDANCE, 0))
 
 # get text summaries
-capture.output(get_molten_ps_description(psob_cont_molten_chrd) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-dna_cont_summary.txt")
-capture.output(get_molten_ps_description(psob_eDNA_molten_chrd) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-dna_eDNA_summary.txt")
+capture.output(get_molten_ps_description(psob_cont_molten_chrd) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/221210_991_r_get_eDNA_phyloseq__psob-dna_cont_summary.txt")
+capture.output(get_molten_ps_description(psob_eDNA_molten_chrd) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/221210_991_r_get_eDNA_phyloseq__psob-dna_eDNA_summary.txt")
 
 # check plate loadings of both categories
 show_plate_loading(psob_cont_molten_chrd,  ggply = "ABUNDANCE")
@@ -643,7 +643,7 @@ unique(psob_molten$SAMPLE.TYPE) # "eDNA": eDNA sample
 # remove all species and ASVs found in all controls 
 # isolate all control data in unison 
 psob_molten_all_controls <- psob_molten %>% filter(SAMPLE.TYPE %in% c("pcntrol-blnd", "ncntrl-pcr", "blank", "ncntrol-xtr"))
-capture.output(get_molten_ps_description(psob_molten_all_controls) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-all_controls_summary.txt")
+capture.output(get_molten_ps_description(psob_molten_all_controls) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/221210_991_r_get_eDNA_phyloseq__psob-all_controls_summary.txt")
 
 
 # pull out all species and asvs that have to be removed from everywhere
@@ -654,25 +654,25 @@ cont_spec <- psob_molten_all_controls %>% pull(SPECIES) %>% unique()
 psob_molten_all_contamination <-  psob_molten %>% filter(ASV %in% cont_asvs | SPECIES %in% cont_spec[1:9])
 
 show_plate_loading(psob_molten_all_contamination,  ggply = "ASVPRESENT")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-contamination-plate-loading-asv-counts.pdf", plot = last_plot(), 
+ggsave("221210_991_r_get_eDNA_phyloseq__psob-contamination-plate-loading-asv-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 show_plate_loading(psob_molten_all_contamination,  ggply = "ABUNDANCE")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-contamination-plate-loading-read-counts.pdf", plot = last_plot(), 
+ggsave("221210_991_r_get_eDNA_phyloseq__psob-contamination-plate-loading-read-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 get_default_coverage_plot (psob_molten_all_contamination, taxlev = "PHYLUM", ptitl = "Contamination across all locations before filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "read counts at each location (y scales fixed)")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-contamination-location-read-counts.pdf", plot = last_plot(), 
+ggsave("221210_991_r_get_eDNA_phyloseq__psob-contamination-location-read-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 30, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 get_default_ocurrence_plot (psob_molten_all_contamination, taxlev = "PHYLUM", ptitl = "Contamination across all locations before filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "ASV counts at each location (y scales fixed)")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-contamination-location-asv-counts.pdf", plot = last_plot(), 
+ggsave("221210_991_r_get_eDNA_phyloseq__psob-contamination-location-asv-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 30, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
@@ -682,18 +682,18 @@ ggsave("210211_990_r_get_eDNA_phyloseq__psob-contamination-location-asv-counts.p
 psob_molten_clean <- anti_join(psob_molten, psob_molten_all_contamination, by = "ASV", copy = FALSE)
 
 get_default_coverage_plot (psob_molten_clean, taxlev = "PHYLUM", ptitl = "Phyla across all locations after filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "read counts at each location (y scales fixed)")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-eDNA-location-read-counts.pdf", plot = last_plot(), 
+ggsave("221210_991_r_get_eDNA_phyloseq__psob-eDNA-location-read-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 90, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 get_default_ocurrence_plot (psob_molten_clean, taxlev = "PHYLUM", ptitl = "Phyla across all locations after filtering", pxlab = "phyla (NCBI taxonomy)", pylab =  "ASV counts at each location (y scales fixed)")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-eDNA-location-asv-counts.pdf", plot = last_plot(), 
+ggsave("221210_991_r_get_eDNA_phyloseq__psob-eDNA-location-asv-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 90, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-capture.output(get_molten_ps_description(psob_molten_clean) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-all_data_summary.txt")
+capture.output(get_molten_ps_description(psob_molten_clean) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/221210_991_r_get_eDNA_phyloseq__psob-all_data_summary.txt")
 
 # remove low abundance reads
 #   check the lower end of the read count distribution 
@@ -707,7 +707,7 @@ possible_cc <- psob_molten_clean %>% filter(ABUNDANCE <= treshhold) %>% filter(P
 #   Trichosurus vulpecula
 #   Sus scrofa
 get_molten_ps_description(possible_cc) 
-capture.output(get_molten_ps_description(possible_cc) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__low_abundance_reads__summary.txt")
+capture.output(get_molten_ps_description(possible_cc) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/221210_991_r_get_eDNA_phyloseq__low_abundance_reads__summary.txt")
 
 # subtract possible cross contamination (by abundance) and inspect again 
 psob_molten_clean_new <- anti_join(psob_molten_clean, possible_cc, by = "ASV", copy = FALSE)
@@ -724,7 +724,7 @@ psob_molten_clean_new %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES) %
 # get a full species list with Chordates at the top
 psob_molten_clean_chordates_top <- psob_molten_clean_new %>% mutate(ABUNDANCE = ifelse(PHYLUM %in% c("Chordata"), ABUNDANCE, 0))
 
-capture.output(get_molten_ps_description(psob_molten_clean_chordates_top) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-all_data_and_chordates_summary.txt")
+capture.output(get_molten_ps_description(psob_molten_clean_chordates_top), file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/221210_991_r_get_eDNA_phyloseq__psob-all_data_and_chordates_summary.txt")
 
 
 # VIII. Isolate fish and marine mammals (started 22-02-2021)
@@ -745,7 +745,9 @@ psob_molten_clean_marine
 
 # load formatted Blast result table - from /Users/paul/Documents/OU_eDNA/200901_scripts/800_r_get_q2_tax-tab.r
 #    limit search space by constraining to chordates
-load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
+# load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/210202_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
+load(file="/Users/paul/Documents/OU_eDNA/201028_Robjects/221124_get_q2_tax-tab__blast-noenv_with-ncbi_taxonomy.Rdata")
+
 blast_results_final_chord <-  blast_results_final %>% filter(phylum %in% c("Chordata"))
 names(blast_results_final_chord)
 
@@ -764,55 +766,74 @@ names(blast_results_final_chord)
 #     Hsp_align-len -  The alignment length of the HSP.
 #     Scaffold Seq A link to the scaffold genomic sequence for the HSP.
 
-blast_results_final_chord_slct <- blast_results_final_chord %>% select(iteration_query_def, hsp_num,  hsp_bit_score, hsp_evalue, iteration_query_len, hsp_query_from, hsp_query_to, hsp_identity, hsp_positive, hsp_gaps, hsp_align_len) %>% print(n = Inf)
+# 10.12.2022: last line of select call are new variables, defining blast score quality
+#   defined in script "/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r"
+blast_results_final_chord_slct <- blast_results_final_chord %>%
+  select(iteration_query_def, hsp_num,  hsp_bit_score, hsp_evalue, iteration_query_len, hsp_query_from,
+         hsp_query_to, hsp_identity, hsp_positive, hsp_gaps, hsp_align_len,
+         avg_hsp_bit_score, max_hsp_bit_score, max_hsp_bit_score_lgl, abvavg_max_hsp_bit_score_lgl) # %>% print(n = Inf)
 
 # calculate mismatch percentage 
-blast_results_final_chord_slct %<>% mutate(hsp_identity_perc = hsp_positive / iteration_query_len) %>% print(n = Inf)
+blast_results_final_chord_slct %<>% mutate(hsp_identity_perc = hsp_positive / iteration_query_len) # %>% print(n = Inf)
 
 # merge information with cleaned eDNA object
 psob_molten_clean_marine <- left_join(psob_molten_clean_marine, blast_results_final_chord_slct, by = c("ASV" = "iteration_query_def"), keep = FALSE)
 
 # check if all info is there
 psob_molten_clean_marine$hsp_identity_perc
+
 summary(psob_molten_clean_marine$hsp_identity_perc)
+
+# older Blast results:
 #    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #  0.7868  0.8596  0.9702  0.9302  0.9882  1.0000 
+
+# Blast results from last quarter of 2022 - slightly higher percentage
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.7868  0.8806  0.9643  0.9340  0.9882  1.0000
+
+
 summary(psob_molten_clean_marine$hsp_bit_score) 
+
+# older Blast results:
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #   141.0   213.2   281.7   258.0   301.5   345.7
 
+# Blast results from last quarter of 2022 - slightly higher bitscores
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#  141.0   222.2   281.7   265.2   303.4   345.7 
 
 # X. Summarize data 
 # ==================
 
 # show plate loading 
 show_plate_loading(psob_molten_clean_marine,  ggply = "ABUNDANCE")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-read-counts.pdf", plot = last_plot(), 
+ggsave("221210_991_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-read-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 # plot composition per location
 get_default_coverage_plot (psob_molten_clean_marine, taxlev = "FAMILY", ptitl = "Marine families across all locations (read counts)", pxlab = "families (NCBI taxonomy)", pylab =  "read counts at each location (y scales fixed)")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-location-read-counts.pdf", plot = last_plot(), 
+ggsave("221210_991_r_get_eDNA_phyloseq__psob-clean_marine-location-read-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 120, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 get_default_ocurrence_plot (psob_molten_clean_marine, taxlev = "FAMILY", ptitl = "Marine families across all locations (sequence variants)", pxlab = "families (NCBI taxonomy)", pylab =  "ASV counts at each location (y scales fixed)")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-location-asv-counts.pdf", plot = last_plot(), 
+ggsave("221210_991_r_get_eDNA_phyloseq__psob-clean_marine-location-asv-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 120, height = 60, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 show_plate_loading(psob_molten_clean_marine,  ggply = "ASVPRESENT")
-ggsave("210211_990_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-asv-counts.pdf", plot = last_plot(), 
+ggsave("221210_991_r_get_eDNA_phyloseq__psob-clean_marine-plate-loading-asv-counts.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/figures",
          scale = 3, width = 125, height = 50, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 # get text summary
-capture.output(get_molten_ps_description(psob_molten_clean_marine) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_summary.txt")
+capture.output(get_molten_ps_description(psob_molten_clean_marine) , file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/221210_991_r_get_eDNA_phyloseq__psob-clean_marine_summary.txt")
 
 # revision 25-03-2021: get_molten_ps_description works like so:
 psob_molten_clean_marine %>% group_by(SAMPLE) %>% summarize(n = sum(ABUNDANCE)) %>% pull(n) %>% summary()
@@ -826,8 +847,9 @@ psob_molten_clean_marine %>% group_by(ASV) %>% summarize(n = sum(ABUNDANCE)) %>%
 coverage_per_asv_cm <- aggregate(psob_molten_clean_marine$ABUNDANCE, by=list(ASV=psob_molten_clean_marine$ASV), FUN=sum)
   show_vars <- c("ASV", "ABUNDANCE", "SAMPLE", "LOC.NAME", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES")
   coverage_per_asv_cm_list <- left_join(coverage_per_asv_cm, psob_molten_clean_marine, by = c("ASV" = "ASV")) %>%
-    distinct_at(vars("ASV", "x", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES", "hsp_bit_score", "hsp_identity_perc"))
-capture.output(coverage_per_asv_cm_list %>% arrange(desc(hsp_identity_perc), SPECIES, desc(x)) %>% head(., n = Inf) %>% print(), file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/210211_990_r_get_eDNA_phyloseq__psob-clean_marine_asv_summary_with_quality.txt")
+    distinct_at(vars("ASV", "x", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES", "hsp_bit_score", "hsp_identity_perc",
+    "avg_hsp_bit_score", "max_hsp_bit_score", "max_hsp_bit_score_lgl", "abvavg_max_hsp_bit_score_lgl")) # this line added 10.12.2022 for new Blast results
+capture.output(coverage_per_asv_cm_list %>% arrange(desc(hsp_identity_perc), SPECIES, desc(x)) %>% head(., n = Inf) %>% print(), file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/text_summaries/221210_991_r_get_eDNA_phyloseq__psob-clean_marine_asv_summary_with_quality.txt")
 
 # XI. Get abundance values for biologically replicate observations in clean data 
 # ===============================================================================
@@ -858,8 +880,8 @@ overview <- left_join(overview, dplyr::select(psob_molten_clean_marine, SAMPLE.N
 # write sample overview
 # ---------------------
 # save overview for writing and if needed later
-write.xlsx(overview, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.xlsx", asTable = FALSE)
-save(overview, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210211_990_r_get_eDNA_phyloseq__eDNA_sampling_success.Rds")
+write.xlsx(overview, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/221012_991_r_get_eDNA_phyloseq__eDNA_sampling_success.xlsx", asTable = FALSE)
+save(overview, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/221012_991_r_get_eDNA_phyloseq__eDNA_sampling_success.Rds")
 
 
 # XII. Merge replicate water samples
@@ -886,7 +908,7 @@ clean_marine %>% select(PHYLUM, CLASS, ORDER , FAMILY, GENUS, SPECIES, HSP.IDENT
 clean_marine <- clean_marine %>% mutate(NCBI.TAXDB.INC = FALSE)
 
 # save or load molten state
-save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_990_r_get_eDNA_long_table__export_workspace.Rdata")
-write.xlsx(clean_marine, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210301_990_r_get_eDNA_long_table__eDNA_data.xlsx", overwrite = TRUE, asTable = FALSE)
-saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_990_r_get_eDNA_long_table__eDNA_data.Rds")
-saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_990_r_get_eDNA_long_table__eDNA_data.Rds")
+save.image(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/221210_991_r_get_eDNA_long_table__export_workspace.Rdata")
+write.xlsx(clean_marine, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/221210_991_r_get_eDNA_long_table__eDNA_data.xlsx", overwrite = TRUE, asTable = FALSE)
+saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/221210_991_r_get_eDNA_long_table__eDNA_data.Rds")
+saveRDS(clean_marine, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/221210_991_r_get_eDNA_long_table__eDNA_data.Rds")

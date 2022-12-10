@@ -969,7 +969,7 @@
  * `open -a "Microsoft Excel" /Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/801_12S_single_end_ee3-seq_q2taxtable.tsv`
  * commit `00180b3563a0055d8c103482360891e60288dfa9`
 
-## **12-Dec-2022** - continuing analysis refresh for manuscript resubmission
+## **09-Dec-2022** - continuing analysis refresh for manuscript resubmission
 
  * stepped through `850_r_prep_q2_predictor-tab.r`
  * running  `/Users/paul/Documents/OU_eDNA/200901_scripts/900_q2_summary.sh`
@@ -989,11 +989,16 @@
  * stepping through copied `991_r_get_eDNA_long_table.r`
    * completed until line 455
  * commit `e80c09e3857aa624e2379e61572b6d8e86b412fe` - line 455
- * commit `ac53d517f3b76cd5e280d1c203ddec9b49d6ccd9` - line 533
+ * commit `50f3ea87db24fc46b45fffa0064213cb13c57335` - line 533
+ 
+## **10-Dec-2022** - continuing analysis refresh for manuscript resubmission
+
+ * finished stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/991_r_get_eDNA_long_table.r`
+ * commit ``
 
 ## **important queue (last updated 25-Nov-2022):**
 
- * continue stepping through `991_r_get_eDNA_long_table.r` - line 533
+ * start stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_long_table.r`
 
 
 ## **Miscellaneous todo (last updated 30-10-2022):**

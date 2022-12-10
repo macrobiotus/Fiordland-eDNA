@@ -2,7 +2,7 @@
 # * Create, filter, and write long table object  *
 #            from BRUV observations              * 
 # ************************************************
-# 26-Aug-2022, 22-Feb-2021, 23-Feb-2021, 25-Feb-2021, 26-Feb-2021
+# 26-Aug-2020, 22-Feb-2021, 23-Feb-2021, 25-Feb-2021, 26-Feb-2021, 10-Dec-2022
 
 # I. Load packages
 # ================
