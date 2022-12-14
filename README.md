@@ -994,27 +994,30 @@
 ## **10-Dec-2022** - continuing analysis refresh for manuscript resubmission
 
  * finished stepping through `991_r_get_eDNA_long_table.r`
+ * finished stepping through `996_r_get_BRUV_long_table.r`
  * commit `2885bbc4ee470765621d97850aeb4f3cf0d79f34`
 
 ## **14-Dec-2022** - continuing analysis refresh for manuscript resubmission
 
-* start stepping through `996_r_get_PUBL_long_table.r`
-  * attempt including synonyms lookup via `rfishbase`
-  * one fish has been renamed
-    * in corrected list as "Forsterygion capito"
-    * in literature list as "Grahamina capito"
-  * NCBI tax lookup succede for "Hypoplectrodes huntii", found 14.12.2022
-  * formerly: 34 Genera, 42 species fully resolved
-  * today:    36 Genera, 44 species fully resolved
-* finished stepping through `996_r_get_PUBL_long_table.r`
-* commit ``
-
-
+ * start stepping through `996_r_get_PUBL_long_table.r`
+ * attempt including synonyms lookup via `rfishbase`
+ * one fish has been renamed
+   * in corrected list as "Forsterygion capito"
+   * in literature list as "Grahamina capito"
+ * NCBI tax lookup succede for "Hypoplectrodes huntii", found 14.12.2022
+ * formerly: 34 Genera, 42 species fully resolved
+ * today:    36 Genera, 44 species fully resolved
+ * finished stepping through `996_r_get_PUBL_long_table.r`
+ * commit `0f0aeb4fa649cf333a6d05b20e0075f72f0306fe`
+ * finished walking through copied file `998_r_format_longtables`
+ * created copy `999_r_get_OBIS_and_map.r`
+ * created copy `999_r_summarize_results.r`
+ * commit `foo`
+ 
 ## **important queue (last updated 14-Dec-2022):**
 
-* again check for synonyms and step through `/Users/paul/Documents/OU_eDNA/200901_scripts/996_r_get_BRUV_long_table.r`
-* again check for synonyms and step through `/Users/paul/Documents/OU_eDNA/200901_scripts/991_r_get_eDNA_long_table.r`
-
+ * step through `999_r_get_OBIS_and_map.r` and check for synonyms
+ * step through `999_r_summarize_results.r` and check for synonyms
  
 
 ## **Miscellaneous todo (last updated 30-10-2022):**
