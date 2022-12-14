@@ -993,13 +993,29 @@
  
 ## **10-Dec-2022** - continuing analysis refresh for manuscript resubmission
 
- * finished stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/991_r_get_eDNA_long_table.r`
- * commit ``
+ * finished stepping through `991_r_get_eDNA_long_table.r`
+ * commit `2885bbc4ee470765621d97850aeb4f3cf0d79f34`
 
-## **important queue (last updated 25-Nov-2022):**
+## **14-Dec-2022** - continuing analysis refresh for manuscript resubmission
 
- * start stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/995_r_get_BRUV_long_table.r`
+* start stepping through `996_r_get_PUBL_long_table.r`
+  * attempt including synonyms lookup via `rfishbase`
+  * one fish has been renamed
+    * in corrected list as "Forsterygion capito"
+    * in literature list as "Grahamina capito"
+  * NCBI tax lookup succede for "Hypoplectrodes huntii", found 14.12.2022
+  * formerly: 34 Genera, 42 species fully resolved
+  * today:    36 Genera, 44 species fully resolved
+* finished stepping through `996_r_get_PUBL_long_table.r`
+* commit ``
 
+
+## **important queue (last updated 14-Dec-2022):**
+
+* again check for synonyms and step through `/Users/paul/Documents/OU_eDNA/200901_scripts/996_r_get_BRUV_long_table.r`
+* again check for synonyms and step through `/Users/paul/Documents/OU_eDNA/200901_scripts/991_r_get_eDNA_long_table.r`
+
+ 
 
 ## **Miscellaneous todo (last updated 30-10-2022):**
  * keep in mind that new plots have been generated e.g. by script 990
