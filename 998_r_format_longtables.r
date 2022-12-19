@@ -183,5 +183,8 @@ save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221214_998_
 write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/221214_998_r_format_longtables__analysis_input.xlsx", asTable = FALSE, overwrite = TRUE)
 
 # for previous analysis by MDL
-saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input.Rds")
-saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds")
+# saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input.Rds")
+# saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210301_997_r_format_longtables__analysis_input.Rds")
+saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/221214_998_r_format_longtables__analysis_input.Rds")
+saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/221214_998_r_format_longtables__analysis_input.Rds")
+

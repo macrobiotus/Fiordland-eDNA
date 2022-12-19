@@ -15,15 +15,15 @@ library("magrittr") # more pipes
 
 library("robis")       # access OBIS data
 
+library("rgdal")          # create buffer around sampling areas
 library("sf")          # create buffer around sampling areas
 library("sp")
 
 library("taxonomizr")  # get NCBI tax ids
 
 library("taxize") # better then "taxonomizr" - may use and recode
-Sys.setenv(ENTREZ_KEY="a634c6e9c96c3859bca27a2771f6d2872f08")
+Sys.setenv(ENTREZ_KEY="YourAPIKeyHere")
 Sys.getenv("ENTREZ_KEY")
-
 
 library("readxl")      # read Excel files
 library("openxlsx")    # write Excel tables
@@ -40,7 +40,7 @@ options(tibble.print_max = Inf)
 # III. Load data 
 # ==============
 
-long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210301_997_r_format_longtables__analysis_input.Rds")
+long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/221214_998_r_format_longtables__analysis_input.Rds")
 
 # IV. prepare OBIS data and a map
 # ================================
@@ -50,7 +50,7 @@ long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/2103
 # of
 #  /Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r
 
-# get a table with relevant columns  for OBIS lookup
+# get a table with relevant columns for OBIS lookup
 lt_obis_lookup <- long_table %>% 
   select("SET.ID", "MH.GPS.LAT", "MH.PPS.LONG",  "RESERVE.GROUP", "RESERVE.GROUP.INSIDE", "RESERVE.GROUP.LOCATION") %>%
   distinct() %>% arrange(SET.ID) 
@@ -79,8 +79,8 @@ lt_obis_lookup %>% print(n= Inf)
 # https://www.earthdatascience.org/courses/earth-analytics/spatial-data-r/understand-epsg-wkt-and-other-crs-definition-file-types/
 # check cordinates sytems
 EPSG <- rgdal::make_EPSG()
-EPSG %>% filter(code == 4326)
-head(EPSG, 3)
+EPSG %>% filter(code %in% c(4326, 2193))
+head(EPSG, 4)
 
 # for buffer calculation - get sample coordinates as sf object with coordinates in EPSG 4326 / WGS84
 lt_obis_lookup_sf <- st_as_sf(lt_obis_lookup,coords=c("MH.PPS.LONG","MH.GPS.LAT")) 
@@ -122,7 +122,6 @@ bbox <- lt_obis_lookup %>%
   summarise(do_union=FALSE) %>%
   st_cast('POLYGON')
 
-
 # check sf objects - looking ok so far
 ggplot() +
     geom_sf(data = nzshp_hires_WGS84, fill = "lightgrey") + 
@@ -135,9 +134,9 @@ ggplot() +
 # ----------------------------------------------
 
 # for buffer generation re-project objects to local kms and check again
-lt_obis_lookup_sf_loc <- lt_obis_lookup_sf %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
-nzshp_hires_WGS84_loc <- nzshp_hires_WGS84 %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
-bbox_loc <- bbox %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84 +units=km"))
+lt_obis_lookup_sf_loc <- lt_obis_lookup_sf %>% st_transform(crs = st_crs(2193))
+nzshp_hires_WGS84_loc <- nzshp_hires_WGS84 %>% st_transform(crs = st_crs(2193))
+bbox_loc <- bbox %>% st_transform(crs = st_crs(2193))
 
 # calculate 2.5 km buffers - for inside cols
 # calculate 2.5 km buffers - for outside cols - needs to be one great circle
@@ -146,11 +145,11 @@ bbox_loc <- bbox %>% st_transform(crs = st_crs("+proj=utm +zone=58G +datum=WGS84
 rows_inside  <- c(1:nrow(lt_obis_lookup_sf_loc)-1)
 rows_outside <- c(nrow(lt_obis_lookup_sf_loc))
 
-lt_obis_lookup_sf_buffer_loc <- st_buffer(lt_obis_lookup_sf_loc[rows_inside,  ], 2.5)
-lt_obis_lookup_sf_buffer_loc <- rbind(lt_obis_lookup_sf_buffer_loc, st_buffer(lt_obis_lookup_sf_loc[rows_outside, ], 38))
+lt_obis_lookup_sf_buffer_loc <- st_buffer(lt_obis_lookup_sf_loc[rows_inside,  ], 2500)
+lt_obis_lookup_sf_buffer_loc <- rbind(lt_obis_lookup_sf_buffer_loc, st_buffer(lt_obis_lookup_sf_loc[rows_outside, ], 38000))
 
 # central coordinate for paper: 166.8948 -45.80689
-lt_obis_lookup_sf_loc[rows_outside, ] %>% st_transform(crs = st_crs(" +proj=longlat +datum=WGS84 +no_defs +type=crs"))
+lt_obis_lookup_sf_loc[rows_outside, ] %>% st_transform(crs = st_crs(2193))
 
 # map to check object and for publication - unit is in km
 #  check sf objects  - bounding box as defined per lt_obis_lookup_sf and 10 km in addition
@@ -163,12 +162,12 @@ map_main <- ggplot() +
     geom_sf(data = bbox_loc, fill = NA, color = "darkred") +
     stat_sf_coordinates(data = filter(lt_obis_lookup_sf_loc, RESERVE.GROUP != "FI"), aes(shape = RESERVE.GROUP), color = "darkred", size = 3) +
     stat_sf_coordinates(data = filter(lt_obis_lookup_sf_loc, RESERVE.GROUP != "FI"), aes(shape = RESERVE.GROUP), color = "red", size = 1) +
-    geom_sf_label(data=bbox_loc, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6) + 
-    coord_sf( xlim = c((619.6011-10), (653.8977+10)), ylim = c((-5100.241-10),(-5042.894+10)) , expand = FALSE) +
-    annotation_custom(ggplotGrob(map_inset), xmin = 610, xmax = 625, ymin = -5065, ymax = -5025) + 
+    geom_sf_label(data=bbox_loc, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 4500, nudge_y = 4000) + 
+    coord_sf( xlim = c((1125643-40000), (1125643+5000)), ylim = c((4909254-30000),(4909254+35000)), expand = FALSE) +
+    annotation_custom(ggplotGrob(map_inset), xmin = 1125643-40000, xmax = 1125643-25000, ymin = 4909254+5000, ymax = 4909254+45000) + 
     theme_bw() +
     theme(legend.title = element_blank(), 
-          legend.position=c(.9,.1), 
+          legend.position=c(.9,.4), 
           legend.background = element_blank(), 
           legend.key=element_blank(),
           axis.title.x=element_blank(),
@@ -178,10 +177,10 @@ map_main <- ggplot() +
 #  /Users/paul/Documents/OU_eDNA/200901_scripts/998_r_summarize_results.r
 
 
-# save imgae for combination with other plots
-saveRDS(map_main, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
+# save image for combination with other plots
+saveRDS(map_main, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_get_OBIS_and_map__mapggplot.Rds")
 
-ggsave("210401_998_r_summarize_results_fig1_draft.pdf", plot = last_plot(), 
+ggsave("221219_999_r_summarize_results_fig1_draft.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1, width = 125, height = 175, units = c("mm"),
          dpi = 500, limitsize = TRUE)
@@ -195,7 +194,9 @@ lt_obis_lookup_sf_buffer_d %<>% mutate(BUFFER.WKT = st_as_text(geometry))
 # simplify object to make life easier for later analyses
 lt_obis_lookup <- st_drop_geometry(lt_obis_lookup_sf_buffer_d)
 
-# V. fetch OBIS data (Wed Jul  24 10:45:50 NZST 2021)
+# V. fetch OBIS data 
+#   (Wed Jul 24 10:45:50 NZST 2021)
+#   (Mon Dec 19 17:39:55 CET 2022)
 # ==================================================
 
 # create nested data frame for OBIS lookup -  WKT polygons will go to $data slot
@@ -208,6 +209,9 @@ get_obis <- function(BUFFER.WKT) occurrence(taxon = 1821, geometry = BUFFER.WKT)
 
 # fill nested data frame with OBIS data
 lt_obis_lookup %<>% mutate(OBIS = map(BUFFER.WKT.NST, get_obis)) # OBIS access may take some time
+
+# -- continue here after 19-Dec-2022 --
+
 lt_obis_lookup %>% print(n = Inf)                                # continue here after 24-Jul-2021
                                                                  # work space saved 
 
@@ -215,10 +219,10 @@ lt_obis_lookup %>% print(n = Inf)                                # continue here
 lt_obis_results <- unnest(lt_obis_lookup, cols = c(BUFFER.WKT.NST, OBIS))
 
 # save table to save lookup time
-saveRDS(lt_obis_results, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_add_obis__lt_obis_results.Rds")
-saveRDS(lt_obis_results, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210705_998_r_map_and_add_obis__lt_obis_results.Rds")
+saveRDS(lt_obis_results, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/221219_999_r_map_and_add_obis__lt_obis_results.Rds")
+saveRDS(lt_obis_results, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/221219_999_r_map_and_add_obis__lt_obis_results.Rds")
 
-lt_obis_results <- readRDS("/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/210705_998_r_map_and_add_obis__lt_obis_results.Rds")
+lt_obis_results <- readRDS("/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/221219_999_r_map_and_add_obis__lt_obis_results.Rds")
 
 # VI. format OBIS data (NCBI taxonomy addition)
 # =============================================

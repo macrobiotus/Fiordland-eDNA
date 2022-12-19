@@ -1012,15 +1012,25 @@
  * finished walking through copied file `998_r_format_longtables`
  * created copy `999_r_get_OBIS_and_map.r`
  * created copy `999_r_summarize_results.r`
- * commit `foo`
+ * commit `de39e0d376d3e3fb1b91b60448e63e95d03357d6`
+
+## **19-Dec-2022** - continuing analysis refresh for manuscript resubmission
+
+ * start stepping through `999_r_get_OBIS_and_map.r` and check for synonyms
+   * corrected export file names in `998_r_format_longtables.r`
+  * used date "221214"
+  * re-exported map with new crs `2193` (NZGD2000 / New Zealand Transverse Mercator 2000 -- New Zealand Transverse Mercator (NZTM))
+  * new map at `/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/221219_999_r_summarize_results_fig1_draft.pdf`
+  * stared OBIS lookup ``
+
  
 ## **important queue (last updated 14-Dec-2022):**
 
  * step through `999_r_get_OBIS_and_map.r` and check for synonyms
  * step through `999_r_summarize_results.r` and check for synonyms
  
-
 ## **Miscellaneous todo (last updated 30-10-2022):**
+
  * keep in mind that new plots have been generated e.g. by script 990
  * run finished MetaFishLib Blast`/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_nesi.sh`
  * get taxonomy information for MetaFishLib
