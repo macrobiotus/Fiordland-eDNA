@@ -1021,7 +1021,10 @@
   * used date "221214"
   * re-exported map with new crs `2193` (NZGD2000 / New Zealand Transverse Mercator 2000 -- New Zealand Transverse Mercator (NZTM))
   * new map at `/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/221219_999_r_summarize_results_fig1_draft.pdf`
-  * stared OBIS lookup ``
+  * stared OBIS lookup 
+  * commit `9961020d7fec12cf09031b1140792a56ac247cd9`
+  * finished OBIS and NCBI lookup, saved workspace
+  * commit `` 
 
  
 ## **important queue (last updated 14-Dec-2022):**

@@ -196,7 +196,7 @@ lt_obis_lookup <- st_drop_geometry(lt_obis_lookup_sf_buffer_d)
 
 # V. fetch OBIS data 
 #   (Wed Jul 24 10:45:50 NZST 2021)
-#   (Mon Dec 19 17:39:55 CET 2022)
+#   (Mon Dec 19 17:57:47 CET 2022)
 # ==================================================
 
 # create nested data frame for OBIS lookup -  WKT polygons will go to $data slot
@@ -210,7 +210,8 @@ get_obis <- function(BUFFER.WKT) occurrence(taxon = 1821, geometry = BUFFER.WKT)
 # fill nested data frame with OBIS data
 lt_obis_lookup %<>% mutate(OBIS = map(BUFFER.WKT.NST, get_obis)) # OBIS access may take some time
 
-# -- continue here after 19-Dec-2022 --
+# Retrieved 5278 records of approximately 5278 (100%) - Mon Dec 19 17:57:47 CET 2022
+
 
 lt_obis_lookup %>% print(n = Inf)                                # continue here after 24-Jul-2021
                                                                  # work space saved 
@@ -233,9 +234,9 @@ lt_obis_results <- readRDS("/Users/paul/Documents/OU_eDNA/200403_manuscript/5_on
 # UNIQ.REP.IDS = ?
 # REP.IDS = 4
 
-# 50 species found
+# 50 species found (Wed Jul 24 10:45:50 NZST 2021)
+# 55 species found (Mon Dec 19 17:57:47 CET 2022)
 spc_in <- lt_obis_results |> ungroup()  |> select(species) |> filter(!is.na(species)) |> distinct() |> pull(species)
-
 
 # Download NCBI annotations (to match taxonomy records of other surveys)
 # ----------------------------------------------------------------------
@@ -252,7 +253,7 @@ gen_ls <- classification(gen, db = "ncbi")
 spc_ls <- classification(spc, db = "ncbi")
 gen_uniq_list <- classification(gen_uniq, db = "ncbi")
 
-# 34 of 50 species found in NCBI (and 22 not found in NCBI excluded from eDNA)
+# 38 of 55 species found in NCBI (and 22 not found in NCBI excluded from eDNA)
 # ---------------------------------------------------------------------------
 
 spc_in_nf <- tibble( SPECIES = c(
@@ -263,6 +264,7 @@ spc_in_nf <- tibble( SPECIES = c(
   "Botryllus stewartensis",
   "Cnemidocarpa bicornuta",
   "Cnemidocarpa nisiotis",
+  "Didemnum inveteratum",
   "Diplosoma velatum",
   "Eudistoma circumvallatum",
   "Hemerocoetes monopterygius",
@@ -277,8 +279,9 @@ spc_in_nf <- tibble( SPECIES = c(
 gen_in_nf <- c("Ritterella")
 
 # saving workspace manually
-save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210705_998_r_map_and_add_obis__post_downloads.Rdata")
+save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221219_999_r_map_and_add_obis__post_downloads.Rdata")
 
+# -- continue here after 14-Dec-2022 --
 
 # get basic species lists
 # -----------------------
