@@ -14,18 +14,22 @@ options(tibble.print_max = Inf)
 
 library("tidyverse")	# because we can't stop using it anymore
 library("magrittr")		# get the %<>% pipe
-library("taxize")		# look up trivial names
-library("ggpubr")		# combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
-library("sf")			# simple feature objects
+library("taxize")		  # look up trivial names
+library("ggpubr")		  # combine plots -  http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
+library("sf")			    # simple feature objects
 library("flextable")	# format species lists as tables https://ardata-fr.github.io/flextable-book/
 library("officer")		# format species lists as tables https://ardata-fr.github.io/flextable-book/
-library("magick")		# convert flext table to ggplot grob
-library("grid")			# convert flext table to ggplot grob
-library("sjPlot")		# model plots
+library("magick")		  # convert flext table to ggplot grob
+library("grid")			  # convert flext table to ggplot grob
+library("sjPlot")		  # model plots
 
-# API key for taxcise
-Sys.setenv(ENTREZ_KEY="a634c6e9c96c3859bca27a2771f6d2872f08")
+# API key for Taxcise - trivial names lookup
+Sys.setenv(ENTREZ_KEY="YourNcbiApiKeyHere")
 Sys.getenv("ENTREZ_KEY")
+
+# API key for Fishbase - synonyms lookup
+Sys.setenv(FISHBASE_API="sealifebase")
+Sys.getenv("FISHBASE_API")
 
 # not in 
 # -------
@@ -120,12 +124,15 @@ get_bbox_anyloc <- function(tibl, location = c("RESERVE.GROUP.LOCATION")){
   }
   
   # calculate bounding box
-  bbox <- tibl %>% group_by(across(all_of(location))) %>%
+  bbox <- tibl %>% 
+  group_by(across(all_of(location))) %>%
   summarise(xmin = min(MH.PPS.LONG) -0.01 ,ymin = min(MH.GPS.LAT) -0.01, xmax=max(MH.PPS.LONG) +0.01,  ymax = max(MH.GPS.LAT) +0.01) %>%
   gather(x,lon,c('xmin','xmax')) %>% gather(y,lat,c('ymin','ymax')) %>%
   st_as_sf(coords=c('lon','lat'),crs=4326,remove=F) %>%
   group_by(across(all_of(location))) %>% mutate(angle = calc_angle(lon,lat)) %>%
-  arrange(angle) %>% summarise(do_union=FALSE) %>% st_cast('POLYGON')
+  arrange(angle) %>% 
+  summarise(do_union=FALSE) %>% 
+  st_cast('POLYGON')
   
   return(bbox)
 }
@@ -282,9 +289,9 @@ get_vegan <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano = 
 # ================
 
 # check input data of previous script
-system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx\"")
+system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/999_r_map_and_add_obis__full_data_raw.xlsx\"")
 
-long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
+long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_map_and_add_obis__full_data_raw.Rds")
 long_table <- ungroup(long_table)
 
 # III. Format data  
@@ -304,6 +311,34 @@ long_table %<>% mutate(SPECIES = str_replace(SPECIES, "\\s\\S*\\s\\S*(.*)", ""))
 
 long_table %<>% mutate(ORDER = ifelse(ORDER == "Squalidae", "Squaliformes", ORDER))
 long_table %<>% mutate(ORDER = ifelse(GENUS == "Callanthias", "Perciformes", ORDER))
+
+# 20.12.2022 - correcting for synonyms, reinspecting table for sanity
+# -------------------------------------------------------------------
+
+# isolate species names from analysis data
+spc_read <- long_table %>% pull("SPECIES") %>% unique() %>% sort()
+
+# fetch synonyms from Fishbase (20.12.2022)
+spc_in_syn <- rfishbase::synonyms(species_list = spc_read)
+
+# save state after fishbase lookup
+save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
+
+# inspect synonyms
+spc_in_syn %>% select(synonym, Species, Status)
+
+# isolate fishbase dat that needs to be used to corrcet data in long table
+fb_data_for_correction <- spc_in_syn %>% filter(Status == "synonym") %>% filter(synonym != "Opistognathus sp.") 
+
+# inspect those data again
+fb_data_for_correction %>% select(synonym, Species, Status)
+
+# correct synonymous species and genus names in `long_table`, that can be named properly
+
+# [continue here after 20.12.2022]
+
+
+# [older code below]
 
 # add trivial names 
 # -----------------
