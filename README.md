@@ -1026,12 +1026,12 @@
   * finished OBIS and NCBI lookup, saved workspace
   * commit `feaf2689071ec98186670951370115d53202e8cf` 
 
-## **19-Dec-2022** - continuing analysis refresh for manuscript resubmission
+## **20-Dec-2022** - continuing analysis refresh for manuscript resubmission
 
-* finished stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_get_OBIS_and_map.r`
-* commit ``
-* step through `999_r_summarize_results.r` and check for synonyms
-
+ * finished stepping through `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_get_OBIS_and_map.r`
+   * commit `ed5c516ee15276b23f4c146176e66c3da303f55a`
+ * step through `999_r_summarize_results.r` and check for synonyms
+  * commit `46bfef8c02565406c20e5ec2aece31d0079cf3ca`
 
  
 ## **important queue (last updated 14-Dec-2022):**
