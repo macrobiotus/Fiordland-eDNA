@@ -281,8 +281,6 @@ gen_in_nf <- c("Ritterella")
 # saving workspace manually
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221219_999_r_map_and_add_obis__post_downloads.Rdata")
 
-# -- continue here after 14-Dec-2022 --
-
 # get basic species lists
 # -----------------------
 
@@ -290,8 +288,8 @@ save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221219_999_r_map_a
 spc_tibl_ls <- sapply(spc_ls, as_tibble)
 gen_tibl_ls <- sapply(gen_uniq_list, as_tibble)
 
-length(gen_tibl_ls) # 41 genera
-length(spc_tibl_ls) # 50 spcies
+length(gen_tibl_ls) # 41 genera, 45 (20.12.2022)
+length(spc_tibl_ls) # 50 spcies, 55 (22.12.2022)
 
 # unnest objects - but keep list names (also species name duplicates) 
 #  to later separate rows
@@ -312,7 +310,7 @@ spc <- left_join(spc, spc_tibl |> filter(rank == "SPECIES") |> select(column_lab
 gen <- left_join(gen, gen_tibl |> filter(rank == "GENUS") |> select(column_label, id)) |> select(-c(column_label)) |> rename("NCBI.TAXID" = "id") 
   
 # select genera that haven't been found on species level already - not needed
-unique(spc$GENUS); unique(spc$SPECIES) # 34 Genera, 42 species fully resolved
+unique(spc$GENUS); unique(spc$SPECIES) # 34 Genera, 38 species fully resolved
 gen_not_in_spc <- gen |> filter(GENUS %!in% unique(spc$GENUS))
 # add species not found and later fill higher taxonomy columns up 
 spc <- bind_rows(spc, spc_in_nf, gen) 
@@ -342,6 +340,10 @@ spc <- spc |> mutate(CLASS = ifelse(ORDER == "Salpida", "Thaliacea", CLASS))
 
 spc <- spc |> mutate(CLASS = ifelse(FAMILY == "Plesiopidae", "Actinopteri", CLASS))
 spc <- spc |> mutate(ORDER = ifelse(FAMILY == "Plesiopidae", "Ovalentaria", ORDER))
+
+
+# remove holes that can be
+spc <- spc |> filter(!is.na(SPECIES)) |> distinct()
  
  
 # add other variables for downstream compatibility
@@ -352,8 +354,8 @@ spc <- spc |> mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))
 spc <- spc |> mutate(NCBI.TAXID.INC = ifelse(NCBI.TAXID == 0, TRUE, FALSE)) 
 spc <- spc |> mutate(SAMPLE.TYPE = "OBIS") |> mutate(ABUNDANCE = 1)
 
-save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210726_998_r_get_OBIS_and_map.Rdata")
-load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/210726_998_r_get_OBIS_and_map.Rdata")
+save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_get_OBIS_and_map.Rdata")
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_get_OBIS_and_map.Rdata")
 
 # combine columns 
 # ----------------
@@ -394,7 +396,7 @@ lt_obis_truncated %<>% mutate(RESERVE.GROUP.INSIDE =
             SET.ID %in% c(1,3,4,5)     ~ TRUE))
 
 lt_obis_truncated %<>% mutate(RESERVE.GROUP.LOCATION = 
-  case_when(RESERVE.GROUP == "FI" & RESERVE.GROUP.INSIDE == FALSE  ~ "FI CTRL",
+  case_when(RESERVE.GROUP == "FI" & RESERVE.GROUP.INSIDE == FALSE ~ "FI CTRL",
             RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == TRUE  ~ "WJ MR",
             RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == FALSE ~ "WJ CTRL",
             RESERVE.GROUP == "FF" & RESERVE.GROUP.INSIDE == TRUE  ~ "FF MR",
@@ -404,9 +406,9 @@ lt_obis_truncated %<>% mutate(RESERVE.GROUP.LOCATION =
             )
 
 # stack data for subsequent analysis - check dimensions
-dim(long_table) # 330 x 73
+dim(long_table) # 330 x 73, now 385 x 73
 
-# stack data for subsequent analysis -correct type in previous data for succesful stacking
+# stack data for subsequent analysis - correct type in previous data for succesful stacking
 long_table %<>% mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))
 long_table %<>% mutate(DEPTH.M = as.numeric(DEPTH.M))
 
@@ -415,7 +417,7 @@ lt_obis_truncated %<>% mutate(DEPTH.M = as.numeric(DEPTH.M))
 
 # stack data for subsequent analysis
 long_table %<>% bind_rows(long_table, lt_obis_truncated)
-dim(long_table) # 6973   74
+dim(long_table) # 6973   74, now 7101   78
 
 long_table %<>% mutate(RESERVE.GROUP = 
   case_when(SET.ID %in% c(98, 99) ~ "FI",
@@ -441,7 +443,7 @@ long_table %<>% mutate(RESERVE.GROUP.INSIDE =
 long_table |> select (SET.ID, RESERVE.GROUP, RESERVE.GROUP.INSIDE) |> distinct()
 
 long_table %<>% mutate(RESERVE.GROUP.LOCATION = 
-  case_when(RESERVE.GROUP == "FI" & RESERVE.GROUP.INSIDE == FALSE  ~ "FI CTRL",
+  case_when(RESERVE.GROUP == "FI" & RESERVE.GROUP.INSIDE == FALSE ~ "FI CTRL",
             RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == TRUE  ~ "WJ MR",
             RESERVE.GROUP == "WJ" & RESERVE.GROUP.INSIDE == FALSE ~ "WJ CTRL",
             RESERVE.GROUP == "FF" & RESERVE.GROUP.INSIDE == TRUE  ~ "FF MR",
@@ -502,18 +504,45 @@ long_table %<>% group_by(SET.ID) %>% mutate(UNIQ.REP.IDS = n_distinct(REP.ID))
 # VIII. Check data completness and citations
 # ==========================================
 
-long_table %<>% mutate(LOC.NAME = if(RESERVE.GROUP == "FI",  "Fiordland", LOC.NAME))
+long_table %<>% mutate(LOC.NAME = ifelse(RESERVE.GROUP == "FI", "Fiordland", LOC.NAME))
 
+# check table
 long_table |> select(SET.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT, MH.PPS.LONG,
   RESERVE.GROUP, RESERVE.GROUP.INSIDE, RESERVE.GROUP.LOCATION, SUPERKINGDOM,	
   PHYLUM,	CLASS, ORDER,	FAMILY,	GENUS,	SPECIES) |> distinct()
 
+# plug holes
+
+long_table <- long_table |> mutate(SUPERKINGDOM = ifelse(SPECIES == "Puffinus griseus", "Eukaryota", SUPERKINGDOM))
+long_table <- long_table |> mutate(PHYLUM       = ifelse(SPECIES == "Puffinus griseus", "Chordata", PHYLUM))
+long_table <- long_table |> mutate(CLASS        = ifelse(SPECIES == "Puffinus griseus", "Aves", CLASS))
+long_table <- long_table |> mutate(ORDER        = ifelse(SPECIES == "Puffinus griseus", "Procellariiformes", ORDER))
+long_table <- long_table |> mutate(FAMILY       = ifelse(SPECIES == "Puffinus griseus", "Ardenna", FAMILY))
+long_table <- long_table |> mutate(GENUS        = ifelse(SPECIES == "Puffinus griseus", "Ardenna", GENUS))
+long_table <- long_table |> mutate(SPECIES      = ifelse(SPECIES == "Ardenna grisea", "Ardenna", SPECIES))
+
+glimpse(long_table)
+unique(long_table$SAMPLE.TYPE)
+
+long_table <- long_table |> mutate(SAMPLE.TYPE = as.factor(SAMPLE.TYPE))
+unique(long_table$SAMPLE.TYPE)
+unique(long_table$SET.ID)
+
+long_table <- long_table |> mutate(SAMPLE.TYPE  = ifelse(SET.ID == 99, as.factor("OBIS"), SAMPLE.TYPE))
+
+# check table
+long_table |> select(SET.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT, MH.PPS.LONG,
+  RESERVE.GROUP, RESERVE.GROUP.INSIDE, RESERVE.GROUP.LOCATION, SUPERKINGDOM,	
+  PHYLUM,	CLASS, ORDER,	FAMILY,	GENUS,	SPECIES) |> distinct()
+
+long_table %<>% filter(!is.na(SPECIES)) 
 
 # safe table with citation info
-data_citataions <- lt_obis_results %>% ungroup() %>% select(bibliographicCitation) %>% filter(!is.na(bibliographicCitation)) %>% 
+data_citations <- lt_obis_results %>% ungroup() %>% select(bibliographicCitation) %>% filter(!is.na(bibliographicCitation)) %>% 
    distinct() %>% arrange(bibliographicCitation)#  %>% print(n = Inf) 
 
-write.xlsx(data_citataions, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx", asTable = TRUE, overwrite = TRUE)
+# write.xlsx(data_citations, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx", asTable = TRUE, overwrite = TRUE)
+write.xlsx(data_citations, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/221220_OBIS_data_citations.xlsx", asTable = TRUE, overwrite = TRUE)
 
 
 # check data completeness - preformatting
@@ -522,22 +551,31 @@ OBIS_records <- ungroup(lt_obis_results) %>% select(id) %>% distinct() %>% renam
 OBIS_records %<>%  mutate(used = case_when(OBIS_record %in%  long_table$ASV ~ TRUE, TRUE ~ FALSE))
 
 # and numerical summaries for manuscript
-nrow(OBIS_records)     # 5263
-sum(OBIS_records$used) # 5186
-sum(OBIS_records$used) / nrow(OBIS_records) # 0.9853696
+nrow(OBIS_records)     # 5263, now 5278
+sum(OBIS_records$used) # 5186, now 5199
+sum(OBIS_records$used) / nrow(OBIS_records) # 0.9853696, now 0.9850322
 
 # XI. Save results and workspace
 # ==============================
 
 # for verbosity
-write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx", asTable = TRUE, overwrite = TRUE)
+# write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx", asTable = TRUE, overwrite = TRUE)
+write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/999_r_map_and_add_obis__full_data_raw.xlsx", asTable = TRUE, overwrite = TRUE)
+
 # for superseded QGIS mapping in /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz
-write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/998_r_map_and_add_obis__full_data_raw.csv")
+# write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/998_r_map_and_add_obis__full_data_raw.csv")
+write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/999_r_map_and_add_obis__full_data_raw.csv")
 
 # saving workspace manually
-save.image("/Users/paul/Documents/OU_eDNA/260705_r_workspaces/210705_998_r_map_and_add_obis__end.Rdata")
-save.image("/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_add_obis__end.Rdata")
+# save.image("/Users/paul/Documents/OU_eDNA/260705_r_workspaces/210705_998_r_map_and_add_obis__end.Rdata")
+# save.image("/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_add_obis__end.Rdata")
+save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_map_and_add_obis__end.Rdata")
+save.image("/Users/paul/Documents/OU_eDNA/201028_Robjects/221220_999_r_map_and_add_obis__end.Rdata")
+
 
 # for subsequent analyses
-saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
-saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/998_r_map_and_add_obiss__full_data_raw.Rds")
+# saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
+# saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/998_r_map_and_add_obiss__full_data_raw.Rds")
+
+saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_map_and_add_obis__full_data_raw.Rds")
+saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/R_objects/999_r_map_and_add_obis__full_data_raw.Rds")
