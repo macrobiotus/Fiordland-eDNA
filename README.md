@@ -1036,7 +1036,7 @@
  
 ## **important queue (last updated 14-Dec-2022):**
 
-* continue stepping through `999_r_summarize_results.r` and check for synonyms
+* continue stepping through `999_r_summarize_results.r` and check for synonyms - load from line 325
 
  
 ## **Miscellaneous todo (last updated 30-10-2022):**
