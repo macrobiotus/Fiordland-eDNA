@@ -1033,10 +1033,19 @@
  * step through `999_r_summarize_results.r` and check for synonyms
   * commit `46bfef8c02565406c20e5ec2aece31d0079cf3ca`
 
- 
-## **important queue (last updated 14-Dec-2022):**
 
-* continue stepping through `999_r_summarize_results.r` and check for synonyms - load from line 325
+## **23-Jan-2023** - continuing analysis refresh for manuscript resubmission
+
+ * continued stepping through `999_r_summarize_results.r`
+   * corrected all synonyms that could be corrected
+   * started looking up trivial names manually
+   * added some notes to new main text copy (with todays date)
+   * commit ``
+ 
+## **important queue (last updated 27-Jan-2023):**
+
+* continue stepping through `999_r_summarize_results.r` and check for synonyms
+* load from line 404
 
  
 ## **Miscellaneous todo (last updated 30-10-2022):**
@@ -1053,6 +1062,15 @@
  * delete outdated 
   * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.btd`
   * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.bti`
+  * **provide notes on species in manuscript**
+    * found **Thalassarche chrysostoma** - **Grey-headed albatross**
+    * found **Thalassarche melanophris** - **Black-browed albatross**
+    * found **Megaptera novaeangliae** - **humpback whale**                 
+    * found **Diomedea exulans** - **Wandering albatross**
+    * found **Arctocephalus forsteri** - **New Zealand fur seal**
+    * found **Arctocephalus australis** - **South American fur seal**
+    * found **Puffinus griseus** - **Sooty shearwater**           
+    * found **Aptenodytes patagonicus** - **king penguin**
 
 ## Notes on depreciated scripts and why they are depreciated
 

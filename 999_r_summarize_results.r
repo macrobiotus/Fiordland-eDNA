@@ -322,30 +322,52 @@ spc_read <- long_table %>% pull("SPECIES") %>% unique() %>% sort()
 spc_in_syn <- rfishbase::synonyms(species_list = spc_read)
 
 # save state after fishbase lookup
-save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
 
 # inspect synonyms
 spc_in_syn %>% select(synonym, Species, Status)
 
-# isolate fishbase dat that needs to be used to corrcet data in long table
+# isolate fishbase data that needs to be used to corrected in long table
 fb_data_for_correction <- spc_in_syn %>% filter(Status == "synonym") %>% filter(synonym != "Opistognathus sp.") 
 
 # inspect those data again
 fb_data_for_correction %>% select(synonym, Species, Status)
 
 # correct synonymous species and genus names in `long_table`, that can be named properly
+# Monocentris japonicus     Monocentris japonica synonym
+# Helicolenus hilgendorfi Helicolenus hilgendorfii synonym
+# Cephaloscyllium isabellum Cephaloscyllium isabella synonym
+# Cheilodactylus zonatus       Goniistius zonatus synonym
 
-# [continue here after 20.12.2022]
+# confirm that synonyms are in long table
+long_table %>% filter(SPECIES %in% c("Monocentris japonicus", "Helicolenus hilgendorfi", 
+                                     "Cephaloscyllium isabellum", "Cheilodactylus zonatus")) %>% dplyr::select(FAMILY, GENUS, SPECIES)
 
 
-# [older code below]
+# writing correct scientific SPECIES names into table overwriting synonymous names
+long_table %<>%  mutate(SPECIES = case_when(SPECIES == "Monocentris japonicus"     ~ "Monocentris japonica",
+                                           SPECIES == "Helicolenus hilgendorfi"   ~ "Helicolenus hilgendorfii",
+                                           SPECIES == "Cephaloscyllium isabellum" ~ "Cephaloscyllium isabella",
+                                           SPECIES == "Cheilodactylus zonatus"    ~ "Goniistius zonatus",
+                                                                             TRUE ~ SPECIES))
+# writing correct scientific GENUS names into table overwriting synonymous names
+long_table %<>%  mutate(GENUS = case_when(SPECIES == "Monocentris japonica" ~ "Monocentris",
+                                          SPECIES == "Helicolenus hilgendorfii" ~ "Helicolenus",
+                                          SPECIES == "Cephaloscyllium isabella" ~ "Cephaloscyllium",
+                                          SPECIES == "Goniistius zonatus" ~ "Goniistius",
+                                            TRUE ~ GENUS))
+
+# confirm that synonyms have been replaced - leaving one old species in query  - shoul only return one value
+long_table %>% filter(SPECIES %in% c("Monocentris japonica", "Helicolenus hilgendorfii"))
+
 
 # add trivial names 
 # -----------------
 
 # get trivial names
 species_vector <- ungroup(long_table) |> select(SPECIES) |> distinct() |> pull(SPECIES)
-trivial_obj <- sci2comm(species_vector, db = "ncbi", simplify = TRUE)
+trivial_obj <- sci2comm(species_vector, db = "ncbi", simplify = TRUE) # <- running also without API key
 
 # format trivial names for left join
 trivial_df <- data.frame(do.call(rbind , trivial_obj))
@@ -355,14 +377,106 @@ trivial_df <- trivial_df |>  setNames( c("SPECIES", "TRIVIAL.SPECIES")) |> as_ti
 # add trivial names to object 
 long_table %<>% left_join(trivial_df)
 
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
+
+# started to rework 23-Jan-2023 - look up other trivial names
+# check which  
+long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) 
+
+Acanthoclinus fuscus         olive rockfish                              
+Acanthoclinus littoreus      New Zealand Rockfish                              
+Acanthoclinus marilynae      Stout rockfish                              
+Acanthoclinus matti          NA                              
+Acanthoclinus rua            little rockfish                              
+Aplidium adamsi              [squirt]
+Aplidium coronum             [squirt]                              
+Aplidium phortax             [squirt]                              
+Aplidium powelli             [squirt]                              
+Aplodactylus arctidens       marblefish                              
+Arctocephalus australis      South American fur seal                               
+Botrylloides leachii         [tunicate]                              
+Botryllus stewartensis       [tunicate]                              
+Bovichtus angustifrons       [tunicate]                      
+Caesioperca lepidoptera     butterfly perch                               
+
+# continue here after 27.01.2023
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
+
+
+Callanthias allporti         NA                              
+Callanthias japonicus        NA                              
+Cephaloscyllium isabella     NA                              
+Chaetodon zanzibarensis      NA                              
+Cheilodactylus variegatus    NA                              
+Cnemidocarpa bicornuta       NA                              
+Cnemidocarpa nisiotis        NA                              
+Cominella sp.                NA                              
+Cryptichthys jojettae        NA                              
+Didemnum inveteratum         NA                              
+Diplosoma listerianum        NA                              
+Diplosoma velatum            NA                              
+Eptatretus cirrahtus         NA                              
+Eudistoma circumvallatum     NA                              
+Fiordichthys slartibartfasti NA                              
+Forsterygion malcolmi        NA                              
+Forsterygion maryannae       NA                              
+Gaidropsarus novaezelandi    NA                              
+Galaxias argenteus           NA                              
+Galaxias eldoni              NA                              
+Gobiopsis atrata             NA                              
+Gymnoscopelus nicholsi       NA                              
+Helcogramma striata          NA                              
+Helicolenus hilgendorfii     NA                              
+Helicolenus percoides        NA                              
+Hemerocoetes monopterygius   NA                              
+Hygophum hygomii             NA                              
+Hypoplectrodes huntii        NA                              
+Karalepis stewarti           NA                              
+Lepidoperca tasmanica        NA                              
+Lissocampus filum            NA                              
+Lissoclinum notti            NA                              
+Lotella phycis               NA                              
+Mendosoma lineatum           NA                              
+Modicus minimus              NA                              
+Modicus tangaroa             NA                              
+Monocentris japonica         NA                              
+Morus serrator               NA                              
+Mustelus asterias            NA                              
+Notoclinops caerulepunctus   NA                              
+Notoclinops segmentatus      NA                              
+Notoclinus compressus        NA                              
+Notoclinus fenestratus       NA                              
+Notolabrus cinctus           NA                              
+Opistognathus iyonis         NA                              
+Opistognathus sp.            NA                              
+Parapercis decemfasciata     NA                              
+Patiriella regularis         NA                              
+Polyprion oxygeneios         NA                              
+Pseudolabrus miles           NA                              
+Ritterella sigillinoides     NA                              
+Ruanoho decemdigitatus       NA                              
+Scorpaena papillosa          NA                              
+Synoicum kuranui             NA                              
+Synoicum occidentalis        NA                              
+Synoicum stewartense         NA                              
+Thalasseleotris iota         NA                              
+Trididemnum shawi            NA                              
+
 #  mark non-NZ species  **(possibly needs to be re-worked)**
 # ---------------------------------------------------------
 #  16-Mar-2021 add asterisks ("*") to non-NZ species, and ("**") to non-fish (mammals and crustaceans)
 #  after checking with list 
 #  Roberts, C., Stewart, A., Struthers, C., Barker, J. & Kortet, S. 2019 Checklist of the Fishes of New Zealand. 
 
+# started to rework 23-Jan-2023
+# check which  
+long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) 
+# are not in  Checklist of the Fishes of New Zealand: version 1.2 July 2020 CD Roberts, AL Stewart, CD Struthers, JJ Barker and S Kortet Museum of New Zealand Te Papa Tongarewa
+
 nonnz_fish <- c("Asterropteryx", "Banjos", "Benitochromis", "Bostrychus", "Bovichtus", "Caprodon", "Coptodon", "Engraulis", "Gobiesox", "Gymnoscopelus", "Helcogramma", "Microcanthus", "Opistognathus", "Phoxinus", "Sander", "Scobinichthys")
-nonnz_othr <- c("Macroctopus", "Jasus", "Arctocephalus", "Balaenoptera", "Tursiops")
+nonnz_othr <- c("Macroctopus", "Jasus", "Arctocephalus", "Balaenoptera", "Tursiops", "Aplidium" , "Botrylloides",***others**)
 
 long_table %<>% mutate(SPECIES = 
                          case_when(GENUS %in% nonnz_fish ~ paste0(SPECIES, "*"),
