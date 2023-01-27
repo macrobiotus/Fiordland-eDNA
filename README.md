@@ -1033,14 +1033,13 @@
  * step through `999_r_summarize_results.r` and check for synonyms
   * commit `46bfef8c02565406c20e5ec2aece31d0079cf3ca`
 
-
 ## **23-Jan-2023** - continuing analysis refresh for manuscript resubmission
 
  * continued stepping through `999_r_summarize_results.r`
    * corrected all synonyms that could be corrected
    * started looking up trivial names manually
    * added some notes to new main text copy (with todays date)
-   * commit ``
+   * commit `abe9dcfbee3e25365eda0d4ce0c7ae0d94f30bd9`
  
 ## **important queue (last updated 27-Jan-2023):**
 
