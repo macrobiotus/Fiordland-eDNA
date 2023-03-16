@@ -9,8 +9,7 @@ rm(list = ls(all.names = TRUE))
 gc()
 options(tibble.print_max = Inf) 
 
-# I. Load packages and define functions
-# =====================================
+# I. Environment setup ----
 
 library("tidyverse")	# because we can't stop using it anymore
 library("magrittr")		# get the %<>% pipe
@@ -23,20 +22,22 @@ library("magick")		  # convert flext table to ggplot grob
 library("grid")			  # convert flext table to ggplot grob
 library("sjPlot")		  # model plots
 
-# API key for Taxcise - trivial names lookup
+# _1.) API key for Taxcise - trivial names lookup ----
 Sys.setenv(ENTREZ_KEY="YourNcbiApiKeyHere")
 Sys.getenv("ENTREZ_KEY")
 
-# API key for Fishbase - synonyms lookup
+# _2.) API key for Fishbase - synonyms lookup ----
 Sys.setenv(FISHBASE_API="sealifebase")
 Sys.getenv("FISHBASE_API")
 
-# not in 
-# -------
+# _3.) Function definitions ----
+
+# __a) "not in" ----
+
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
-# get Euler objects for plotting
-# ------------------------------
+# __b) Get Euler objects for plotting ----
+
 get_euler_object = function(level, tibl){
   require("eulerr")
   require("tidyverse")
@@ -64,8 +65,8 @@ get_euler_object = function(level, tibl){
   return(euler(tibl[ , 2:5]))
 }
 
-# get Euler Ggplots 
-# -----------------
+# __c) Get Euler Ggplots  ---- 
+
 get_euler_ggplot = function(level, euler_ob, plot_label = TRUE){
   require("tidyverse")
   require ("ggplotify")
@@ -81,8 +82,8 @@ get_euler_ggplot = function(level, euler_ob, plot_label = TRUE){
   return(euler_ggplot)
 }
 
-# get a table with relevant columns for mapping
-# ---------------------------------------------
+# __d) Get a table with relevant columns for mapping ----
+
 #   (from full_biodiv or fish_biodiv )
 get_sf_biodiv =  function(tibl){
   require("tidyverse")
@@ -103,8 +104,8 @@ get_sf_biodiv =  function(tibl){
 
 }
 
-# get bounding box around an area defined by a variable (here default: RESERVE.GROUP.LOCATION)  
-# ------------------------------------------------------
+# __e) Get bounding box around an area defined by a variable (here default: RESERVE.GROUP.LOCATION) ----
+
 # from https://stackoverflow.com/questions/54696440/create-polygons-representing-bounding-boxes-for-subgroups-using-sf
 
 get_bbox_anyloc <- function(tibl, location = c("RESERVE.GROUP.LOCATION")){
@@ -137,8 +138,9 @@ get_bbox_anyloc <- function(tibl, location = c("RESERVE.GROUP.LOCATION")){
   return(bbox)
 }
 
-# get hacked data frame for heat-map plotting 
-# --------------------------------------------
+# __f) Get hacked data frame for heat-map plotting ----
+
+
 #  - isolate coordinates into seperate columns 
 #  - ass two crows matching mapping extend to extend plot
 get_plot_df = function(sf_df, show_var = NULL) {
@@ -157,7 +159,7 @@ get_plot_df = function(sf_df, show_var = NULL) {
   return(sf_df)
 }
 
-# get matrix - for distance calculations and 
+# __g) Get matrix - for distance calculations ---- 
 get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", group_row = "SPECIES", obs_methods = NULL, tbl = FALSE){
   
   # debugging
@@ -228,7 +230,7 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   }
 }
 
-# get ANOSIM results for a given tibble ("tibl")
+# __h) Get ANOSIM results for a given tibble ("tibl") ----
 #   aggregate observations for "group_col" on taxonomic level "group_row"
 #   aggregated observations ar replicates for ANOSIM as levels of "group_col_ano"
 get_vegan <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano = NULL, obs_methods = NULL, distance = NULL, mp = FALSE){
@@ -285,8 +287,8 @@ get_vegan <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano = 
 
 }
 
-# II. Read in data
-# ================
+# II. Read in data ----
+
 
 # check input data of previous script
 system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/999_r_map_and_add_obis__full_data_raw.xlsx\"")
@@ -294,15 +296,14 @@ system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manus
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_map_and_add_obis__full_data_raw.Rds")
 long_table <- ungroup(long_table)
 
-# III. Format data  
-# =================
+# III. Format data ----
+
 # - add trivial names 
 # - mark non-NZ species  **(possibly needs to be re-worked)**
 # - split "fish" and "full" data
 # - filter for data completeness **(possibly needs to be re-worked)**
 
-# clean taxonomy strings
-# ----------------------
+# _1.) Clean scientific taxonomy strings ----
 
 # erase all that may come after "sp." if there is an "sp." at all
 long_table %<>% mutate(SPECIES = gsub("sp\\..*", "sp.", SPECIES))
@@ -312,8 +313,9 @@ long_table %<>% mutate(SPECIES = str_replace(SPECIES, "\\s\\S*\\s\\S*(.*)", ""))
 long_table %<>% mutate(ORDER = ifelse(ORDER == "Squalidae", "Squaliformes", ORDER))
 long_table %<>% mutate(ORDER = ifelse(GENUS == "Callanthias", "Perciformes", ORDER))
 
-# 20.12.2022 - correcting for synonyms, reinspecting table for sanity
-# -------------------------------------------------------------------
+# _2.) Work with  trivial names ----
+
+# __a.) Fetch  trivial name synonyms from fishbase ----
 
 # isolate species names from analysis data
 spc_read <- long_table %>% pull("SPECIES") %>% unique() %>% sort()
@@ -325,6 +327,7 @@ spc_in_syn <- rfishbase::synonyms(species_list = spc_read)
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
 
+# __b.) Inspect trivial name synonyms from fishbase ----
 # inspect synonyms
 spc_in_syn %>% select(synonym, Species, Status)
 
@@ -361,9 +364,7 @@ long_table %<>%  mutate(GENUS = case_when(SPECIES == "Monocentris japonica" ~ "M
 # confirm that synonyms have been replaced - leaving one old species in query  - shoul only return one value
 long_table %>% filter(SPECIES %in% c("Monocentris japonica", "Helicolenus hilgendorfii"))
 
-
-# add trivial names 
-# -----------------
+# __c) Fetch trivial names from data base ---- 
 
 # get trivial names
 species_vector <- ungroup(long_table) |> select(SPECIES) |> distinct() |> pull(SPECIES)
@@ -380,95 +381,103 @@ long_table %<>% left_join(trivial_df)
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
 
-# started to rework 23-Jan-2023 - look up other trivial names
-# check which  
-long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) 
+# __d) Add more trivial names by manual lookup ---- 
 
-Acanthoclinus fuscus         olive rockfish                              
-Acanthoclinus littoreus      New Zealand Rockfish                              
-Acanthoclinus marilynae      Stout rockfish                              
-Acanthoclinus matti          NA                              
-Acanthoclinus rua            little rockfish                              
-Aplidium adamsi              [squirt]
-Aplidium coronum             [squirt]                              
-Aplidium phortax             [squirt]                              
-Aplidium powelli             [squirt]                              
-Aplodactylus arctidens       marblefish                              
-Arctocephalus australis      South American fur seal                               
-Botrylloides leachii         [tunicate]                              
-Botryllus stewartensis       [tunicate]                              
-Bovichtus angustifrons       [tunicate]                      
-Caesioperca lepidoptera     butterfly perch                               
+# check initial state with of trivial species names:
+long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf)
 
-# continue here after 27.01.2023
-# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
+# reworked on 23-Jan-2023 and 6 Mar 2023 - looked up trivial names that could not be found automatically
+long_table %<>% mutate(TRIVIAL.SPECIES = 
+                        case_when(SPECIES == "Acanthoclinus fuscus" ~ "olive rockfish",
+                                  SPECIES == "Acanthoclinus littoreus" ~ "New Zealand rockfish",                              
+                                  SPECIES == "Acanthoclinus marilynae" ~ "Stout rockfish",
+                                  SPECIES == "Acanthoclinus matti" ~ "New Zealand longfin",                              
+                                  SPECIES == "Acanthoclinus rua" ~ "little rockfish",
+                                  SPECIES == "Aplidium adamsi" ~ "[squirt]",
+                                  SPECIES == "Aplidium coronum" ~ "[squirt]",
+                                  SPECIES == "Aplidium phortax" ~ "[squirt]",
+                                  SPECIES == "Aplidium powelli" ~ "[squirt]",
+                                  SPECIES == "Aplodactylus arctidens" ~ "marblefish",
+                                  SPECIES == "Arctocephalus australis" ~ "South American fur seal", 
+                                  SPECIES == "Botrylloides leachii" ~ "[tunicate]",
+                                  SPECIES == "Botryllus stewartensis" ~ "[tunicate]",                          
+                                  SPECIES == "Bovichtus angustifrons" ~ "[tunicate]",
+                                  SPECIES == "Caesioperca lepidoptera" ~ "butterfly perch",
+                                  SPECIES == "Callanthias allporti" ~ "splendid sea perch",
+                                  SPECIES == "Callanthias japonicus" ~ "yellowsail red bass",
+                                  SPECIES == "Cephaloscyllium isabella" ~ "draughtsboard shark",
+                                  SPECIES == "Chaetodon zanzibarensis" ~ "Zanzibar butterflyfish",                              
+                                  SPECIES == "Cheilodactylus variegatus" ~ "Peruvian morwong",
+                                  SPECIES == "Cnemidocarpa bicornuta" ~ "[tunicate]",                              
+                                  SPECIES == "Cnemidocarpa nisiotis" ~ "[tunicate]",                              
+                                  SPECIES == "Cominella sp." ~ "[snail]",                              
+                                  SPECIES == "Cryptichthys jojettae" ~ "cryptic triplefin",                              
+                                  SPECIES == "Didemnum inveteratum" ~ "[tunicate]",                              
+                                  SPECIES == "Diplosoma listerianum" ~ "[tunicate]",                      
+                                  SPECIES == "Diplosoma velatum" ~ "[tunicate]",                             
+                                  SPECIES == "Eptatretus cirrahtus" ~ "broadgilled hagfish",                              
+                                  SPECIES == "Eudistoma circumvallatum" ~ "[tunicate]",                             
+                                  SPECIES == "Fiordichthys slartibartfasti" ~ "Fiordland brotula",                              
+                                  SPECIES == "Forsterygion malcolmi" ~ "mottled triplefin",                           
+                                  SPECIES == "Forsterygion maryannae" ~ "oblique-swimming triplefin",                              
+                                  SPECIES == "Gaidropsarus novaezelandi" ~ "New Zealand rockling",                              
+                                  SPECIES == "Galaxias argenteus" ~ "giant kōkopu",                             
+                                  SPECIES == "Galaxias eldoni" ~ "Eldon\'s galaxias",                              
+                                  SPECIES == "Gobiopsis atrata" ~ "New Zealand black goby",                              
+                                  SPECIES == "Gymnoscopelus nicholsi" ~ "Nichol's lanternfish",                              
+                                  SPECIES == "Helcogramma striata" ~ "tropical striped triplefin",                            
+                                  SPECIES == "Helicolenus hilgendorfii" ~ "Hilgendorf's saucord",                              
+                                  SPECIES == "Helicolenus percoides" ~ "red gurnard perch",                              
+                                  SPECIES == "Hemerocoetes monopterygius" ~ "opalfish",                              
+                                  SPECIES == "Hygophum hygomii" ~ "Bermuda lantern fish",                              
+                                  SPECIES == "Hypoplectrodes huntii" ~ "redbanded perch",                              
+                                  SPECIES == "Karalepis stewarti" ~ "scaly-headed triplefin",                              
+                                  SPECIES == "Lepidoperca tasmanica" ~ "Tasmanian perch",                              
+                                  SPECIES == "Lissocampus filum" ~ "shortsnout pipefish",                              
+                                  SPECIES == "Lissoclinum notti" ~ "[tunicate]",                           
+                                  SPECIES == "Lotella phycis" ~ "Beardie",                             
+                                  SPECIES == "Mendosoma lineatum" ~ "telescope fish",                              
+                                  SPECIES == "Modicus minimus" ~ "small clingfish",                              
+                                  SPECIES == "Modicus tangaroa" ~ "tangaroa clingfish",                              
+                                  SPECIES == "Monocentris japonica" ~ "Japanese pineapplefish",                              
+                                  SPECIES == "Morus serrator" ~ "Australasian gannet - [bird]",                              
+                                  SPECIES == "Mustelus asterias" ~ "starry smooth-hound",                              
+                                  SPECIES == "Notoclinops caerulepunctus" ~ "blue dot triplefin",                              
+                                  SPECIES == "Notoclinops segmentatus" ~ "blue-eyed triplefin",                              
+                                  SPECIES == "Notoclinus compressus" ~ "Brown topknot",                              
+                                  SPECIES == "Notoclinus fenestratus" ~ "New Zealand topknot",                              
+                                  SPECIES == "Notolabrus cinctus" ~ "girdled wrasse",                              
+                                  SPECIES == "Opistognathus iyonis" ~ "well-building jawfish",                              
+                                  SPECIES == "Opistognathus sp." ~ "jawfish",                              
+                                  SPECIES == "Parapercis decemfasciata" ~ NA,                             
+                                  SPECIES == "Patiriella regularis" ~ "New Zealand common cushion star [sea star]",                              
+                                  SPECIES == "Polyprion oxygeneios" ~ "hāpuku",                              
+                                  SPECIES == "Pseudolabrus miles" ~ "Scarlet wrasse",                              
+                                  SPECIES == "Ritterella sigillinoides" ~ "[tunicate]",                              
+                                  SPECIES == "Ruanoho decemdigitatus" ~ "longfinned triplefin",                              
+                                  SPECIES == "Scorpaena papillosa" ~ "red rock cod",                              
+                                  SPECIES == "Synoicum kuranui" ~ "[tunicate]",                              
+                                  SPECIES == "Synoicum occidentalis" ~ "[tunicate]",                              
+                                  SPECIES == "Synoicum stewartense" ~ "[tunicate]",                               
+                                  SPECIES == "Thalasseleotris iota" ~ "New Zealand pygmy sleeper",                              
+                                  SPECIES == "Trididemnum shawi" ~ "[tunicate]",
+                                  TRUE ~ TRIVIAL.SPECIES))
+
+# check altered state with of trivial species names:
+long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf)
+
+
+
+# continue here after 16.03.2023
+save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
 
-
-Callanthias allporti         NA                              
-Callanthias japonicus        NA                              
-Cephaloscyllium isabella     NA                              
-Chaetodon zanzibarensis      NA                              
-Cheilodactylus variegatus    NA                              
-Cnemidocarpa bicornuta       NA                              
-Cnemidocarpa nisiotis        NA                              
-Cominella sp.                NA                              
-Cryptichthys jojettae        NA                              
-Didemnum inveteratum         NA                              
-Diplosoma listerianum        NA                              
-Diplosoma velatum            NA                              
-Eptatretus cirrahtus         NA                              
-Eudistoma circumvallatum     NA                              
-Fiordichthys slartibartfasti NA                              
-Forsterygion malcolmi        NA                              
-Forsterygion maryannae       NA                              
-Gaidropsarus novaezelandi    NA                              
-Galaxias argenteus           NA                              
-Galaxias eldoni              NA                              
-Gobiopsis atrata             NA                              
-Gymnoscopelus nicholsi       NA                              
-Helcogramma striata          NA                              
-Helicolenus hilgendorfii     NA                              
-Helicolenus percoides        NA                              
-Hemerocoetes monopterygius   NA                              
-Hygophum hygomii             NA                              
-Hypoplectrodes huntii        NA                              
-Karalepis stewarti           NA                              
-Lepidoperca tasmanica        NA                              
-Lissocampus filum            NA                              
-Lissoclinum notti            NA                              
-Lotella phycis               NA                              
-Mendosoma lineatum           NA                              
-Modicus minimus              NA                              
-Modicus tangaroa             NA                              
-Monocentris japonica         NA                              
-Morus serrator               NA                              
-Mustelus asterias            NA                              
-Notoclinops caerulepunctus   NA                              
-Notoclinops segmentatus      NA                              
-Notoclinus compressus        NA                              
-Notoclinus fenestratus       NA                              
-Notolabrus cinctus           NA                              
-Opistognathus iyonis         NA                              
-Opistognathus sp.            NA                              
-Parapercis decemfasciata     NA                              
-Patiriella regularis         NA                              
-Polyprion oxygeneios         NA                              
-Pseudolabrus miles           NA                              
-Ritterella sigillinoides     NA                              
-Ruanoho decemdigitatus       NA                              
-Scorpaena papillosa          NA                              
-Synoicum kuranui             NA                              
-Synoicum occidentalis        NA                              
-Synoicum stewartense         NA                              
-Thalasseleotris iota         NA                              
-Trididemnum shawi            NA                              
+# _3.) Not done: Verify NZ status among taxonomy strings ----
 
 #  mark non-NZ species  **(possibly needs to be re-worked)**
-# ---------------------------------------------------------
-#  16-Mar-2021 add asterisks ("*") to non-NZ species, and ("**") to non-fish (mammals and crustaceans)
-#  after checking with list 
-#  Roberts, C., Stewart, A., Struthers, C., Barker, J. & Kortet, S. 2019 Checklist of the Fishes of New Zealand. 
+#   16-Mar-2021 add asterisks ("*") to non-NZ species, and ("**") to non-fish (mammals and crustaceans)
+#   after checking with list 
+#   Roberts, C., Stewart, A., Struthers, C., Barker, J. & Kortet, S. 2019 Checklist of the Fishes of New Zealand. 
 
 # started to rework 23-Jan-2023
 # check which  
@@ -489,19 +498,15 @@ long_table %<>% mutate(GENUS =
                                                     TRUE ~ GENUS)
                                                     )
 # save / load annotated object
-# ------------------------------
-
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__start_env.Rdata")
 saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
 
-# Filter for data completeness **(possibly needs to be re-worked)**
-# ------------------------------------------------------------------
+# _4.) Skipped: Filter for data completeness ----
 
 # - not done yet -
 
-#  get equivalent of BOTH.PRES
-# ------------------------------
+# _5.) Get equivalent of `BOTH.PRES` ----
 
 # function possibly needs to 
 #   get presence / absence on a {taxonomic level} (SPECIES)
@@ -517,16 +522,16 @@ long_table %<>% mutate(ANY.OBS.PRES = case_when(BRUV.OBS.PRES == 1 ~ 1,
                                                 PUBL.OBS.PRES == 1 ~ 1,
                                                 TRUE ~ 0))
 
-# Split "fish" and "full" data
-# ----------------------------
+# _6.) Incomplete: Split data into sets for "fish", "other", and "full" data ----
+
 full_biodiv <- long_table %>% distinct()
 fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes")) %>% filter(!(GENUS %in% c("Sardinops")))
 
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 
 
-# III. What data is available for Fiordland - table summary for supplement
-# =======================================================================
+# IV. get table summaries for supplement (What data is available for Fiordland?) ----
+
 
 # format data for flex table
 obs_sums <- fish_biodiv %>% ungroup() %>% group_by(SPECIES) %>%  
@@ -629,8 +634,7 @@ publ_species <- fish_biodiv |>
 
 bruv_species[bruv_species %!in% publ_species] |> sort()
 
-# IV. Get Euler plots
-# ====================
+# V. Get Euler plots ----
 
 # get euler analysis results for plotting / plot_label = TRUE shrinks plots a lot
 # euler_obs_full_bio <- lapply(list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), get_euler_object, full_biodiv)
@@ -653,13 +657,11 @@ ggsave("210712_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_p
          dpi = 500, limitsize = TRUE)
 
 
-# V. Get geographical maps with heat overlays
-# =============================================
+# VI. Get geographical maps with heat overlays ----
 
 # compare script  ~/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r
 
 # data preparation
-# ----------------
 
 # keep only data relevant for plotting 
 fish_biodiv_gh <- fish_biodiv |> filter(SAMPLE.TYPE %in% c("eDNA","BRUV","OBIS") & SET.ID %!in% c(98,99))
@@ -698,7 +700,6 @@ fish_biodiv_df_bruv <- get_plot_df(fish_biodiv_sf_km, "BRUV")
 fish_biodiv_df_obis <- get_plot_df(fish_biodiv_sf_km, "OBIS")
 
 # mapping
-# --------
 
 # map 1: sampling map from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
 map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
@@ -809,11 +810,9 @@ ggsave("210712_998_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__mapping_done.Rdata")
          
-# VI. Get biodiversity heat map and matching flex table
-# ====================================================
+# VII. Get biodiversity heat map and matching flex table ----
 
 # a.) get plotting data sets
-# --------------------------
 
 fish_biodiv_tbls <- fish_biodiv |> filter(!(SAMPLE.TYPE %in% c("OBIS") & SET.ID %in% c(1,3,4,5,7,8,9,10,11,12,17,18,19,21,22,23,24,26,27,28,29))) 
 
@@ -832,7 +831,6 @@ htmp_tibl_fish <- bind_rows(
 )
 
 # b.) add and analyse eDNA BLAST results
-# --------------------------------------------
 
 # summary for ms - all species
 fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(SPECIES)
@@ -868,9 +866,7 @@ fish_asv_at_locs |> select(SPECIES, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
   arrange(NOT.NZ) # 44 SPECIES: 25 False (56.8% True) / 19 True (43.1% True)
 
 
-
 # test relationship between  SPC.PER.LOC / HSP.GAPS / HSP.IDENTITY.PERC / NOT.NZ
-# ------------------------------------------------------------------------------
 
 # binomial regression
 glm_mod <-  glm(NOT.NZ ~ HSP.GAPS + HSP.IDENTITY.PERC, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
@@ -899,7 +895,6 @@ summary(glm_mod)
 # AIC: 558.31
 # 
 # Number of Fisher Scoring iterations: 5
-
 
 confint(glm_mod, level = 0.95) # probabilities
 
@@ -958,7 +953,6 @@ tab_model(glm_mod)
 
 
 # eDNA data with BLAST results - other reporting 
-# ----------------------------------------------
 
 # for reporting - summaries for gaps and query coverage
 fish_biodiv_blast_unq <- fish_biodiv_blast |> distinct(across(c("ASV","FAMILY", "SPECIES","NCBI.LEVEL", "NCBI.TAXDB.INC", "NCBI.TAXID", "NCBI.TAXID.INC", "HSP.GAPS", "HSP.IDENTITY.PERC")))
@@ -1003,7 +997,6 @@ htmp_tibl_fish_blrngs <-  htmp_tibl_fish |> left_join(fish_biodiv_blast_cov) |> 
 
 
 # get matching flex table
-# -----------------------
 
 # format data for flex table
 tibl_plot <- htmp_tibl_fish_blrngs %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SPECIES, BLAST.COV.RNG, BLAST.GAP.RNG) %>% 
@@ -1038,7 +1031,6 @@ save_as_html(ft, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_
 y_axis_label_order <- fct_relevel(htmp_tibl_fish$SPECIES, rev(c(tibl_plot$SPECIES)))  # y_axis_label_order <- reorder(htmp_tibl_full$SPECIES, desc(htmp_tibl_full$SPECIES))
 
 # plot out data as tiles
-# -----------------------
 # - needs vectors ordered with tree
 # - needs annotation of non NZ species
 # - may need margin sums
@@ -1085,7 +1077,6 @@ ggsave("210712_998_r_summarize_results__biodiv_tiles_only.pdf", plot = plot_htmp
 
 
 # Combine heatmap and flextable
-# ------------------------------
 
 # get flex table as ggplot object
 ft_raster <- as_raster(ft) # webshot and magick.
@@ -1101,8 +1092,8 @@ ggsave("210712_998_r_summarize_results__biodiv_heat.pdf", plot = last_plot(),
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__dis_done.Rdata")
 
-# VI. ANOSIM of observation types and variables
-# ===============================================
+# VIII. ANOSIM of observation types and variables ----
+# ~~~~~~~~~~~~
 
 # subset to local observation without OBIS, OBIS data is too sparse to allow meaningful conclusions
 fish_biodiv_local <- fish_biodiv |> filter(SET.ID %!in% c(98, 99)) |> filter(SAMPLE.TYPE %in% c("eDNA", "BRUV", "OBIS"))
@@ -1113,7 +1104,7 @@ get_vegan(distance = "jaccard", tibl = fish_biodiv_local, group_col = "SET.ID", 
 
 
 # Analysis for fish (as per eDNA markers) for BRUV and eDNA (data complete across all sets)
-# ----------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~
 
 # setting up parameter combinations for complete ANOSIM analysis
 anosim_analysis_fish <- expand.grid(
@@ -1164,14 +1155,14 @@ save_as_html(ft_anosim, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__anaosim_done.Rdata")
 
 
-# VII. Indicator species analysis for significant ANOMSIM results
-# ==============================================================
+# IX. Indicator species analysis for significant ANOMSIM results  ----
+# ~~~~~~~~~~~
 
 # testing indicator species analysis - note flag "map" set to TRUE
 get_vegan(distance = "jaccard", tibl = fish_biodiv_local, group_col = "SET.ID", group_row = c("SPECIES"), group_col_ano = "RESERVE.GROUP.LOCATION", obs_methods = "BRUV", mp = TRUE)
 
 # Analysis for fish (as per eDNA markers) for BRUV and eDNA (data complete across all sets)
-# ----------------------------------------------------------------------------------------------
+# ~~~~~
 
 # setting up parameter combinations for complete ANOSIM analysis
 mpatt_analysis_fish <- expand.grid(
@@ -1197,7 +1188,7 @@ mpatt_results_fish[[4]]
 summary(mpatt_results_fish[[1]])
 
 #  Multilevel pattern analysis
-#  ---------------------------
+# ~~~~~
 # 
 #  Association function: r.g
 #  Significance level (alpha): 0.05
@@ -1221,7 +1212,7 @@ summary(mpatt_results_fish[[1]])
 summary(mpatt_results_fish[[2]])
 
 # Multilevel pattern analysis
-#  ---------------------------
+# ~~~~~
 # 
 #  Association function: r.g
 #  Significance level (alpha): 0.05
@@ -1246,7 +1237,7 @@ summary(mpatt_results_fish[[2]])
 summary(mpatt_results_fish[[3]])
 
 # Multilevel pattern analysis
-#  ---------------------------
+# ~~~~~
 # 
 #  Association function: r.g
 #  Significance level (alpha): 0.05
@@ -1270,7 +1261,7 @@ summary(mpatt_results_fish[[3]])
 summary(mpatt_results_fish[[4]])
 
 # Multilevel pattern analysis
-#  ---------------------------
+# ~~~~~
 # 
 #  Association function: r.g
 #  Significance level (alpha): 0.05

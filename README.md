@@ -1040,14 +1040,27 @@
    * started looking up trivial names manually
    * added some notes to new main text copy (with todays date)
    * commit `abe9dcfbee3e25365eda0d4ce0c7ae0d94f30bd9`
- 
-## **important queue (last updated 27-Jan-2023):**
 
-* continue stepping through `999_r_summarize_results.r` and check for synonyms
-* load from line 404
+## **06-Mar-2023** - continuing analysis refresh for manuscript resubmission
+
+ * finished up trivial names in `999_r_summarize_results.r`
+ 
+## **16-Mar-2023** - continuing analysis refresh for manuscript resubmission
+ 
+ * finished formatting trivial names in `999_r_summarize_results.r`
+ * ran `save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")`
+ * added readable outline to script for easier navigation
+ * commit ``
 
  
-## **Miscellaneous todo (last updated 30-10-2022):**
+## **important queue** (last updated 06-Mar-2023):
+
+ * load `999_r_summarize_results.r` from start
+ * continue stepping through `999_r_summarize_results.r`
+ * check if trivial names have been added successfully
+ * look up NZ species
+
+## **Miscellaneous todo (last updated 06-Mar-2023):**
 
  * keep in mind that new plots have been generated e.g. by script 990
  * run finished MetaFishLib Blast`/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_nesi.sh`
@@ -1061,16 +1074,21 @@
  * delete outdated 
   * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.btd`
   * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.bti`
-  * **provide notes on species in manuscript**
-    * found **Thalassarche chrysostoma** - **Grey-headed albatross**
-    * found **Thalassarche melanophris** - **Black-browed albatross**
-    * found **Megaptera novaeangliae** - **humpback whale**                 
-    * found **Diomedea exulans** - **Wandering albatross**
-    * found **Arctocephalus forsteri** - **New Zealand fur seal**
-    * found **Arctocephalus australis** - **South American fur seal**
-    * found **Puffinus griseus** - **Sooty shearwater**           
-    * found **Aptenodytes patagonicus** - **king penguin**
-
+ * provide notes on **noteworthy fish species** in manuscript** 
+  * found **Fiordichthys slartibartfasti**
+  * found **Eldon's galaxias**
+ * provide notes on **non-fish species** in manuscript
+  * found **Thalassarche chrysostoma** - **Grey-headed albatross**
+  * found **Thalassarche melanophris** - **Black-browed albatross**
+  * found **Megaptera novaeangliae** - **humpback whale**                 
+  * found **Diomedea exulans** - **Wandering albatross**
+  * found **Arctocephalus forsteri** - **New Zealand fur seal**
+  * found **Arctocephalus australis** - **South American fur seal**
+  * found **Puffinus griseus** - **Sooty shearwater**           
+  * found **Aptenodytes patagonicus** - **king penguin**
+  * found **Synoicum kuranui** - possibly medicinal tunicate
+  * found **Trididemnum shawi** rare tunicate
+   
 ## Notes on depreciated scripts and why they are depreciated
 
 * `/Users/paul/Documents/OU_eDNA/200901_scripts/750_bash_fasta_blast.sh`
