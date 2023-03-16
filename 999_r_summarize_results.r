@@ -401,7 +401,7 @@ long_table %<>% mutate(TRIVIAL.SPECIES =
                                   SPECIES == "Arctocephalus australis" ~ "South American fur seal", 
                                   SPECIES == "Botrylloides leachii" ~ "[tunicate]",
                                   SPECIES == "Botryllus stewartensis" ~ "[tunicate]",                          
-                                  SPECIES == "Bovichtus angustifrons" ~ "[tunicate]",
+                                  SPECIES == "Bovichtus angustifrons" ~ " horny thornfish",
                                   SPECIES == "Caesioperca lepidoptera" ~ "butterfly perch",
                                   SPECIES == "Callanthias allporti" ~ "splendid sea perch",
                                   SPECIES == "Callanthias japonicus" ~ "yellowsail red bass",
@@ -435,10 +435,11 @@ long_table %<>% mutate(TRIVIAL.SPECIES =
                                   SPECIES == "Lepidoperca tasmanica" ~ "Tasmanian perch",                              
                                   SPECIES == "Lissocampus filum" ~ "shortsnout pipefish",                              
                                   SPECIES == "Lissoclinum notti" ~ "[tunicate]",                           
-                                  SPECIES == "Lotella phycis" ~ "Beardie",                             
+                                  SPECIES == "Lotella phycis" ~ "Beardie",
+                                  SPECIES == "Maurolicus muelleri" ~ "pennant pearlside",
                                   SPECIES == "Mendosoma lineatum" ~ "telescope fish",                              
                                   SPECIES == "Modicus minimus" ~ "small clingfish",                              
-                                  SPECIES == "Modicus tangaroa" ~ "tangaroa clingfish",                              
+                                  SPECIES == "Modicus tangaroa" ~ "eyespot clingfish",                              
                                   SPECIES == "Monocentris japonica" ~ "Japanese pineapplefish",                              
                                   SPECIES == "Morus serrator" ~ "Australasian gannet - [bird]",                              
                                   SPECIES == "Mustelus asterias" ~ "starry smooth-hound",                              
@@ -455,7 +456,7 @@ long_table %<>% mutate(TRIVIAL.SPECIES =
                                   SPECIES == "Pseudolabrus miles" ~ "Scarlet wrasse",                              
                                   SPECIES == "Ritterella sigillinoides" ~ "[tunicate]",                              
                                   SPECIES == "Ruanoho decemdigitatus" ~ "longfinned triplefin",                              
-                                  SPECIES == "Scorpaena papillosa" ~ "red rock cod",                              
+                                  SPECIES == "Scorpaena papillosa" ~ "red scorpionfish",                              
                                   SPECIES == "Synoicum kuranui" ~ "[tunicate]",                              
                                   SPECIES == "Synoicum occidentalis" ~ "[tunicate]",                              
                                   SPECIES == "Synoicum stewartense" ~ "[tunicate]",                               
@@ -466,35 +467,54 @@ long_table %<>% mutate(TRIVIAL.SPECIES =
 # check altered state with of trivial species names:
 long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf)
 
-
-
 # continue here after 16.03.2023
-save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
 
-# _3.) Not done: Verify NZ status among taxonomy strings ----
+# _3.) Establish non-fish and non-NZ status among taxonomy strings ----
 
-#  mark non-NZ species  **(possibly needs to be re-worked)**
+# look at taxonomy strings for manual lookup  
+long_table %>% dplyr::select(GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf) 
+
+
+# __a) Establish non-fish among taxonomy strings ----
+
+# genera that are not fish (fouand manually by inspecting table) - not used blow anymore now sub-setting on Class information
+nonnz_othr <- c("Aplidium", "Aplidium", "Aptenodytes", "Arctocephalus", "Arctocephalus", "Botrylloides", "Botrylloides", "Botryllus", "Cnemidocarpa", "Cominella", "Didemnum", "Diomedea", "Diplosoma", "Eudistoma", "Jasus", "Lissoclinum", "Macroctopus", "Morus", "Patiriella", "Phalacrocorax", "Ritterella", "Synoicum", "Trididemnum", "Tursiops")
+
+# __b) Not done: Establish non-NZ fish among taxonomy strings ----
+
+# export taxonomy strings for manual lookup  
+long_table %>% 
+  dplyr::select(CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% 
+  arrange(SPECIES) %>% 
+  print(n = Inf) %>% 
+  writexl::write_xlsx(., "/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part.xlsx")
+
+# add here from `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
+# marked non-NZ species  
+# - originally using list: Roberts, C., Stewart, A., Struthers, C., Barker, J. & Kortet, S. 2019 Checklist of the Fishes of New Zealand. 
+# - using list: Checklist of the Fishes of New Zealand: version 1.2 July 2020 CD Roberts, AL Stewart, CD Struthers, JJ Barker and S Kortet Museum of New Zealand Te Papa Tongarewa
+
+# after lookup started 16-03-2023 continue here
+
+# fish genara not known from NZ waters (found manually by literature search)
+# - see `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
+nonnz_fish <- c(NA)
+
+# __c) Not done: Mark non-fish (not "Actinopteri" nor "Chondrichthyes", nor "Myxini") and non-NZ status among taxonomy string ----
+
 #   16-Mar-2021 add asterisks ("*") to non-NZ species, and ("**") to non-fish (mammals and crustaceans)
-#   after checking with list 
-#   Roberts, C., Stewart, A., Struthers, C., Barker, J. & Kortet, S. 2019 Checklist of the Fishes of New Zealand. 
 
-# started to rework 23-Jan-2023
-# check which  
-long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) 
-# are not in  Checklist of the Fishes of New Zealand: version 1.2 July 2020 CD Roberts, AL Stewart, CD Struthers, JJ Barker and S Kortet Museum of New Zealand Te Papa Tongarewa
-
-nonnz_fish <- c("Asterropteryx", "Banjos", "Benitochromis", "Bostrychus", "Bovichtus", "Caprodon", "Coptodon", "Engraulis", "Gobiesox", "Gymnoscopelus", "Helcogramma", "Microcanthus", "Opistognathus", "Phoxinus", "Sander", "Scobinichthys")
-nonnz_othr <- c("Macroctopus", "Jasus", "Arctocephalus", "Balaenoptera", "Tursiops", "Aplidium" , "Botrylloides",***others**)
 
 long_table %<>% mutate(SPECIES = 
                          case_when(GENUS %in% nonnz_fish ~ paste0(SPECIES, "*"),
-                                   GENUS %in% nonnz_othr ~ paste0(SPECIES, "**"),
+                                   CLASS %!in% c("Actinopteri", "Chondrichthyes", "Myxini") ~ paste0(SPECIES, "**"),
                                                   TRUE ~ SPECIES)
                                                    )
 long_table %<>% mutate(GENUS = 
                          case_when(GENUS %in% nonnz_fish ~ paste0(GENUS, "*"),
-                                   GENUS %in% nonnz_othr ~ paste0(GENUS, "**"),
+                                   CLASS %!in% c("Actinopteri", "Chondrichthyes", "Myxini")  ~ paste0(GENUS, "**"),
                                                     TRUE ~ GENUS)
                                                     )
 # save / load annotated object

@@ -1040,6 +1040,8 @@
    * started looking up trivial names manually
    * added some notes to new main text copy (with todays date)
    * commit `abe9dcfbee3e25365eda0d4ce0c7ae0d94f30bd9`
+   * updated README and script further
+   * commit `this_commit`
 
 ## **06-Mar-2023** - continuing analysis refresh for manuscript resubmission
 
@@ -1048,20 +1050,24 @@
 ## **16-Mar-2023** - continuing analysis refresh for manuscript resubmission
  
  * finished formatting trivial names in `999_r_summarize_results.r`
- * ran `save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")`
- * added readable outline to script for easier navigation
- * commit ``
-
+   * ran `save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")`
+   * added readable outline to script for easier navigation
+   * commit `foo`
+   * for manual lookup writing Excel table writing `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part.xlsx`
+   * for manual lookup taking notes in `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
+   * using `/Users/paul/Documents/OU_eDNA/200224_references/210908_MA_DOC001887_TePapa_Checklist-of-Fishes-of_full.pdf`
  
 ## **important queue** (last updated 06-Mar-2023):
 
  * load `999_r_summarize_results.r` from start
- * continue stepping through `999_r_summarize_results.r`
- * check if trivial names have been added successfully
- * look up NZ species
+   * continue stepping through `999_r_summarize_results.r`
+      * run `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")`
+      * further look up non NZ species in `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
+      * continue at line 503
 
 ## **Miscellaneous todo (last updated 06-Mar-2023):**
 
+ * keep in mind to add content of rare and relatively new fish and non-NZ-fish listed in `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
  * keep in mind that new plots have been generated e.g. by script 990
  * run finished MetaFishLib Blast`/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_nesi.sh`
  * get taxonomy information for MetaFishLib
@@ -1074,10 +1080,11 @@
  * delete outdated 
   * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.btd`
   * `/Users/paul/Documents/OU_eDNA/220928_meta_fish_lib/221030_MetaFishLibNZ/taxdb.bti`
- * provide notes on **noteworthy fish species** in manuscript** 
+ * provide notes on **noteworthy fish species** in manuscript and their completeness** 
   * found **Fiordichthys slartibartfasti**
   * found **Eldon's galaxias**
  * provide notes on **non-fish species** in manuscript
+  * see **file**: `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
   * found **Thalassarche chrysostoma** - **Grey-headed albatross**
   * found **Thalassarche melanophris** - **Black-browed albatross**
   * found **Megaptera novaeangliae** - **humpback whale**                 
