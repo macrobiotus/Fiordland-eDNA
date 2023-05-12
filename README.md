@@ -1067,16 +1067,22 @@
     * sample type variable isn't set correctly 
     * should be `SAMPLE.TYPE %in% c("eDNA","BRUV","OBIS")` not 1,2,3,4
     * bug is in line 531 of `999_r_get_OBIS_and_map.r`
+ * commit `b37436ed9d4a6381ed0a1c891f29dc1db1c0a140`
+ * worked off more of todu queue - see below
  * commit ``
   
 ## **important queue** (last updated 12-May-2023):
 
- * open `999_r_get_OBIS_and_map.r`
- * run command `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_get_OBIS_and_map_bug_chase.Rdata")`
- * fix bug in line below **and** note down which factors are turned into which numbers
- * possibly: continue stepping through `999_r_get_OBIS_and_map.r`
- * possibly: again step through `999_r_summarize_results.r`
- * possibly: in line 532 confirm `SAMPLE.TYPE %in% c("eDNA","BRUV","OBIS")` or re-encode numbers
+ * [x] open `999_r_get_OBIS_and_map.r`
+ * [x] run command `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_get_OBIS_and_map_bug_chase.Rdata")`
+ * [x] fix bug in line below **and** note down which factors are turned into which numbers
+ * [x] continue stepping through `999_r_get_OBIS_and_map.r`
+ * [x] again step through `999_r_summarize_results.r`
+ * [ ] continue in line `# BUG CHASE 12.05.2023:`
+ * [ ] save `rds` file of long_table
+ * [ ] load environment below
+ * [ ] replace `rds` file in environment with revised long table
+ * [ ] in line 532 confirm `SAMPLE.TYPE %in% c("eDNA","BRUV","OBIS")` or re-encode numbers
 
  
 ## **Miscellaneous todo (last updated 16-Mar-2023):**

@@ -532,7 +532,11 @@ save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_get_O
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_get_OBIS_and_map_bug_chase.Rdata")
 
 # this line needs to be correct so that sampl types don't get tunred into integers
-long_table <- long_table |> mutate(SAMPLE.TYPE  = ifelse(SET.ID == 99, as.factor("OBIS"), as.factor(SAMPLE.TYPE)))
+long_table <- long_table |> mutate(SAMPLE.TYPE = case_when(
+  SET.ID == 99 ~ as.factor("OBIS"),
+  SET.ID != 99 ~ SAMPLE.TYPE)
+)
+
 unique(long_table$SAMPLE.TYPE)
 
 # check table
@@ -547,7 +551,7 @@ data_citations <- lt_obis_results %>% ungroup() %>% select(bibliographicCitation
    distinct() %>% arrange(bibliographicCitation)#  %>% print(n = Inf) 
 
 # write.xlsx(data_citations, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/210707_OBIS_data_citations.xlsx", asTable = TRUE, overwrite = TRUE)
-write.xlsx(data_citations, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/221220_OBIS_data_citations.xlsx", asTable = TRUE, overwrite = TRUE)
+openxlsx::write.xlsx(data_citations, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/221220_OBIS_data_citations.xlsx", asTable = TRUE, overwrite = TRUE)
 
 
 # check data completeness - preformatting
@@ -565,7 +569,7 @@ sum(OBIS_records$used) / nrow(OBIS_records) # 0.9853696, now 0.9850322
 
 # for verbosity
 # write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/998_r_map_and_add_obis__full_data_raw.xlsx", asTable = TRUE, overwrite = TRUE)
-write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/999_r_map_and_add_obis__full_data_raw.xlsx", asTable = TRUE, overwrite = TRUE)
+openxlsx::write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/999_r_map_and_add_obis__full_data_raw.xlsx", asTable = TRUE, overwrite = TRUE)
 
 # for superseded QGIS mapping in /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210307_sample_map.qgz
 # write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/998_r_map_and_add_obis__full_data_raw.csv")

@@ -4,7 +4,7 @@
 #  *                                *
 #  **********************************
 
-lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
+lapply(paste('package:', names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
 rm(list = ls(all.names = TRUE))
 gc()
 options(tibble.print_max = Inf) 
@@ -312,6 +312,8 @@ long_table %<>% mutate(SPECIES = str_replace(SPECIES, "\\s\\S*\\s\\S*(.*)", ""))
 
 long_table %<>% mutate(ORDER = ifelse(ORDER == "Squalidae", "Squaliformes", ORDER))
 long_table %<>% mutate(ORDER = ifelse(GENUS == "Callanthias", "Perciformes", ORDER))
+
+# save Rds with long table and add below after lookups and replace temple lookup table
 
 # _2.) Work with  trivial names ----
 
