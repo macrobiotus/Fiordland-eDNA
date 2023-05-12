@@ -1069,7 +1069,7 @@
     * bug is in line 531 of `999_r_get_OBIS_and_map.r`
  * commit `b37436ed9d4a6381ed0a1c891f29dc1db1c0a140`
  * worked off more of todu queue - see below
- * commit ``
+ * commit `7066a9aa754b8051ea966b8ad5af9d0a94426983`
   
 ## **important queue** (last updated 12-May-2023):
 

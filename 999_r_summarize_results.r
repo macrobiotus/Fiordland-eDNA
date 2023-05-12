@@ -313,7 +313,7 @@ long_table %<>% mutate(SPECIES = str_replace(SPECIES, "\\s\\S*\\s\\S*(.*)", ""))
 long_table %<>% mutate(ORDER = ifelse(ORDER == "Squalidae", "Squaliformes", ORDER))
 long_table %<>% mutate(ORDER = ifelse(GENUS == "Callanthias", "Perciformes", ORDER))
 
-# save Rds with long table and add below after lookups and replace temple lookup table
+# BUG CHASE 12.05.2023: save Rds with long table and add below after lookups and replace temple lookup table
 
 # _2.) Work with  trivial names ----
 
