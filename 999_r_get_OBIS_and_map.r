@@ -15,7 +15,7 @@ library("magrittr") # more pipes
 
 library("robis")       # access OBIS data
 
-library("rgdal")          # create buffer around sampling areas
+library("rgdal")       # create buffer around sampling areas
 library("sf")          # create buffer around sampling areas
 library("sp")
 
@@ -29,7 +29,6 @@ library("readxl")      # read Excel files
 library("openxlsx")    # write Excel tables
 
 options(tibble.print_max = Inf) 
-
 
 # II. Functions
 # =============
@@ -280,6 +279,7 @@ gen_in_nf <- c("Ritterella")
 
 # saving workspace manually
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221219_999_r_map_and_add_obis__post_downloads.Rdata")
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221219_999_r_map_and_add_obis__post_downloads.Rdata")
 
 # get basic species lists
 # -----------------------
@@ -341,11 +341,10 @@ spc <- spc |> mutate(CLASS = ifelse(ORDER == "Salpida", "Thaliacea", CLASS))
 spc <- spc |> mutate(CLASS = ifelse(FAMILY == "Plesiopidae", "Actinopteri", CLASS))
 spc <- spc |> mutate(ORDER = ifelse(FAMILY == "Plesiopidae", "Ovalentaria", ORDER))
 
-
 # remove holes that can be
 spc <- spc |> filter(!is.na(SPECIES)) |> distinct()
  
- 
+
 # add other variables for downstream compatibility
 # -----------------------------------------------
 
@@ -406,7 +405,7 @@ lt_obis_truncated %<>% mutate(RESERVE.GROUP.LOCATION =
             )
 
 # stack data for subsequent analysis - check dimensions
-dim(long_table) # 330 x 73, now 385 x 73
+dim(long_table) # 330 x 73, now 385 x 77
 
 # stack data for subsequent analysis - correct type in previous data for succesful stacking
 long_table %<>% mutate(NCBI.TAXID = as.numeric(NCBI.TAXID))
@@ -501,7 +500,7 @@ long_table %<>% mutate(NCBI.TAXID.INC = ifelse(is.na(NCBI.TAXID.INC), FALSE, NCB
 #     but can't be used for filtering in the old fashion anymore 
 long_table %<>% group_by(SET.ID) %>% mutate(UNIQ.REP.IDS = n_distinct(REP.ID))
 
-# VIII. Check data completness and citations
+# VIII. Check data completeness and citations
 # ==========================================
 
 long_table %<>% mutate(LOC.NAME = ifelse(RESERVE.GROUP == "FI", "Fiordland", LOC.NAME))
@@ -527,8 +526,14 @@ unique(long_table$SAMPLE.TYPE)
 long_table <- long_table |> mutate(SAMPLE.TYPE = as.factor(SAMPLE.TYPE))
 unique(long_table$SAMPLE.TYPE)
 unique(long_table$SET.ID)
+glimpse(long_table)
 
-long_table <- long_table |> mutate(SAMPLE.TYPE  = ifelse(SET.ID == 99, as.factor("OBIS"), SAMPLE.TYPE))
+save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_get_OBIS_and_map_bug_chase.Rdata")
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_get_OBIS_and_map_bug_chase.Rdata")
+
+# this line needs to be correct so that sampl types don't get tunred into integers
+long_table <- long_table |> mutate(SAMPLE.TYPE  = ifelse(SET.ID == 99, as.factor("OBIS"), as.factor(SAMPLE.TYPE)))
+unique(long_table$SAMPLE.TYPE)
 
 # check table
 long_table |> select(SET.ID, SAMPLE.TYPE, LOC.NAME, MH.GPS.LAT, MH.PPS.LONG,

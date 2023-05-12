@@ -1040,8 +1040,6 @@
    * started looking up trivial names manually
    * added some notes to new main text copy (with todays date)
    * commit `abe9dcfbee3e25365eda0d4ce0c7ae0d94f30bd9`
-   * updated README and script further
-   * commit `this_commit`
 
 ## **06-Mar-2023** - continuing analysis refresh for manuscript resubmission
 
@@ -1056,18 +1054,36 @@
    * for manual lookup writing Excel table writing `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part.xlsx`
    * for manual lookup taking notes in `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
    * using `/Users/paul/Documents/OU_eDNA/200224_references/210908_MA_DOC001887_TePapa_Checklist-of-Fishes-of_full.pdf`
+   * updated README and script further
+   * commit `8282a315a7dd315e92673c0b1fdd6159c5070abd`
+
+## **12-May-2023** - continuing analysis refresh for manuscript resubmission
+
+ * loading `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+ * loading most recent environment `/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata`
+ * finished NZ native status and references in `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx` 
+ * continue stepping through `999_r_summarize_results.r`
+    * in line 655
+    * sample type variable isn't set correctly 
+    * should be `SAMPLE.TYPE %in% c("eDNA","BRUV","OBIS")` not 1,2,3,4
+    * bug is in line 531 of `999_r_get_OBIS_and_map.r`
+ * commit ``
+  
+## **important queue** (last updated 12-May-2023):
+
+ * open `999_r_get_OBIS_and_map.r`
+ * run command `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_get_OBIS_and_map_bug_chase.Rdata")`
+ * fix bug in line below **and** note down which factors are turned into which numbers
+ * possibly: continue stepping through `999_r_get_OBIS_and_map.r`
+ * possibly: again step through `999_r_summarize_results.r`
+ * possibly: in line 532 confirm `SAMPLE.TYPE %in% c("eDNA","BRUV","OBIS")` or re-encode numbers
+
  
-## **important queue** (last updated 06-Mar-2023):
+## **Miscellaneous todo (last updated 16-Mar-2023):**
 
- * load `999_r_summarize_results.r` from start
-   * continue stepping through `999_r_summarize_results.r`
-      * run `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")`
-      * further look up non NZ species in `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
-      * continue at line 503
-
-## **Miscellaneous todo (last updated 06-Mar-2023):**
-
- * keep in mind to add content of rare and relatively new fish and non-NZ-fish listed in `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
+ * **for supplement**: keep in mind fish and non-NZ-fish, and references in `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
+ * **for rebuttal**: keep in mind changed overal counts in script 999...: line ~643 starting with `# Summary: general species counts`
+ 
  * keep in mind that new plots have been generated e.g. by script 990
  * run finished MetaFishLib Blast`/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_nesi.sh`
  * get taxonomy information for MetaFishLib

@@ -45,10 +45,10 @@ get_euler_object = function(level, tibl){
   
   # check if needed columns are in the input data
   stopifnot(c("BRUV.OBS.PRES", "EDNA.OBS.PRES", "OBIS.OBS.PRES", "PUBL.OBS.PRES") %in% names(tibl))
-  stopifnot(level %in% c("SUPERKINGDOM", "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
+  stopifnot(level %in% c("SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"))
   
   # isolate realvant columns for summary
-  tibl %<>% select(BRUV.OBS.PRES, EDNA.OBS.PRES, OBIS.OBS.PRES, PUBL.OBS.PRES, SUPERKINGDOM,  PHYLUM,  CLASS,  ORDER,  FAMILY,  GENUS, SPECIES) %>% distinct()
+  tibl %<>% select(BRUV.OBS.PRES, EDNA.OBS.PRES, OBIS.OBS.PRES, PUBL.OBS.PRES, SUPERKINGDOM, PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES) %>% distinct()
   
   # debugging only
   # print(tibl)
@@ -73,7 +73,7 @@ get_euler_ggplot = function(level, euler_ob, plot_label = TRUE){
 
   # sanitize input
   stopifnot( class(euler_ob)[1] == "euler")
-  stopifnot(level %in% c("SUPERKINGDOM", "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
+  stopifnot(level %in% c("SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"))
   
   euler_ggplot <- as.ggplot(
     plot(euler_ob, quantities = list(type = c("counts", "percent"), font=3, round=2, cex=0.8), labels = list(font=1, cex=0.8))
@@ -91,8 +91,8 @@ get_sf_biodiv =  function(tibl){
   require("sf")
   
   # define columns for mapping add input verification
-  cols <- c("SET.ID", "MH.GPS.LAT", "MH.PPS.LONG",  "RESERVE.GROUP", "RESERVE.GROUP.INSIDE",
-            "RESERVE.GROUP.LOCATION", "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS",
+  cols <- c("SET.ID", "MH.GPS.LAT", "MH.PPS.LONG", "RESERVE.GROUP", "RESERVE.GROUP.INSIDE",
+            "RESERVE.GROUP.LOCATION", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS",
             "SPECIES", "ASV", "ABUNDANCE", "SAMPLE.TYPE", "BRUV.OBS.PRES", "EDNA.OBS.PRES", "OBIS.OBS.PRES")
   stopifnot(cols %in% names(tibl))
   
@@ -127,7 +127,7 @@ get_bbox_anyloc <- function(tibl, location = c("RESERVE.GROUP.LOCATION")){
   # calculate bounding box
   bbox <- tibl %>% 
   group_by(across(all_of(location))) %>%
-  summarise(xmin = min(MH.PPS.LONG) -0.01 ,ymin = min(MH.GPS.LAT) -0.01, xmax=max(MH.PPS.LONG) +0.01,  ymax = max(MH.GPS.LAT) +0.01) %>%
+  summarise(xmin = min(MH.PPS.LONG) -0.01 ,ymin = min(MH.GPS.LAT) -0.01, xmax=max(MH.PPS.LONG) +0.01, ymax = max(MH.GPS.LAT) +0.01) %>%
   gather(x,lon,c('xmin','xmax')) %>% gather(y,lat,c('ymin','ymax')) %>%
   st_as_sf(coords=c('lon','lat'),crs=4326,remove=F) %>%
   group_by(across(all_of(location))) %>% mutate(angle = calc_angle(lon,lat)) %>%
@@ -170,7 +170,7 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   #   tbl = FALSE
   
   stopifnot(group_col %in% names(tibl))
-  stopifnot(group_row %in% c("SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"))
+  stopifnot(group_row %in% c("SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"))
   # stopifnot(length(obs_methods) == 1)
   stopifnot(obs_methods %in% c("BRUV", "eDNA", "OBIS", "PUBL", NULL))
   
@@ -201,9 +201,9 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   #   get counts of occurrences per location, per taxonomic entity for subsequent matrix 
   #   not sure if all taxonomy level are needed, implementing just in case
   if (group_row == "SPECIES") {
-    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "NCBI.TAXID", "SUPERKINGDOM",  "PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES", "TRIVIAL.SPECIES"), .SDcols=c("ANY.OBS.PRES") ]
+    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "NCBI.TAXID", "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES", "TRIVIAL.SPECIES"), .SDcols=c("ANY.OBS.PRES") ]
   } else if (group_row == "GENUS") {
-    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY",  "GENUS"), .SDcols=c("ANY.OBS.PRES") ]
+    dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS"), .SDcols=c("ANY.OBS.PRES") ]
   } else if (group_row == "FAMILY") {
     dtbl_ag <- dtbl[, lapply(.SD, sum, na.rm=TRUE), by=c(group_col, "SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY"), .SDcols=c("ANY.OBS.PRES") ]
   } else if (group_row == "ORDER") {
@@ -389,9 +389,9 @@ long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrang
 # reworked on 23-Jan-2023 and 6 Mar 2023 - looked up trivial names that could not be found automatically
 long_table %<>% mutate(TRIVIAL.SPECIES = 
                         case_when(SPECIES == "Acanthoclinus fuscus" ~ "olive rockfish",
-                                  SPECIES == "Acanthoclinus littoreus" ~ "New Zealand rockfish",                              
+                                  SPECIES == "Acanthoclinus littoreus" ~ "New Zealand rockfish",                             
                                   SPECIES == "Acanthoclinus marilynae" ~ "Stout rockfish",
-                                  SPECIES == "Acanthoclinus matti" ~ "New Zealand longfin",                              
+                                  SPECIES == "Acanthoclinus matti" ~ "New Zealand longfin",                             
                                   SPECIES == "Acanthoclinus rua" ~ "little rockfish",
                                   SPECIES == "Aplidium adamsi" ~ "[squirt]",
                                   SPECIES == "Aplidium coronum" ~ "[squirt]",
@@ -400,74 +400,74 @@ long_table %<>% mutate(TRIVIAL.SPECIES =
                                   SPECIES == "Aplodactylus arctidens" ~ "marblefish",
                                   SPECIES == "Arctocephalus australis" ~ "South American fur seal", 
                                   SPECIES == "Botrylloides leachii" ~ "[tunicate]",
-                                  SPECIES == "Botryllus stewartensis" ~ "[tunicate]",                          
+                                  SPECIES == "Botryllus stewartensis" ~ "[tunicate]",                         
                                   SPECIES == "Bovichtus angustifrons" ~ " horny thornfish",
                                   SPECIES == "Caesioperca lepidoptera" ~ "butterfly perch",
                                   SPECIES == "Callanthias allporti" ~ "splendid sea perch",
                                   SPECIES == "Callanthias japonicus" ~ "yellowsail red bass",
                                   SPECIES == "Cephaloscyllium isabella" ~ "draughtsboard shark",
-                                  SPECIES == "Chaetodon zanzibarensis" ~ "Zanzibar butterflyfish",                              
+                                  SPECIES == "Chaetodon zanzibarensis" ~ "Zanzibar butterflyfish",                             
                                   SPECIES == "Cheilodactylus variegatus" ~ "Peruvian morwong",
-                                  SPECIES == "Cnemidocarpa bicornuta" ~ "[tunicate]",                              
-                                  SPECIES == "Cnemidocarpa nisiotis" ~ "[tunicate]",                              
-                                  SPECIES == "Cominella sp." ~ "[snail]",                              
-                                  SPECIES == "Cryptichthys jojettae" ~ "cryptic triplefin",                              
-                                  SPECIES == "Didemnum inveteratum" ~ "[tunicate]",                              
-                                  SPECIES == "Diplosoma listerianum" ~ "[tunicate]",                      
-                                  SPECIES == "Diplosoma velatum" ~ "[tunicate]",                             
-                                  SPECIES == "Eptatretus cirrahtus" ~ "broadgilled hagfish",                              
-                                  SPECIES == "Eudistoma circumvallatum" ~ "[tunicate]",                             
-                                  SPECIES == "Fiordichthys slartibartfasti" ~ "Fiordland brotula",                              
-                                  SPECIES == "Forsterygion malcolmi" ~ "mottled triplefin",                           
-                                  SPECIES == "Forsterygion maryannae" ~ "oblique-swimming triplefin",                              
-                                  SPECIES == "Gaidropsarus novaezelandi" ~ "New Zealand rockling",                              
-                                  SPECIES == "Galaxias argenteus" ~ "giant kōkopu",                             
-                                  SPECIES == "Galaxias eldoni" ~ "Eldon\'s galaxias",                              
-                                  SPECIES == "Gobiopsis atrata" ~ "New Zealand black goby",                              
-                                  SPECIES == "Gymnoscopelus nicholsi" ~ "Nichol's lanternfish",                              
-                                  SPECIES == "Helcogramma striata" ~ "tropical striped triplefin",                            
-                                  SPECIES == "Helicolenus hilgendorfii" ~ "Hilgendorf's saucord",                              
-                                  SPECIES == "Helicolenus percoides" ~ "red gurnard perch",                              
-                                  SPECIES == "Hemerocoetes monopterygius" ~ "opalfish",                              
-                                  SPECIES == "Hygophum hygomii" ~ "Bermuda lantern fish",                              
-                                  SPECIES == "Hypoplectrodes huntii" ~ "redbanded perch",                              
-                                  SPECIES == "Karalepis stewarti" ~ "scaly-headed triplefin",                              
-                                  SPECIES == "Lepidoperca tasmanica" ~ "Tasmanian perch",                              
-                                  SPECIES == "Lissocampus filum" ~ "shortsnout pipefish",                              
-                                  SPECIES == "Lissoclinum notti" ~ "[tunicate]",                           
+                                  SPECIES == "Cnemidocarpa bicornuta" ~ "[tunicate]",                             
+                                  SPECIES == "Cnemidocarpa nisiotis" ~ "[tunicate]",                             
+                                  SPECIES == "Cominella sp." ~ "[snail]",                             
+                                  SPECIES == "Cryptichthys jojettae" ~ "cryptic triplefin",                             
+                                  SPECIES == "Didemnum inveteratum" ~ "[tunicate]",                             
+                                  SPECIES == "Diplosoma listerianum" ~ "[tunicate]",                     
+                                  SPECIES == "Diplosoma velatum" ~ "[tunicate]",                            
+                                  SPECIES == "Eptatretus cirrahtus" ~ "broadgilled hagfish",                             
+                                  SPECIES == "Eudistoma circumvallatum" ~ "[tunicate]",                            
+                                  SPECIES == "Fiordichthys slartibartfasti" ~ "Fiordland brotula",                             
+                                  SPECIES == "Forsterygion malcolmi" ~ "mottled triplefin",                          
+                                  SPECIES == "Forsterygion maryannae" ~ "oblique-swimming triplefin",                             
+                                  SPECIES == "Gaidropsarus novaezelandi" ~ "New Zealand rockling",                             
+                                  SPECIES == "Galaxias argenteus" ~ "giant kōkopu",                            
+                                  SPECIES == "Galaxias eldoni" ~ "Eldon\'s galaxias",                             
+                                  SPECIES == "Gobiopsis atrata" ~ "New Zealand black goby",                             
+                                  SPECIES == "Gymnoscopelus nicholsi" ~ "Nichol's lanternfish",                             
+                                  SPECIES == "Helcogramma striata" ~ "tropical striped triplefin",                           
+                                  SPECIES == "Helicolenus hilgendorfii" ~ "Hilgendorf's saucord",                             
+                                  SPECIES == "Helicolenus percoides" ~ "red gurnard perch",                             
+                                  SPECIES == "Hemerocoetes monopterygius" ~ "opalfish",                             
+                                  SPECIES == "Hygophum hygomii" ~ "Bermuda lantern fish",                             
+                                  SPECIES == "Hypoplectrodes huntii" ~ "redbanded perch",                             
+                                  SPECIES == "Karalepis stewarti" ~ "scaly-headed triplefin",                             
+                                  SPECIES == "Lepidoperca tasmanica" ~ "Tasmanian perch",                             
+                                  SPECIES == "Lissocampus filum" ~ "shortsnout pipefish",                             
+                                  SPECIES == "Lissoclinum notti" ~ "[tunicate]",                          
                                   SPECIES == "Lotella phycis" ~ "Beardie",
                                   SPECIES == "Maurolicus muelleri" ~ "pennant pearlside",
-                                  SPECIES == "Mendosoma lineatum" ~ "telescope fish",                              
-                                  SPECIES == "Modicus minimus" ~ "small clingfish",                              
-                                  SPECIES == "Modicus tangaroa" ~ "eyespot clingfish",                              
-                                  SPECIES == "Monocentris japonica" ~ "Japanese pineapplefish",                              
-                                  SPECIES == "Morus serrator" ~ "Australasian gannet - [bird]",                              
-                                  SPECIES == "Mustelus asterias" ~ "starry smooth-hound",                              
-                                  SPECIES == "Notoclinops caerulepunctus" ~ "blue dot triplefin",                              
-                                  SPECIES == "Notoclinops segmentatus" ~ "blue-eyed triplefin",                              
-                                  SPECIES == "Notoclinus compressus" ~ "Brown topknot",                              
-                                  SPECIES == "Notoclinus fenestratus" ~ "New Zealand topknot",                              
-                                  SPECIES == "Notolabrus cinctus" ~ "girdled wrasse",                              
-                                  SPECIES == "Opistognathus iyonis" ~ "well-building jawfish",                              
-                                  SPECIES == "Opistognathus sp." ~ "jawfish",                              
-                                  SPECIES == "Parapercis decemfasciata" ~ NA,                             
-                                  SPECIES == "Patiriella regularis" ~ "New Zealand common cushion star [sea star]",                              
-                                  SPECIES == "Polyprion oxygeneios" ~ "hāpuku",                              
-                                  SPECIES == "Pseudolabrus miles" ~ "Scarlet wrasse",                              
-                                  SPECIES == "Ritterella sigillinoides" ~ "[tunicate]",                              
-                                  SPECIES == "Ruanoho decemdigitatus" ~ "longfinned triplefin",                              
-                                  SPECIES == "Scorpaena papillosa" ~ "red scorpionfish",                              
-                                  SPECIES == "Synoicum kuranui" ~ "[tunicate]",                              
-                                  SPECIES == "Synoicum occidentalis" ~ "[tunicate]",                              
-                                  SPECIES == "Synoicum stewartense" ~ "[tunicate]",                               
-                                  SPECIES == "Thalasseleotris iota" ~ "New Zealand pygmy sleeper",                              
+                                  SPECIES == "Mendosoma lineatum" ~ "telescope fish",                             
+                                  SPECIES == "Modicus minimus" ~ "small clingfish",                             
+                                  SPECIES == "Modicus tangaroa" ~ "eyespot clingfish",                             
+                                  SPECIES == "Monocentris japonica" ~ "Japanese pineapplefish",                             
+                                  SPECIES == "Morus serrator" ~ "Australasian gannet - [bird]",                             
+                                  SPECIES == "Mustelus asterias" ~ "starry smooth-hound",                             
+                                  SPECIES == "Notoclinops caerulepunctus" ~ "blue dot triplefin",                             
+                                  SPECIES == "Notoclinops segmentatus" ~ "blue-eyed triplefin",                             
+                                  SPECIES == "Notoclinus compressus" ~ "Brown topknot",                             
+                                  SPECIES == "Notoclinus fenestratus" ~ "New Zealand topknot",                             
+                                  SPECIES == "Notolabrus cinctus" ~ "girdled wrasse",                             
+                                  SPECIES == "Opistognathus iyonis" ~ "well-building jawfish",                             
+                                  SPECIES == "Opistognathus sp." ~ "jawfish",                             
+                                  SPECIES == "Parapercis decemfasciata" ~ NA,                            
+                                  SPECIES == "Patiriella regularis" ~ "New Zealand common cushion star [sea star]",                             
+                                  SPECIES == "Polyprion oxygeneios" ~ "hāpuku",                             
+                                  SPECIES == "Pseudolabrus miles" ~ "Scarlet wrasse",                             
+                                  SPECIES == "Ritterella sigillinoides" ~ "[tunicate]",                             
+                                  SPECIES == "Ruanoho decemdigitatus" ~ "longfinned triplefin",                             
+                                  SPECIES == "Scorpaena papillosa" ~ "red scorpionfish",                             
+                                  SPECIES == "Synoicum kuranui" ~ "[tunicate]",                             
+                                  SPECIES == "Synoicum occidentalis" ~ "[tunicate]",                             
+                                  SPECIES == "Synoicum stewartense" ~ "[tunicate]",                              
+                                  SPECIES == "Thalasseleotris iota" ~ "New Zealand pygmy sleeper",                             
                                   SPECIES == "Trididemnum shawi" ~ "[tunicate]",
                                   TRUE ~ TRIVIAL.SPECIES))
 
 # check altered state with of trivial species names:
 long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf)
 
-# continue here after 16.03.2023
+# continued here after 16.03.2023
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
 
@@ -476,13 +476,38 @@ load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results_
 # look at taxonomy strings for manual lookup  
 long_table %>% dplyr::select(GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf) 
 
-
 # __a) Establish non-fish among taxonomy strings ----
 
-# genera that are not fish (fouand manually by inspecting table) - not used blow anymore now sub-setting on Class information
-nonnz_othr <- c("Aplidium", "Aplidium", "Aptenodytes", "Arctocephalus", "Arctocephalus", "Botrylloides", "Botrylloides", "Botryllus", "Cnemidocarpa", "Cominella", "Didemnum", "Diomedea", "Diplosoma", "Eudistoma", "Jasus", "Lissoclinum", "Macroctopus", "Morus", "Patiriella", "Phalacrocorax", "Ritterella", "Synoicum", "Trididemnum", "Tursiops")
+# genera that are not fish (found manually by inspecting table) - not used blow anymore now sub-setting on Class information
+nonnz_othr <-
+  c(
+    "Aplidium",
+    "Aplidium",
+    "Aptenodytes",
+    "Arctocephalus",
+    "Arctocephalus",
+    "Botrylloides",
+    "Botrylloides",
+    "Botryllus",
+    "Cnemidocarpa",
+    "Cominella",
+    "Didemnum",
+    "Diomedea",
+    "Diplosoma",
+    "Eudistoma",
+    "Jasus",
+    "Lissoclinum",
+    "Macroctopus",
+    "Morus",
+    "Patiriella",
+    "Phalacrocorax",
+    "Ritterella",
+    "Synoicum",
+    "Trididemnum",
+    "Tursiops"
+  )
 
-# __b) Not done: Establish non-NZ fish among taxonomy strings ----
+# __b) Started: Establish non-NZ fish among taxonomy strings ----
 
 # export taxonomy strings for manual lookup  
 long_table %>% 
@@ -495,29 +520,42 @@ long_table %>%
 # marked non-NZ species  
 # - originally using list: Roberts, C., Stewart, A., Struthers, C., Barker, J. & Kortet, S. 2019 Checklist of the Fishes of New Zealand. 
 # - using list: Checklist of the Fishes of New Zealand: version 1.2 July 2020 CD Roberts, AL Stewart, CD Struthers, JJ Barker and S Kortet Museum of New Zealand Te Papa Tongarewa
+#         at : /Users/paul/Documents/OU_eDNA/200224_references/210908_MA_DOC001887_TePapa_Checklist-of-Fishes-of_full.pdf
 
 # after lookup started 16-03-2023 continue here
 
-# fish genara not known from NZ waters (found manually by literature search)
+# fish genera not known from NZ waters (found manually by literature search)
 # - see `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
-nonnz_fish <- c(NA)
 
-# __c) Not done: Mark non-fish (not "Actinopteri" nor "Chondrichthyes", nor "Myxini") and non-NZ status among taxonomy string ----
+nonnz_fish <- c(
+  "Alburnus alburnus", "Aplocheilus lineatus",  "Asterropteryx semipunctata",  "Atherinomorus lacunosus",  "Bostrychus zonatus",  "Bovichtus angustifrons",  "Callanthias japonicus",  "Caprodon schlegelii",  "Chaetodon zanzibarensis",  "Cheilodactylus variegatus",  "Chelidonichthys spinosus",  "Conodon nobilis",  "Engraulis japonicus",  "Erythrocles schlegelii",  "Gaidropsarus argentatus",  "Gobiesox maeandricus",  "Goniistius zonatus",  "Gymnoscopelus nicholsi",  "Helcogramma striata",  "Helicolenus hilgendorfii",  "Helicolenus percoides",  "Opistognathus iyonis",  "Opistognathus liturus",  "Opistognathus punctatus",  "Opistognathus sp.",  "Parapercis decemfasciata",  "Pseudophycis barbata",  "Scobinichthys granulatus",  "Scomber japonicus",  "Trachurus japonicus",  "Mustelus asterias",  "Squalus suckleyi"
+  ) 
+
+# __c) Started: Mark non-fish (not "Actinopteri" nor "Chondrichthyes", nor "Myxini") and non-NZ status among taxonomy string ----
 
 #   16-Mar-2021 add asterisks ("*") to non-NZ species, and ("**") to non-fish (mammals and crustaceans)
+#   see `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx` for an annoated list
 
 
 long_table %<>% mutate(SPECIES = 
-                         case_when(GENUS %in% nonnz_fish ~ paste0(SPECIES, "*"),
+                         case_when(SPECIES %in% nonnz_fish                                  ~ paste0(SPECIES, "*"),
                                    CLASS %!in% c("Actinopteri", "Chondrichthyes", "Myxini") ~ paste0(SPECIES, "**"),
-                                                  TRUE ~ SPECIES)
-                                                   )
+                                                                                              TRUE ~ SPECIES)
+                       )
+
 long_table %<>% mutate(GENUS = 
-                         case_when(GENUS %in% nonnz_fish ~ paste0(GENUS, "*"),
+                         case_when(SPECIES %in% nonnz_fish                                   ~ paste0(GENUS, "*"),
                                    CLASS %!in% c("Actinopteri", "Chondrichthyes", "Myxini")  ~ paste0(GENUS, "**"),
-                                                    TRUE ~ GENUS)
-                                                    )
-# save / load annotated object
+                                                                                               TRUE ~ GENUS)
+                       )
+
+
+# 12-May-2023: check succesful addition of stars
+
+long_table %>% dplyr::select(GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf) 
+
+
+# save / load annotated object - last done 12-May-2023
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__start_env.Rdata")
 saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
@@ -545,13 +583,13 @@ long_table %<>% mutate(ANY.OBS.PRES = case_when(BRUV.OBS.PRES == 1 ~ 1,
 # _6.) Incomplete: Split data into sets for "fish", "other", and "full" data ----
 
 full_biodiv <- long_table %>% distinct()
-fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes")) %>% filter(!(GENUS %in% c("Sardinops")))
+fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>% filter(!(GENUS %in% c("Sardinops")))
 
+# Last saved 12-May-2023
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 
 
 # IV. get table summaries for supplement (What data is available for Fiordland?) ----
-
 
 # format data for flex table
 obs_sums <- fish_biodiv %>% ungroup() %>% group_by(SPECIES) %>%  
@@ -589,22 +627,30 @@ ft_spcies_obs_sums <-  flextable(spcies_obs_sums) %>%
      fontsize(part = "all", size = 9) %>%
      fit_to_width(max_width = 12, inc = 1L, max_iter = 20)
 
-save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.docx",
-  pr_section = prop_section(
-    page_size = page_size(orient = "portrait"), type = "continuous"
-    ))
+# save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.docx",
+#   pr_section = prop_section(
+#     page_size = page_size(orient = "portrait"), type = "continuous"
+#     ))
 
-save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.html")
+save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230512_999_r_summarize_results__all_data.docx",
+             pr_section = prop_section(
+               page_size = page_size(orient = "portrait"), type = "continuous"
+             ))
+
+# save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.html")
+save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230512_998_r_summarize_results__all_data.html")
 
 # Summary: general species counts 
-nrow(spcies_obs_sums)                                    # found 116 species across all data sets
-nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       106 Actinopteri
+nrow(spcies_obs_sums)                                    # found 117 species across all data sets
+nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       150 Actinopteri
 nrow(spcies_obs_sums |> filter (CLASS == "Chondrichthyes")) #     10 Chondrichthyes
 
-nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 BRUV (in study area)
-nrow(spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)))  # 44 EDNA (in study area)
-nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 OBIS (in circle)
-nrow(spcies_obs_sums |> filter (!is.na(PUBL.OBS.PRES.SUM)))  # 59 PUBL (Fiordland)
+nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 -> 26 BRUV (in study area)
+nrow(spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)))  # 44 -> 43 EDNA (in study area)
+nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 -> 28 OBIS (in circle)
+nrow(spcies_obs_sums |> filter (!is.na(PUBL.OBS.PRES.SUM)))  # 59 -> 61 PUBL (Fiordland)
+
+view(fish_biodiv)
 
 # Summary: OBIS data in small circles 
 fish_biodiv |> pull(SET.ID) |> unique() |> sort()
@@ -657,21 +703,21 @@ bruv_species[bruv_species %!in% publ_species] |> sort()
 # V. Get Euler plots ----
 
 # get euler analysis results for plotting / plot_label = TRUE shrinks plots a lot
-# euler_obs_full_bio <- lapply(list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), get_euler_object, full_biodiv)
-# euler_ggp_full_bio <- mapply(get_euler_ggplot, list("PHYLUM",  "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"),  euler_obs_full_bio, plot_label = FALSE, SIMPLIFY = FALSE)
+# euler_obs_full_bio <- lapply(list("PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), get_euler_object, full_biodiv)
+# euler_ggp_full_bio <- mapply(get_euler_ggplot, list("PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), euler_obs_full_bio, plot_label = FALSE, SIMPLIFY = FALSE)
 
 # plot euler analysis results
-euler_obs_fish_bio <- lapply(list("SUPERKINGDOM", "PHYLUM", "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"), get_euler_object, fish_biodiv)
-euler_ggp_fish_bio <- mapply(get_euler_ggplot, list("SUPERKINGDOM", "PHYLUM", "CLASS",  "ORDER",  "FAMILY",  "GENUS", "SPECIES"),  euler_obs_fish_bio, plot_label = FALSE, SIMPLIFY = FALSE)
+euler_obs_fish_bio <- lapply(list("SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), get_euler_object, fish_biodiv)
+euler_ggp_fish_bio <- mapply(get_euler_ggplot, list("SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), euler_obs_fish_bio, plot_label = FALSE, SIMPLIFY = FALSE)
 
 # create compound plot with better labels then with plot_label = TRUE above
 ggarrange( plotlist = euler_ggp_fish_bio[4:7],
-           labels = str_to_sentence(c("ORDER",  "FAMILY",  "GENUS", "SPECIES")),
+           labels = str_to_sentence(c("ORDER", "FAMILY", "GENUS", "SPECIES")),
            font.label = list(size = 12, color = "black", face = "bold.italic", family = NULL),
            ncol = 2, nrow = 2)
            
 # save compound plot with better labels then with plot_label = TRUE above
-ggsave("210712_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_plot(), 
+ggsave("230512_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 2.0, width = 100, height = 100, units = c("mm"),
          dpi = 500, limitsize = TRUE)
@@ -817,7 +863,7 @@ save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_re
 
 # slooooooooow 
 ggarrange( 
-  ggarrange(map_a,               ncol = 1, nrow = 1, labels = c("a")),
+  ggarrange(map_a,              ncol = 1, nrow = 1, labels = c("a")),
   ggarrange(map_b, map_c, map_d, ncol = 1, nrow = 3, labels = c("b","c", "d")),
   widths = c(2, 1), ncol = 2, nrow = 1  
   )
@@ -844,10 +890,10 @@ saveRDS(fish_biodiv_tbls, "/Users/paul/Documents/OU_eDNA/201028_Robjects/210703_
   # distinct()
 
 htmp_tibl_fish <- bind_rows(
-  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "eDNA",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
-  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "BRUV",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "BRUV"), 
-  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "OBIS",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "OBIS"),
-  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "PUBL",  tbl = TRUE) %>% add_column(SAMPLE.TYPE = "PUBL"),
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "eDNA", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "BRUV", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "BRUV"), 
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "OBIS", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "OBIS"),
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "PUBL", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "PUBL"),
 )
 
 # b.) add and analyse eDNA BLAST results
@@ -942,7 +988,7 @@ fish_asv_at_locs |> group_by(NOT.NZ) |> summarise(across(c("SPECIES", "ASV"), li
 # 1 FALSE         25    39
 # 2 TRUE          19    53
 
-coeff_plot <- sjPlot::plot_model(glm_mod, vline.color = "red",  show.values = TRUE) +
+coeff_plot <- sjPlot::plot_model(glm_mod, vline.color = "red", show.values = TRUE) +
   theme_bw() +
   scale_x_discrete(labels = c("Algn. Cov.", "Gaps")) +
   ggtitle("Influence of alignment quality on non-native status")
@@ -1063,7 +1109,7 @@ plot_htmp <- ggplot(htmp_tibl_fish, aes_string(x = "RESERVE.GROUP.LOCATION", y =
     theme(legend.position = "none", 
           strip.text.y = element_text(angle=0), 
           axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-          axis.text.y = element_text(angle = 0, hjust = 1,  size = 7, face = "italic"), 
+          axis.text.y = element_text(angle = 0, hjust = 1, size = 7, face = "italic"), 
           axis.ticks.y = element_blank(),
           axis.title.y = element_blank()
           ) +
