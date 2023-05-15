@@ -1075,6 +1075,9 @@
 
  * running script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
  * from line 0 to 591 with saving all intermediate results - look for current data if needed
+ * committing prior to modyfying from line 858 regressed mapping code
+ * commit `9e59780468df78287660d56b9fd4350def4d195e`
+ * finished running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
   
 ## **important queue** (last updated 12-May-2023):
 
@@ -1092,9 +1095,19 @@
  
 ## **Miscellaneous todo (last updated 16-Mar-2023):**
 
+ * for **new manuscript**
+  * figures for **supplement** are here (see dates): 
+  * figures for **main text** are here (see dates): `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
+ 
  * **for supplement**: keep in mind fish and non-NZ-fish, and references in `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
  * **for rebuttal**: keep in mind changed overal counts in script 999...: line ~643 starting with `# Summary: general species counts`
  
+ * keep in mind that ASV counts counts have changed: 
+                  # NOT.NZ was: 92 ASV: 39 False (42.4% False) / 53 True (57% True)
+                  #        now: 96 ASV: 25 False (26%  False)  / 71 True (73% True) 
+ * keep in mind that Species counts counts have changed: 
+                  # NOT.NZ was: 92 ASV: 39 False (42.4% False) / 53 True (57% True)
+                  #        now: 96 ASV: 25 False (26%  False)  / 71 True (73% True) 
  * keep in mind that new plots have been generated e.g. by script 990
  * run finished MetaFishLib Blast`/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_nesi.sh`
  * get taxonomy information for MetaFishLib
