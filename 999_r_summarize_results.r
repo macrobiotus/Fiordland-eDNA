@@ -23,7 +23,7 @@ library("grid")			  # convert flext table to ggplot grob
 library("sjPlot")		  # model plots
 
 # _1.) API key for Taxcise - trivial names lookup ----
-Sys.setenv(ENTREZ_KEY="YourNcbiApiKeyHere")
+Sys.setenv(ENTREZ_KEY="ecc505b227f772d346fb57816cac0bfda408")
 Sys.getenv("ENTREZ_KEY")
 
 # _2.) API key for Fishbase - synonyms lookup ----
@@ -313,8 +313,6 @@ long_table %<>% mutate(SPECIES = str_replace(SPECIES, "\\s\\S*\\s\\S*(.*)", ""))
 long_table %<>% mutate(ORDER = ifelse(ORDER == "Squalidae", "Squaliformes", ORDER))
 long_table %<>% mutate(ORDER = ifelse(GENUS == "Callanthias", "Perciformes", ORDER))
 
-# BUG CHASE 12.05.2023: save Rds with long table and add below after lookups and replace temple lookup table
-
 # _2.) Work with  trivial names ----
 
 # __a.) Fetch  trivial name synonyms from fishbase ----
@@ -325,9 +323,10 @@ spc_read <- long_table %>% pull("SPECIES") %>% unique() %>% sort()
 # fetch synonyms from Fishbase (20.12.2022)
 spc_in_syn <- rfishbase::synonyms(species_list = spc_read)
 
+# Last saved 15-May-2023
 # save state after fishbase lookup
-# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
-load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
+save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
 
 # __b.) Inspect trivial name synonyms from fishbase ----
 # inspect synonyms
@@ -380,8 +379,9 @@ trivial_df <- trivial_df |>  setNames( c("SPECIES", "TRIVIAL.SPECIES")) |> as_ti
 # add trivial names to object 
 long_table %<>% left_join(trivial_df)
 
-# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
-load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
+# Last saved 15-May-2023
+save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
 
 # __d) Add more trivial names by manual lookup ---- 
 
@@ -469,9 +469,9 @@ long_table %<>% mutate(TRIVIAL.SPECIES =
 # check altered state with of trivial species names:
 long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf)
 
-# continued here after 16.03.2023
-# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
-load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
+# Last saved 15-May-2023
+save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
 
 # _3.) Establish non-fish and non-NZ status among taxonomy strings ----
 
@@ -557,10 +557,10 @@ long_table %<>% mutate(GENUS =
 long_table %>% dplyr::select(GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf) 
 
 
-# save / load annotated object - last done 12-May-2023
+# Last saved 15-May-2023
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__start_env.Rdata")
 saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
-long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
+# long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
 
 # _4.) Skipped: Filter for data completeness ----
 
@@ -587,9 +587,8 @@ long_table %<>% mutate(ANY.OBS.PRES = case_when(BRUV.OBS.PRES == 1 ~ 1,
 full_biodiv <- long_table %>% distinct()
 fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>% filter(!(GENUS %in% c("Sardinops")))
 
-# Last saved 12-May-2023
+# Last saved 15-May-2023
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
-
 
 # IV. get table summaries for supplement (What data is available for Fiordland?) ----
 
@@ -644,7 +643,7 @@ save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_ma
 
 # Summary: general species counts 
 nrow(spcies_obs_sums)                                    # found 117 species across all data sets
-nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       150 Actinopteri
+nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       105 Actinopteri
 nrow(spcies_obs_sums |> filter (CLASS == "Chondrichthyes")) #     10 Chondrichthyes
 
 nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 -> 26 BRUV (in study area)
@@ -677,30 +676,138 @@ fish_biodiv |>
 
 # 1 Acanthoclinus matti     
 # 2 Lepidoperca tasmanica   
-# 3 Pseudolabrus miles      
-# 4 Parapercis colias       
+# 3 Parapercis colias       
+# 4 Pseudolabrus miles      
 # 5 Notolabrus cinctus      
-# 6 Notolabrus fucicola     
-# 7 Notolabrus celidotus    
-# 8 Nemadactylus macropterus
-# 9 Latris lineata          
-# 10 Pseudophycis barbata    
+# 6 Eptatretus cirrhatus    
+# 7 Latris lineata          
+# 8 Notolabrus fucicola     
+# 9 Nemadactylus macropterus
+# 10 Notolabrus celidotus    
 # 11 Scorpaena papillosa     
-# 12 Carcharodon carcharias
+# 12 Pseudophycis barbata*   
+# 13 Carcharodon carcharias 
 
 # Summary: Literture species counts
 fish_biodiv |> filter(SET.ID %in% c(98, 99)) |> select(SPECIES) |> distinct()
+
+# 1 Conger verreauxi            
+# 2 Atherinomorus lacunosus*    
+# 3 Bellapiscis lesleyae        
+# 4 Bellapiscis medius          
+# 5 Cryptichthys jojettae       
+# 6 Forsterygion capito         
+# 7 Forsterygion flavonigrum    
+# 8 Forsterygion lapillum       
+# 9 Forsterygion malcolmi       
+# 10 Forsterygion maryannae      
+# 11 Forsterygion varium         
+# 12 Karalepis stewarti          
+# 13 Notoclinops caerulepunctus  
+# 14 Notoclinops segmentatus     
+# 15 Notoclinus fenestratus      
+# 16 Ruanoho decemdigitatus      
+# 17 Ruanoho whero               
+# 18 Aplodactylus arctidens      
+# 19 Nemadactylus macropterus    
+# 20 Scorpis lineolata           
+# 21 Latridopsis ciliaris        
+# 22 Latridopsis forsteri        
+# 23 Latris lineata              
+# 24 Mendosoma lineatum          
+# 25 Callanthias allporti        
+# 26 Gaidropsarus novaezelandi   
+# 27 Lotella rhacina             
+# 28 Pseudophycis barbata*       
+# 29 Modicus minimus             
+# 30 Modicus tangaroa            
+# 31 Gobiopsis atrata            
+# 32 Notolabrus celidotus        
+# 33 Notolabrus cinctus          
+# 34 Notolabrus fucicola         
+# 35 Pseudolabrus miles          
+# 36 Odax pullus                 
+# 37 Aldrichetta forsteri        
+# 38 Fiordichthys slartibartfasti
+# 39 Retropinna retropinna       
+# 40 Acanthoclinus fuscus        
+# 41 Acanthoclinus littoreus     
+# 42 Acanthoclinus marilynae     
+# 43 Acanthoclinus matti         
+# 44 Acanthoclinus rua           
+# 45 Polyprion oxygeneios        
+# 46 Bovichtus variegatus        
+# 47 Scorpaena papillosa         
+# 48 Helicolenus percoides*      
+# 49 Caesioperca lepidoptera     
+# 50 Hypoplectrodes huntii       
+# 51 Lepidoperca tasmanica       
+# 52 Rhombosolea plebeia         
+# 53 Thyrsites atun              
+# 54 Lissocampus filum           
+# 55 Meuschenia scaber           
+# 56 Paratrachichthys trailli    
+# 57 Parapercis colias           
+# 58 Parapercis gilliesii        
+# 59 Cephaloscyllium isabella    
+# 60 Squalus acanthias           
+# 61 Eptatretus cirrahtus        
+# 62 Carcharodon carcharias      
+# 63 Isurus oxyrinchus           
+# 64 Eptatretus cirrhatus        
+# 65 Hemerocoetes monopterygius  
+# 66 Prionace glauca             
+# 67 Peltorhamphus latus         
+# 68 Notoclinus compressus       
+# 69 Galaxias argenteus          
+# 70 Thalasseleotris iota        
+# 71 Notothenia angustata    
+
 
 # Summary: Fish in BRUV that ar not in literture
 bruv_species <- fish_biodiv |> 
   select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "BRUV") |> 
   distinct() |> pull(SPECIES)
 
+# [1] "Parapercis colias"        "Nemadactylus macropterus" "Squalus acanthias"        "Pseudolabrus miles"       "Cephaloscyllium isabella"
+# [6] "Meuschenia scaber"        "Odax pullus"              "Eptatretus cirrhatus"     "Thyrsites atun"           "Caesioperca lepidoptera" 
+# [11] "Mustelus lenticulatus"    "Notolabrus fucicola"      "Scorpaena cardinalis"     "Notolabrus celidotus"     "Lotella rhacina"         
+# [16] "Forsterygion maryannae"   "Notolabrus cinctus"       "Bodianus unimaculatus"    "Helicolenus percoides*"   "Galeorhinus galeus"      
+# [21] "Hypoplectrodes huntii"    "Chelidonichthys kumu"     "Notorynchus cepedianus"   "Latridopsis ciliaris"     "Aplodactylus arctidens"  
+# [26] "Pseudophycis barbata*" 
+
 publ_species <- fish_biodiv |> 
   select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %!in% c("BRUV", "eDNA")) |> 
   distinct() |> pull(SPECIES)
 
+# [1] "Conger verreauxi"             "Atherinomorus lacunosus*"     "Bellapiscis lesleyae"         "Bellapiscis medius"          
+# [5] "Cryptichthys jojettae"        "Forsterygion capito"          "Forsterygion flavonigrum"     "Forsterygion lapillum"       
+# [9] "Forsterygion malcolmi"        "Forsterygion maryannae"       "Forsterygion varium"          "Karalepis stewarti"          
+# [13] "Notoclinops caerulepunctus"   "Notoclinops segmentatus"      "Notoclinus fenestratus"       "Ruanoho decemdigitatus"      
+# [17] "Ruanoho whero"                "Aplodactylus arctidens"       "Nemadactylus macropterus"     "Scorpis lineolata"           
+# [21] "Latridopsis ciliaris"         "Latridopsis forsteri"         "Latris lineata"               "Mendosoma lineatum"          
+# [25] "Callanthias allporti"         "Gaidropsarus novaezelandi"    "Lotella rhacina"              "Pseudophycis barbata*"       
+# [29] "Modicus minimus"              "Modicus tangaroa"             "Gobiopsis atrata"             "Notolabrus celidotus"        
+# [33] "Notolabrus cinctus"           "Notolabrus fucicola"          "Pseudolabrus miles"           "Odax pullus"                 
+# [37] "Aldrichetta forsteri"         "Fiordichthys slartibartfasti" "Retropinna retropinna"        "Acanthoclinus fuscus"        
+# [41] "Acanthoclinus littoreus"      "Acanthoclinus marilynae"      "Acanthoclinus matti"          "Acanthoclinus rua"           
+# [45] "Polyprion oxygeneios"         "Bovichtus variegatus"         "Scorpaena papillosa"          "Helicolenus percoides*"      
+# [49] "Caesioperca lepidoptera"      "Hypoplectrodes huntii"        "Lepidoperca tasmanica"        "Rhombosolea plebeia"         
+# [53] "Thyrsites atun"               "Lissocampus filum"            "Meuschenia scaber"            "Paratrachichthys trailli"    
+# [57] "Parapercis colias"            "Parapercis gilliesii"         "Cephaloscyllium isabella"     "Squalus acanthias"           
+# [61] "Eptatretus cirrahtus"         "Acanthoclinus matti"          "Lepidoperca tasmanica"        "Parapercis colias"           
+# [65] "Pseudolabrus miles"           "Notolabrus cinctus"           "Eptatretus cirrhatus"         "Latris lineata"              
+# [69] "Notolabrus fucicola"          "Nemadactylus macropterus"     "Notolabrus celidotus"         "Scorpaena papillosa"         
+# [73] "Pseudophycis barbata*"        "Carcharodon carcharias"       "Isurus oxyrinchus"            "Hemerocoetes monopterygius"  
+# [77] "Meuschenia scaber"            "Prionace glauca"              "Peltorhamphus latus"          "Bellapiscis medius"          
+# [81] "Squalus acanthias"            "Forsterygion lapillum"        "Forsterygion flavonigrum"     "Notoclinus compressus"       
+# [85] "Galaxias argenteus"           "Caesioperca lepidoptera"      "Thalasseleotris iota"         "Notothenia angustata"        
+# [89] "Latridopsis ciliaris"        
+
 bruv_species[bruv_species %!in% publ_species] |> sort()
+
+# [1] "Bodianus unimaculatus"  "Chelidonichthys kumu"   "Galeorhinus galeus"     "Mustelus lenticulatus"  "Notorynchus cepedianus"
+# [6] "Scorpaena cardinalis"  
 
 # V. Get Euler plots ----
 
@@ -719,7 +826,7 @@ ggarrange( plotlist = euler_ggp_fish_bio[4:7],
            ncol = 2, nrow = 2)
            
 # save compound plot with better labels then with plot_label = TRUE above
-ggsave("230512_998_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_plot(), 
+ggsave("230515_999_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 2.0, width = 100, height = 100, units = c("mm"),
          dpi = 500, limitsize = TRUE)

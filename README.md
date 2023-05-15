@@ -1069,7 +1069,12 @@
     * bug is in line 531 of `999_r_get_OBIS_and_map.r`
  * commit `b37436ed9d4a6381ed0a1c891f29dc1db1c0a140`
  * worked off more of todu queue - see below
- * commit `7066a9aa754b8051ea966b8ad5af9d0a94426983`
+ * commit `4b9c74b483ec828fd60eb3ff27d96b6c8c696f6a`
+
+## **15-May-2023** - continuing analysis refresh for manuscript resubmission
+
+ * running script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+ * from line 0 to 591 with saving all intermediate results - look for current data if needed
   
 ## **important queue** (last updated 12-May-2023):
 
