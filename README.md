@@ -1078,31 +1078,27 @@
  * committing prior to modyfying from line 858 regressed mapping code
  * commit `9e59780468df78287660d56b9fd4350def4d195e`
  * finished running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+ * commit `13db500b665c7e42ba71b8569ca63667f540de18`
   
 ## **important queue** (last updated 12-May-2023):
-
- * [x] open `999_r_get_OBIS_and_map.r`
- * [x] run command `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_get_OBIS_and_map_bug_chase.Rdata")`
- * [x] fix bug in line below **and** note down which factors are turned into which numbers
- * [x] continue stepping through `999_r_get_OBIS_and_map.r`
- * [x] again step through `999_r_summarize_results.r`
- * [ ] continue in line `# BUG CHASE 12.05.2023:`
- * [ ] save `rds` file of long_table
- * [ ] load environment below
- * [ ] replace `rds` file in environment with revised long table
- * [ ] in line 532 confirm `SAMPLE.TYPE %in% c("eDNA","BRUV","OBIS")` or re-encode numbers
-
+ 
+ * [ ] start editing main display items in ``/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
+ * [ ] copy files to rebuttal folder
+ * [ ] start updating Supplement
+ * [ ] read rebuttal
+ * [ ] re-outline main document
+ * [ ] write main document
+ * [ ] update cover letter
+ * [ ] submit
  
 ## **Miscellaneous todo (last updated 16-Mar-2023):**
 
  * for **new manuscript**
-  * figures for **supplement** are here (see dates): 
-  * figures for **main text** are here (see dates): `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
- 
+ * figures for **supplement** are here (see dates): `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/221118_analysis_outputs`
+ * figures for **main text** are here (see dates): `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
  * **for supplement**: keep in mind fish and non-NZ-fish, and references in `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
  * **for rebuttal**: keep in mind changed overal counts in script 999...: line ~643 starting with `# Summary: general species counts`
- 
- * keep in mind that ASV counts counts have changed: 
+  * keep in mind that ASV counts counts have changed: 
                   # NOT.NZ was: 92 ASV: 39 False (42.4% False) / 53 True (57% True)
                   #        now: 96 ASV: 25 False (26%  False)  / 71 True (73% True) 
  * keep in mind that Species counts counts have changed: 
