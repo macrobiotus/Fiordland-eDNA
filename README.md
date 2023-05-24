@@ -1079,13 +1079,28 @@
  * commit `9e59780468df78287660d56b9fd4350def4d195e`
  * finished running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
  * commit `13db500b665c7e42ba71b8569ca63667f540de18`
+
+## **22-May-2023** - continuing analysis refresh for manuscript resubmission
+
+ * started updating SI text and DI paths
+ * moving DI's to dedicated folder
+ * revised folder structure for manuscript submission
+
+## **24-May-2023** - restarting manuscript work
+
+ * finished updated SI
+ * started revising and appending rebuttal letter
+ * minor changes in script during collation of data for SI
+
+
   
 ## **important queue** (last updated 12-May-2023):
- 
- * [ ] start editing main display items in ``/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
+
+ * [x] start updating Supplement 
+ * [x] finish supplemnet 
+ * [ ] revise rebuttal
  * [ ] copy files to rebuttal folder
- * [ ] start updating Supplement
- * [ ] read rebuttal
+ * [ ] start editing main display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
  * [ ] re-outline main document
  * [ ] write main document
  * [ ] update cover letter

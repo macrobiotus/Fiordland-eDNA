@@ -5,7 +5,8 @@
 # 09-Dec-2022
 
 # I. Packages loading 
-# ==================
+# ===================
+
 rm(list = ls(all.names = TRUE))
 gc()
 
@@ -19,8 +20,8 @@ library("future.apply") # faster handling of large tables - such as molten Phylo
 library("decontam") # decontamination - check `https://benjjneb.github.io/decontam/vignettes/decontam_intro.html`
 library("openxlsx") # write Excel tables
 
-# II. Functions
-# =============
+# II. Functions 
+# ==============
 
 # Define new operator "not in"
 "%!in%" <- function(x, y) !(x %in% y)
@@ -529,9 +530,6 @@ lmbda <- MASS::fitdistr(cross_cont %>% pull(ABUNDANCE), "Poisson")
 treshhold <- qpois(0.95, lmbda$estimate) # will remove 18S with 18 reads or less as possibly cross-contaminated
 
 rm(psob_molten_fish_controls)
-
-# continue here after 9-Dec-2022
-
 
 # VI. Check cross-contamination with package `decontam`
 # ======================================================

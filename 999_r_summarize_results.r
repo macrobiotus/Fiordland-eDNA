@@ -21,6 +21,7 @@ library("officer")		# format species lists as tables https://ardata-fr.github.io
 library("magick")		  # convert flext table to ggplot grob
 library("grid")			  # convert flext table to ggplot grob
 library("sjPlot")		  # model plots
+library("jtools")		  # model plots
 
 # _1.) API key for Taxcise - trivial names lookup ----
 Sys.setenv(ENTREZ_KEY="ecc505b227f772d346fb57816cac0bfda408")
@@ -1078,6 +1079,30 @@ summary(glm_mod_2) # AIC: 388.97
 glm_mod_3 <-  glm(NOT.NZ ~ HSP.IDENTITY.PERC + HSP.GAPS, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
 summary(glm_mod_3) # AIC: 365.26
 
+# glm(formula = NOT.NZ ~ HSP.IDENTITY.PERC + HSP.GAPS, family = binomial, 
+#     data = fish_asv_at_locs, weights = LOC.PER.SPC)
+# 
+# Deviance Residuals: 
+#   Min       1Q   Median       3Q      Max  
+# -6.3118   0.1419   0.7299   1.2332   1.5193  
+# 
+# Coefficients:
+#   Estimate Std. Error z value Pr(>|z|)    
+# (Intercept)       30.70050    5.68939   5.396 6.81e-08 ***
+#   HSP.IDENTITY.PERC -0.29780    0.05824  -5.114 3.16e-07 ***
+#   HSP.GAPS          -0.61701    0.13668  -4.514 6.36e-06 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# (Dispersion parameter for binomial family taken to be 1)
+# 
+# Null deviance: 401.91  on 155  degrees of freedom
+# Residual deviance: 359.26  on 153  degrees of freedom
+# AIC: 365.26
+# 
+# Number of Fisher Scoring iterations: 5
+
+
 # __e) Testing model significance ----
 
 anova(glm_mod_0, glm_mod_1, test="Chisq") # Gaps only **not significant**
@@ -1095,7 +1120,7 @@ AIC(glm_mod_3) # best
 
 # __g) Inspect model ----
 
-summ(glm_mod_3)
+jtools::summ(glm_mod_3)
 
 # MODEL INFO:
 # Observations: 156
@@ -1124,11 +1149,18 @@ plot + theme_bw() +
        subtitle = paste("R model formula: ", as.character(paste(deparse(formula(glm_mod_3), width.cutoff = 500), collapse=""))),
        x="estimate, incl. CI [log odds]", y = "model coefficients")
 
-ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/221118_analysis_outputs/230515_999_logistic_rgression_alignmnet_parameters.pdf", scale = 1.65, width = 4, height = 3, units = "in", dpi = 300)
+ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/230515_999_logistic_rgression_alignmnet_parameters.pdf", scale = 1.65, width = 4, height = 3, units = "in", dpi = 300)
+ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_si_di_development/7_model_coefficients_v1.pdf", scale = 1.65, width = 4, height = 3, units = "in", dpi = 300)
 
 # __h) Calculating confidence intervalls ----
 
 confint(glm_mod, level = 0.95) # probabilities
+
+# Waiting for profiling to be done...
+# 2.5 %     97.5 %
+#   (Intercept)       20.3048466 42.6528090
+# HSP.GAPS          -0.9138523 -0.3684819
+# HSP.IDENTITY.PERC -0.4199083 -0.1911604
 
 # Calculating CIS on the scale of the link function and not the response scale
 #   https://fromthebottomoftheheap.net/2018/12/10/confidence-intervals-for-glms/
@@ -1166,15 +1198,20 @@ fish_asv_at_locs |> group_by(NOT.NZ) |> summarise(across(c("SPECIES", "ASV"), li
 #   1 FALSE         14    25
 #   2 TRUE          29    71
 
-coeff_plot <- sjPlot::plot_model(glm_mod, vline.color = "red", show.values = TRUE) +
+coeff_plot <- sjPlot::plot_model(glm_mod, vline.color = "red", show.values = TRUE, type = "est") +
   theme_bw() +
   scale_x_discrete(labels = c("Algn. Cov.", "Gaps")) +
-  ggtitle("Influence of alignment quality on non-native status")
+  ggtitle("Relationship between non-native status and alignment quality")
   
 ggsave("230515_999_r_summarize_results__coeff_plot.pdf", plot = coeff_plot, 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 0.75, width = 200, height = 135, units = c("mm"),
          dpi = 500, limitsize = TRUE)
+
+ggsave("7_model_coefficients_v2.pdf", plot = coeff_plot, 
+       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_si_di_development",
+       scale = 0.75, width = 200, height = 135, units = c("mm"),
+       dpi = 500, limitsize = TRUE)
 
 model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.IDENTITY.PERC", "HSP.GAPS"), show.data = TRUE, jitter = 0.0, ci.lvl = 0.95) +
                 theme_bw() +       
