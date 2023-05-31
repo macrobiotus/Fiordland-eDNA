@@ -1091,16 +1091,26 @@
  * finished updated SI
  * started revising and appending rebuttal letter
  * minor changes in script during collation of data for SI
+ * commit `eff46f29c79b9984e86833e484b28c6f59c033c9`
 
+## **31-May-2023** - restarting manuscript work
 
-  
+ * updated SI to contain BLAST regression
+ * updated title page
+ * copied new raw DIS from `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
+ * for adjustment to `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_main_text_di_development`
+ * erased as errors where detected, only keeping alias
+ * finished revising abstract
+
 ## **important queue** (last updated 12-May-2023):
 
  * [x] start updating Supplement 
- * [x] finish supplemnet 
+ * [x] finish supplement 
  * [ ] revise rebuttal
  * [ ] copy files to rebuttal folder
+ * [ ] revise erroneous species tables by correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
  * [ ] start editing main display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
+ * [ ] replace old display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission`
  * [ ] re-outline main document
  * [ ] write main document
  * [ ] update cover letter
