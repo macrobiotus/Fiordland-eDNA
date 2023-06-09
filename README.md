@@ -1102,13 +1102,36 @@
  * erased as errors where detected, only keeping alias
  * finished revising abstract
 
+## **06-June-2023** - resuming manuscript work
+
+ * stepped through rebuttal - to query 35
+ * in MEAGAN created 
+   * `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__read_to_taxon.txt`
+   * `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__taxon_to_count.txt`
+ * copying to `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs`
+   * added BLAST results table to `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230606_si.lyx`
+
+## **09-June-2023** - resuming manuscript work
+ 
+ * in `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+   * continuing in line 475
+   * loading `/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata`
+   * continue with: 
+     * `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__started_megan_integration.Rdata")`
+     * adding MEGAN annotation to table
+     * commenting on set differences and intersection in manuscript 
+ * commit ``
+
+
 ## **important queue** (last updated 12-May-2023):
 
  * [x] start updating Supplement 
- * [x] finish supplement 
- * [ ] revise rebuttal
+ * [ ] revise erroneous species tables 
+    * [ ] by correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
+    * [ ] by adding MEGAN results from `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__read_to_taxon.txt`
+ * [ ] finish supplement - *started - continue with query 34**
+ * [ ] revise rebuttal - **started**
  * [ ] copy files to rebuttal folder
- * [ ] revise erroneous species tables by correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
  * [ ] start editing main display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
  * [ ] replace old display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission`
  * [ ] re-outline main document

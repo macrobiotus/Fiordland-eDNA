@@ -326,8 +326,8 @@ spc_in_syn <- rfishbase::synonyms(species_list = spc_read)
 
 # Last saved 15-May-2023
 # save state after fishbase lookup
-save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
-# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
 
 # __b) Inspect trivial name synonyms from fishbase ----
 # inspect synonyms
@@ -381,10 +381,10 @@ trivial_df <- trivial_df |>  setNames( c("SPECIES", "TRIVIAL.SPECIES")) |> as_ti
 long_table %<>% left_join(trivial_df)
 
 # Last saved 15-May-2023
-save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
-# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
 
-# __d) Add more trivial names by manual lookup ---- 
+# __d) Add more trivial names by manual look up ---- 
 
 # check initial state with of trivial species names:
 long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf)
@@ -471,17 +471,18 @@ long_table %<>% mutate(TRIVIAL.SPECIES =
 long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf)
 
 # Last saved 15-May-2023
-save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
-# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
 
 # _3.) Establish non-fish and non-NZ status among taxonomy strings ----
 
 # look at taxonomy strings for manual lookup  
+
 long_table %>% dplyr::select(GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf) 
 
 # __a) Establish non-fish among taxonomy strings ----
 
-# genera that are not fish (found manually by inspecting table) - not used blow anymore now sub-setting on Class information
+# genera that are not fish (found manually by inspecting table) - not used below anymore now sub-setting on Class information
 nonnz_othr <-
   c(
     "Aplidium",
@@ -510,7 +511,7 @@ nonnz_othr <-
     "Tursiops"
   )
 
-# __b) Started: Establish non-NZ fish among taxonomy strings ----
+# __b) Establish non-NZ fish among taxonomy strings ----
 
 # export taxonomy strings for manual lookup  
 long_table %>% 
@@ -525,7 +526,6 @@ long_table %>%
 # - using list: Checklist of the Fishes of New Zealand: version 1.2 July 2020 CD Roberts, AL Stewart, CD Struthers, JJ Barker and S Kortet Museum of New Zealand Te Papa Tongarewa
 #         at : /Users/paul/Documents/OU_eDNA/200224_references/210908_MA_DOC001887_TePapa_Checklist-of-Fishes-of_full.pdf
 
-# after lookup started 16-03-2023 continue here
 
 # fish genera not known from NZ waters (found manually by literature search)
 # - see `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
@@ -534,11 +534,10 @@ nonnz_fish <- c(
   "Alburnus alburnus", "Aplocheilus lineatus",  "Asterropteryx semipunctata",  "Atherinomorus lacunosus",  "Bostrychus zonatus",  "Bovichtus angustifrons",  "Callanthias japonicus",  "Caprodon schlegelii",  "Chaetodon zanzibarensis",  "Cheilodactylus variegatus",  "Chelidonichthys spinosus",  "Conodon nobilis",  "Engraulis japonicus",  "Erythrocles schlegelii",  "Gaidropsarus argentatus",  "Gobiesox maeandricus",  "Goniistius zonatus",  "Gymnoscopelus nicholsi",  "Helcogramma striata",  "Helicolenus hilgendorfii",  "Helicolenus percoides",  "Opistognathus iyonis",  "Opistognathus liturus",  "Opistognathus punctatus",  "Opistognathus sp.",  "Parapercis decemfasciata",  "Pseudophycis barbata",  "Scobinichthys granulatus",  "Scomber japonicus",  "Trachurus japonicus",  "Mustelus asterias",  "Squalus suckleyi"
   ) 
 
-# __c) Started: Mark non-fish (not "Actinopteri" nor "Chondrichthyes", nor "Myxini") and non-NZ status among taxonomy string ----
+# __c) Mark non-fish (not "Actinopteri" nor "Chondrichthyes", nor "Myxini") and non-NZ status among taxonomy string ----
 
 #   16-Mar-2021 add asterisks ("*") to non-NZ species, and ("**") to non-fish (mammals and crustaceans)
 #   see `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx` for an annoated list
-
 
 long_table %<>% mutate(SPECIES = 
                          case_when(SPECIES %in% nonnz_fish                                  ~ paste0(SPECIES, "*"),
@@ -552,16 +551,96 @@ long_table %<>% mutate(GENUS =
                                                                                                TRUE ~ GENUS)
                        )
 
+# >>>> Begin construction site ----
 
-# 12-May-2023: check succesful addition of stars
+# __d) Mark MEGAN-detected species among fish ----
+
+
+# ___ deal with set star annotations  ----
+
+
+get_clean_strings = function(x) { return(stringr::str_replace(x, "\\*+", ""))}
+
+# ___ show currents species  ----
+
+current_species <- long_table %>% pull(SPECIES) %>% unique() %>% sort() # keep in min the stars
+
+
+# get these values from edited file /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__taxon_to_count_edited.txt
+
+# ___ show species detected by MEGAN  ----
+
+megan_species <- c("Notorynchus cepedianus", "Anguilla australis",  "Trachurus japonicus", "Peltorhamphus novaezeelandiae",
+                   "Oplegnathus fasciatus", "Callanthias japonicus", "Asterropteryx semipunctata", "Entomacrodus stellifer",
+                   "Poecilia reticulata", "Macruronus novaezelandiae", "Oncorhynchus mykiss", "Lampanyctodes hectoris", 
+                   "Caprodon schlegelii", "Engraulis japonicus", "Cervus elaphus", "Tursiops truncatus", 
+                   "Pontoscolex corethrurus", "Lamellibrachia barhami", "Lamellibrachia satsuma", "Canis lupus", 
+                   "Arctocephalus forsteri", "Katsuwonus pelamis", "Mus musculus", "Homo sapiens", "Pan troglodytes",
+                   "Bos taurus", "Ovis aries", "Sus scrofa", "Porcellio scaber", "Brontispa longissima", "Odax pullus")
+
+# ___ show current species detected by MEGAN  ----
+
+megan_species_detected_by_blast <- intersect( get_clean_strings(current_species),  megan_species)
+
+# [1] "Caprodon schlegelii"        "Katsuwonus pelamis"         "Anguilla australis"         "Oncorhynchus mykiss"        "Asterropteryx semipunctata" "Odax pullus"               
+# [7] "Notorynchus cepedianus"     "Macruronus novaezelandiae"  "Arctocephalus forsteri"     "Callanthias japonicus"      "Trachurus japonicus"        "Engraulis japonicus"       
+# [13] "Tursiops truncatus"  
+
+
+# ___ show  species dtected by MEGAN  not in current fish data  ----
+setdiff(megan_species,  get_clean_strings(current_species))
+
+# fish 
+# "Peltorhamphus novaezeelandiae"
+# "Oplegnathus fasciatus"
+# "Entomacrodus stellifer"
+# "Lampanyctodes hectoris"
+
+# non-fish but marine
+# "Pontoscolex corethrurus"
+# "Lamellibrachia barhami"
+# "Lamellibrachia satsuma" 
+
+# terrestrial
+# "Cervus elaphus"
+# "Canis lupus"                  
+# "Sus scrofa"
+# "Mus musculus"
+# "Pan troglodytes"
+# "Homo sapiens"
+# "Bos taurus"
+# "Ovis aries"
+# "Porcellio scaber"     
+# "Brontispa longissima"
+
+# ___ Highlight megan detections in eDNA table ----
+
+save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__started_megan_integration.Rdata")
+
+# >>>> Continue here after 9-Jun.2023----
+
+
+# >>>> End construction site ----
 
 long_table %>% dplyr::select(GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf) 
 
 
-# Last saved 15-May-2023
-save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__start_env.Rdata")
-saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
-# long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
+# Last loaded 06-Jun-2023
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__start_env.Rdata")
+# saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
+
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__start_env.Rdata")
+long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
+
+# _4.) Started: Highlighting Megan resulst in long table ----
+
+long_table %<>% mutate(SPECIES = 
+                         case_when(SPECIES %in% nonnz_fish                                  ~ paste0(SPECIES, "*"),
+                                   CLASS %!in% c("Actinopteri", "Chondrichthyes", "Myxini") ~ paste0(SPECIES, "**"),
+                                   TRUE ~ SPECIES)
+                       )
+
+                                   
 
 # _4.) Skipped: Filter for data completeness ----
 
