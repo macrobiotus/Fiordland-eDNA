@@ -1120,15 +1120,17 @@
      * `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__started_megan_integration.Rdata")`
      * adding MEGAN annotation to table
      * commenting on set differences and intersection in manuscript 
- * commit ``
+ * commit `a70a08c1edebbbb870aacf259734f2eb979df73d`
 
 
 ## **important queue** (last updated 12-May-2023):
 
  * [x] start updating Supplement 
  * [ ] revise erroneous species tables 
-    * [ ] by correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
+    * [x] by correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
     * [ ] by adding MEGAN results from `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__read_to_taxon.txt`
+    * [ ] by revising duplciates in species table DI and exports
+    * [ ] by commenting on MEAG results in manuscript
  * [ ] finish supplement - *started - continue with query 34**
  * [ ] revise rebuttal - **started**
  * [ ] copy files to rebuttal folder
