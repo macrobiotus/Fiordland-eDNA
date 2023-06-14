@@ -288,6 +288,12 @@ get_vegan <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano = 
 
 }
 
+# __i) Remove starr annoations from species strings ----
+
+get_clean_strings = function(x) { return(stringr::str_replace(x, "\\*+", ""))}
+
+
+
 # II. Read in data ----
 
 
@@ -551,15 +557,9 @@ long_table %<>% mutate(GENUS =
                                                                                                TRUE ~ GENUS)
                        )
 
-# >>>> Begin construction site ----
 
 # __d) Mark MEGAN-detected species among fish ----
 
-
-# ___ deal with set star annotations  ----
-
-
-get_clean_strings = function(x) { return(stringr::str_replace(x, "\\*+", ""))}
 
 # ___ show currents species  ----
 
@@ -613,40 +613,40 @@ setdiff(megan_species,  get_clean_strings(current_species))
 # "Porcellio scaber"     
 # "Brontispa longissima"
 
-# ___ Highlight megan detections in eDNA table ----
+# ___ Saving environment ----
 
-save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__started_megan_integration.Rdata")
-
-# >>>> Continue here after 9-Jun.2023----
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__started_megan_integration.Rdata")
 
 
-# >>>> End construction site ----
+
+# _4.) Highlighting Megan resuts in long table ----
+
+
+long_table %<>% mutate(SPECIES = 
+                         case_when(get_clean_strings(SPECIES) %in% megan_species_detected_by_blast  ~ paste0(SPECIES, " ***"),
+                                   TRUE ~ SPECIES)) # %>% select(SPECIES) %>% distinct()
+
+# ___ Check data state ----
 
 long_table %>% dplyr::select(GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf) 
 
-
-# Last loaded 06-Jun-2023
-# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__start_env.Rdata")
-# saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
-
-load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__start_env.Rdata")
-long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_summarize_results__full_data_rev.Rds")
-
-# _4.) Started: Highlighting Megan resulst in long table ----
+# ___ Correcting spelling mistakes prior to final DI generation
 
 long_table %<>% mutate(SPECIES = 
-                         case_when(SPECIES %in% nonnz_fish                                  ~ paste0(SPECIES, "*"),
-                                   CLASS %!in% c("Actinopteri", "Chondrichthyes", "Myxini") ~ paste0(SPECIES, "**"),
-                                   TRUE ~ SPECIES)
-                       )
+                         case_when(SPECIES %in% "Eptatretus cirrahtus"  ~ "Eptatretus cirrhatus",
+                                   TRUE ~ SPECIES)) #  %>% select(SPECIES) %>% distinct() %>% arrange(SPECIES)
 
-                                   
 
-# _4.) Skipped: Filter for data completeness ----
+# ___ saving environment ----
+
+save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")
+
+
+# _5.) Skipped: Filter for data completeness ----
 
 # - not done yet -
 
-# _5.) Get equivalent of `BOTH.PRES` ----
+# _6.) Get equivalent of `BOTH.PRES` ----
 
 # function possibly needs to 
 #   get presence / absence on a {taxonomic level} (SPECIES)
@@ -662,12 +662,13 @@ long_table %<>% mutate(ANY.OBS.PRES = case_when(BRUV.OBS.PRES == 1 ~ 1,
                                                 PUBL.OBS.PRES == 1 ~ 1,
                                                 TRUE ~ 0))
 
-# _6.) Incomplete: Split data into sets for "fish", "other", and "full" data ----
+# _7.) Split data into sets for "fish", "other", and "full" data ----
 
 full_biodiv <- long_table %>% distinct()
 fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>% filter(!(GENUS %in% c("Sardinops")))
 
-# Last saved 15-May-2023
+# ___ saving environment ----
+
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 
 # IV. get table summaries for supplement (What data is available for Fiordland?) ----
@@ -722,8 +723,8 @@ save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_ma
 save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230512_998_r_summarize_results__all_data.html")
 
 # Summary: general species counts 
-nrow(spcies_obs_sums)                                    # found 117 species across all data sets
-nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       105 Actinopteri
+nrow(spcies_obs_sums)                                    # found 116 species across all data sets
+nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       150 Actinopteri
 nrow(spcies_obs_sums |> filter (CLASS == "Chondrichthyes")) #     10 Chondrichthyes
 
 nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 -> 26 BRUV (in study area)
@@ -740,6 +741,7 @@ fish_biodiv |>
   filter(SAMPLE.TYPE == "OBIS") |> 
   select(SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
   distinct() |> pull(RESERVE.GROUP.LOCATION) |> unique()
+# "LS CTRL" "FF MR"   "FF CTRL" "WJ MR"   "WJ CTRL"
 
 fish_biodiv |> 
   filter(SET.ID %!in% c(98, 99)) |>
@@ -766,7 +768,7 @@ fish_biodiv |>
 # 10 Notolabrus celidotus    
 # 11 Scorpaena papillosa     
 # 12 Pseudophycis barbata*   
-# 13 Carcharodon carcharias 
+# 13 Carcharodon carcharias
 
 # Summary: Literture species counts
 fish_biodiv |> filter(SET.ID %in% c(98, 99)) |> select(SPECIES) |> distinct()
@@ -806,7 +808,7 @@ fish_biodiv |> filter(SET.ID %in% c(98, 99)) |> select(SPECIES) |> distinct()
 # 33 Notolabrus cinctus          
 # 34 Notolabrus fucicola         
 # 35 Pseudolabrus miles          
-# 36 Odax pullus                 
+# 36 Odax pullus ***             
 # 37 Aldrichetta forsteri        
 # 38 Fiordichthys slartibartfasti
 # 39 Retropinna retropinna       
@@ -831,63 +833,54 @@ fish_biodiv |> filter(SET.ID %in% c(98, 99)) |> select(SPECIES) |> distinct()
 # 58 Parapercis gilliesii        
 # 59 Cephaloscyllium isabella    
 # 60 Squalus acanthias           
-# 61 Eptatretus cirrahtus        
+# 61 Eptatretus cirrhatus        
 # 62 Carcharodon carcharias      
 # 63 Isurus oxyrinchus           
-# 64 Eptatretus cirrhatus        
-# 65 Hemerocoetes monopterygius  
-# 66 Prionace glauca             
-# 67 Peltorhamphus latus         
-# 68 Notoclinus compressus       
-# 69 Galaxias argenteus          
-# 70 Thalasseleotris iota        
-# 71 Notothenia angustata    
-
+# 64 Hemerocoetes monopterygius  
+# 65 Prionace glauca             
+# 66 Peltorhamphus latus         
+# 67 Notoclinus compressus       
+# 68 Galaxias argenteus          
+# 69 Thalasseleotris iota        
+# 70 Notothenia angustata 
 
 # Summary: Fish in BRUV that ar not in literture
 bruv_species <- fish_biodiv |> 
   select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "BRUV") |> 
   distinct() |> pull(SPECIES)
 
-# [1] "Parapercis colias"        "Nemadactylus macropterus" "Squalus acanthias"        "Pseudolabrus miles"       "Cephaloscyllium isabella"
-# [6] "Meuschenia scaber"        "Odax pullus"              "Eptatretus cirrhatus"     "Thyrsites atun"           "Caesioperca lepidoptera" 
-# [11] "Mustelus lenticulatus"    "Notolabrus fucicola"      "Scorpaena cardinalis"     "Notolabrus celidotus"     "Lotella rhacina"         
-# [16] "Forsterygion maryannae"   "Notolabrus cinctus"       "Bodianus unimaculatus"    "Helicolenus percoides*"   "Galeorhinus galeus"      
-# [21] "Hypoplectrodes huntii"    "Chelidonichthys kumu"     "Notorynchus cepedianus"   "Latridopsis ciliaris"     "Aplodactylus arctidens"  
-# [26] "Pseudophycis barbata*" 
+# [1] "Parapercis colias"          "Nemadactylus macropterus"   "Squalus acanthias"          "Pseudolabrus miles"         "Cephaloscyllium isabella"   "Meuschenia scaber"         
+# [7] "Odax pullus ***"            "Eptatretus cirrhatus"       "Thyrsites atun"             "Caesioperca lepidoptera"    "Mustelus lenticulatus"      "Notolabrus fucicola"       
+# [13] "Scorpaena cardinalis"       "Notolabrus celidotus"       "Lotella rhacina"            "Forsterygion maryannae"     "Notolabrus cinctus"         "Bodianus unimaculatus"     
+# [19] "Helicolenus percoides*"     "Galeorhinus galeus"         "Hypoplectrodes huntii"      "Chelidonichthys kumu"       "Notorynchus cepedianus ***" "Latridopsis ciliaris"      
+# [25] "Aplodactylus arctidens"     "Pseudophycis barbata*
 
 publ_species <- fish_biodiv |> 
   select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %!in% c("BRUV", "eDNA")) |> 
   distinct() |> pull(SPECIES)
 
-# [1] "Conger verreauxi"             "Atherinomorus lacunosus*"     "Bellapiscis lesleyae"         "Bellapiscis medius"          
-# [5] "Cryptichthys jojettae"        "Forsterygion capito"          "Forsterygion flavonigrum"     "Forsterygion lapillum"       
-# [9] "Forsterygion malcolmi"        "Forsterygion maryannae"       "Forsterygion varium"          "Karalepis stewarti"          
-# [13] "Notoclinops caerulepunctus"   "Notoclinops segmentatus"      "Notoclinus fenestratus"       "Ruanoho decemdigitatus"      
-# [17] "Ruanoho whero"                "Aplodactylus arctidens"       "Nemadactylus macropterus"     "Scorpis lineolata"           
-# [21] "Latridopsis ciliaris"         "Latridopsis forsteri"         "Latris lineata"               "Mendosoma lineatum"          
-# [25] "Callanthias allporti"         "Gaidropsarus novaezelandi"    "Lotella rhacina"              "Pseudophycis barbata*"       
-# [29] "Modicus minimus"              "Modicus tangaroa"             "Gobiopsis atrata"             "Notolabrus celidotus"        
-# [33] "Notolabrus cinctus"           "Notolabrus fucicola"          "Pseudolabrus miles"           "Odax pullus"                 
-# [37] "Aldrichetta forsteri"         "Fiordichthys slartibartfasti" "Retropinna retropinna"        "Acanthoclinus fuscus"        
-# [41] "Acanthoclinus littoreus"      "Acanthoclinus marilynae"      "Acanthoclinus matti"          "Acanthoclinus rua"           
-# [45] "Polyprion oxygeneios"         "Bovichtus variegatus"         "Scorpaena papillosa"          "Helicolenus percoides*"      
-# [49] "Caesioperca lepidoptera"      "Hypoplectrodes huntii"        "Lepidoperca tasmanica"        "Rhombosolea plebeia"         
-# [53] "Thyrsites atun"               "Lissocampus filum"            "Meuschenia scaber"            "Paratrachichthys trailli"    
-# [57] "Parapercis colias"            "Parapercis gilliesii"         "Cephaloscyllium isabella"     "Squalus acanthias"           
-# [61] "Eptatretus cirrahtus"         "Acanthoclinus matti"          "Lepidoperca tasmanica"        "Parapercis colias"           
-# [65] "Pseudolabrus miles"           "Notolabrus cinctus"           "Eptatretus cirrhatus"         "Latris lineata"              
-# [69] "Notolabrus fucicola"          "Nemadactylus macropterus"     "Notolabrus celidotus"         "Scorpaena papillosa"         
-# [73] "Pseudophycis barbata*"        "Carcharodon carcharias"       "Isurus oxyrinchus"            "Hemerocoetes monopterygius"  
-# [77] "Meuschenia scaber"            "Prionace glauca"              "Peltorhamphus latus"          "Bellapiscis medius"          
-# [81] "Squalus acanthias"            "Forsterygion lapillum"        "Forsterygion flavonigrum"     "Notoclinus compressus"       
-# [85] "Galaxias argenteus"           "Caesioperca lepidoptera"      "Thalasseleotris iota"         "Notothenia angustata"        
-# [89] "Latridopsis ciliaris"        
+# [1] "Conger verreauxi"             "Atherinomorus lacunosus*"     "Bellapiscis lesleyae"         "Bellapiscis medius"           "Cryptichthys jojettae"       
+# [6] "Forsterygion capito"          "Forsterygion flavonigrum"     "Forsterygion lapillum"        "Forsterygion malcolmi"        "Forsterygion maryannae"      
+# [11] "Forsterygion varium"          "Karalepis stewarti"           "Notoclinops caerulepunctus"   "Notoclinops segmentatus"      "Notoclinus fenestratus"      
+# [16] "Ruanoho decemdigitatus"       "Ruanoho whero"                "Aplodactylus arctidens"       "Nemadactylus macropterus"     "Scorpis lineolata"           
+# [21] "Latridopsis ciliaris"         "Latridopsis forsteri"         "Latris lineata"               "Mendosoma lineatum"           "Callanthias allporti"        
+# [26] "Gaidropsarus novaezelandi"    "Lotella rhacina"              "Pseudophycis barbata*"        "Modicus minimus"              "Modicus tangaroa"            
+# [31] "Gobiopsis atrata"             "Notolabrus celidotus"         "Notolabrus cinctus"           "Notolabrus fucicola"          "Pseudolabrus miles"          
+# [36] "Odax pullus ***"              "Aldrichetta forsteri"         "Fiordichthys slartibartfasti" "Retropinna retropinna"        "Acanthoclinus fuscus"        
+# [41] "Acanthoclinus littoreus"      "Acanthoclinus marilynae"      "Acanthoclinus matti"          "Acanthoclinus rua"            "Polyprion oxygeneios"        
+# [46] "Bovichtus variegatus"         "Scorpaena papillosa"          "Helicolenus percoides*"       "Caesioperca lepidoptera"      "Hypoplectrodes huntii"       
+# [51] "Lepidoperca tasmanica"        "Rhombosolea plebeia"          "Thyrsites atun"               "Lissocampus filum"            "Meuschenia scaber"           
+# [56] "Paratrachichthys trailli"     "Parapercis colias"            "Parapercis gilliesii"         "Cephaloscyllium isabella"     "Squalus acanthias"           
+# [61] "Eptatretus cirrhatus"         "Acanthoclinus matti"          "Lepidoperca tasmanica"        "Parapercis colias"            "Pseudolabrus miles"          
+# [66] "Notolabrus cinctus"           "Eptatretus cirrhatus"         "Latris lineata"               "Notolabrus fucicola"          "Nemadactylus macropterus"    
+# [71] "Notolabrus celidotus"         "Scorpaena papillosa"          "Pseudophycis barbata*"        "Carcharodon carcharias"       "Isurus oxyrinchus"           
+# [76] "Hemerocoetes monopterygius"   "Meuschenia scaber"            "Prionace glauca"              "Peltorhamphus latus"          "Bellapiscis medius"          
+# [81] "Squalus acanthias"            "Forsterygion lapillum"        "Forsterygion flavonigrum"     "Notoclinus compressus"        "Galaxias argenteus"          
+# [86] "Caesioperca lepidoptera"      "Thalasseleotris iota"         "Notothenia angustata"         "Latridopsis ciliaris"        
 
 bruv_species[bruv_species %!in% publ_species] |> sort()
 
-# [1] "Bodianus unimaculatus"  "Chelidonichthys kumu"   "Galeorhinus galeus"     "Mustelus lenticulatus"  "Notorynchus cepedianus"
-# [6] "Scorpaena cardinalis"  
+# "Bodianus unimaculatus"      "Chelidonichthys kumu"       "Galeorhinus galeus"         "Mustelus lenticulatus"      "Notorynchus cepedianus ***" "Scorpaena cardinalis"  
 
 # V. Get Euler plots ----
 
@@ -1050,9 +1043,11 @@ ggsave("230515_999_r_summarize_results_map_obis.pdf", plot = map_d,
          scale = 1, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
+#___ saving environment ----
+  
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping.Rdata")
 
-# slooooooooow 
+# slooooooooow
 ggarrange( 
   ggarrange(map_a,              ncol = 1, nrow = 1, labels = c("a")),
   ggarrange(map_b, map_c, map_d, ncol = 1, nrow = 3, labels = c("b","c", "d")),
@@ -1091,10 +1086,10 @@ htmp_tibl_fish <- bind_rows(
 # b.) add and analyse eDNA BLAST results
 
 # summary for ms - all species
-fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(SPECIES)
+ms_all_species <- fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(SPECIES)
 
 # summary for ms - all asvs
-fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(ASV)
+ms_all_asvs <- fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(ASV)
 
 # for regression analysis - isolate BLAST results from raw data 
 fish_biodiv_blast <- fish_biodiv |> 
@@ -1121,12 +1116,11 @@ fish_asv_at_locs |> select(ASV, SPECIES, NOT.NZ) |> View()
 
 fish_asv_at_locs |> select(ASV, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
   arrange(NOT.NZ) # was: 92 ASV: 39 False (42.4% False) / 53 True (57% True)
-                  # now: 96 ASV: 25 False (26%  False) / 71 True (73% True) 
+                  # now: 96 ASV: 20 False (21%  False) / 76 True (79% True) 
 
 fish_asv_at_locs |> select(SPECIES, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
   arrange(NOT.NZ) # was: 44 SPECIES: 25 False (56.8% True) / 19 True (43.1% True)
-                  # now: 43 SPECIES: 14 False (32.5% True) / 29 True (67.4% True)
-
+                  # now: 43 SPECIES:  9 False (32.5% True) / 34 True (67.4% True)
 
 # VIII. Regression analysis of Alignment parameters ---- 
 
@@ -1139,45 +1133,46 @@ glimpse(fish_asv_at_locs)
 # __a) Null model ----
 
 glm_mod_0 <-  glm(NOT.NZ ~ 1, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
-summary(glm_mod_0) # AIC: 403.91
+summary(glm_mod_0) # AIC: 385.11
 
 
 # __b)  Gaps only ----
 
 glm_mod_1 <-  glm(NOT.NZ ~ HSP.GAPS, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
-summary(glm_mod_1) # AIC: 400.59
+summary(glm_mod_1) # AIC: 386.34
 
 
 # __c)  Identity percentage only ----
 
 glm_mod_2 <-  glm(NOT.NZ ~ HSP.IDENTITY.PERC, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
-summary(glm_mod_2) # AIC: 388.97
+summary(glm_mod_2) # AIC:  374.28
 
 
 # __d) HSP.GAPS + HSP.IDENTITY.PERC
 glm_mod_3 <-  glm(NOT.NZ ~ HSP.IDENTITY.PERC + HSP.GAPS, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
-summary(glm_mod_3) # AIC: 365.26
+summary(glm_mod_3) # AIC: 351.97
 
-# glm(formula = NOT.NZ ~ HSP.IDENTITY.PERC + HSP.GAPS, family = binomial, 
-#     data = fish_asv_at_locs, weights = LOC.PER.SPC)
+# Call:
+#   glm(formula = NOT.NZ ~ HSP.IDENTITY.PERC + HSP.GAPS, family = binomial, 
+#       data = fish_asv_at_locs, weights = LOC.PER.SPC)
 # 
 # Deviance Residuals: 
 #   Min       1Q   Median       3Q      Max  
-# -6.3118   0.1419   0.7299   1.2332   1.5193  
+# -6.2345   0.2086   0.7227   1.1792   1.4256  
 # 
 # Coefficients:
 #   Estimate Std. Error z value Pr(>|z|)    
-# (Intercept)       30.70050    5.68939   5.396 6.81e-08 ***
-#   HSP.IDENTITY.PERC -0.29780    0.05824  -5.114 3.16e-07 ***
-#   HSP.GAPS          -0.61701    0.13668  -4.514 6.36e-06 ***
+# (Intercept)       28.80408    5.65866   5.090 3.58e-07 ***
+#   HSP.IDENTITY.PERC -0.27727    0.05796  -4.784 1.72e-06 ***
+#   HSP.GAPS          -0.59636    0.13537  -4.406 1.06e-05 ***
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 # 
 # (Dispersion parameter for binomial family taken to be 1)
 # 
-# Null deviance: 401.91  on 155  degrees of freedom
-# Residual deviance: 359.26  on 153  degrees of freedom
-# AIC: 365.26
+# Null deviance: 383.11  on 155  degrees of freedom
+# Residual deviance: 345.97  on 153  degrees of freedom
+# AIC: 351.97
 # 
 # Number of Fisher Scoring iterations: 5
 
@@ -1195,32 +1190,33 @@ anova(glm_mod_0, glm_mod_3, test="Chisq") # both together **significant**
 AIC(glm_mod_0)
 AIC(glm_mod_1)
 AIC(glm_mod_2)
-AIC(glm_mod_3) # best
+AIC(glm_mod_3) # best, AIC 351.9707
 
 # __g) Inspect model ----
 
 jtools::summ(glm_mod_3)
 
 # MODEL INFO:
-# Observations: 156
+#   Observations: 156
 # Dependent Variable: NOT.NZ
 # Type: Generalized linear model
 # Family: binomial 
 # Link function: logit 
 # 
 # MODEL FIT:
-# χ²(2) = 42.65, p = 0.00
-# Pseudo-R² (Cragg-Uhler) = 0.26
-# Pseudo-R² (McFadden) = 0.11
-# AIC = 365.26, BIC = 374.41 
+#   χ²(2) = 37.14, p = 0.00
+# Pseudo-R² (Cragg-Uhler) = 0.23
+# Pseudo-R² (McFadden) = 0.10
+# AIC = 351.97, BIC = 361.12 
 # 
 # Standard errors: MLE
-
+# ------------------------------------------------------
 #   Est.   S.E.   z val.      p
-
-# (Intercept)               30.70   5.69     5.40   0.00
-# HSP.IDENTITY.PERC         -0.30   0.06    -5.11   0.00
-# HSP.GAPS                  -0.62   0.14    -4.51   0.00
+# ----------------------- ------- ------ -------- ------
+#   (Intercept)               28.80   5.66     5.09   0.00
+# HSP.IDENTITY.PERC         -0.28   0.06    -4.78   0.00
+# HSP.GAPS                  -0.60   0.14    -4.41   0.00
+# ------------------------------------------------------
 
 plot <- plot_summs(glm_mod_3)
 plot + theme_bw() + 
@@ -1233,30 +1229,29 @@ ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDN
 
 # __h) Calculating confidence intervalls ----
 
-confint(glm_mod, level = 0.95) # probabilities
+confint(glm_mod_3, level = 0.95) # probabilities
 
 # Waiting for profiling to be done...
 # 2.5 %     97.5 %
-#   (Intercept)       20.3048466 42.6528090
-# HSP.GAPS          -0.9138523 -0.3684819
-# HSP.IDENTITY.PERC -0.4199083 -0.1911604
+#   (Intercept)       18.4984397 40.7178969
+# HSP.IDENTITY.PERC -0.3990242 -0.1714674
+# HSP.GAPS          -0.8903591 -0.3498952
 
 # Calculating CIS on the scale of the link function and not the response scale
 #   https://fromthebottomoftheheap.net/2018/12/10/confidence-intervals-for-glms/
 #   getting inverse link function for calculating CIS
 
 # unit changes of predictors
-fam <- family(glm_mod)
+fam <- family(glm_mod_3)
 ilink <- fam$linkinv
-ilink(confint(glm_mod, level = 0.95))
+ilink(confint(glm_mod_3, level = 0.95))
 
 # > ilink(confint(glm_mod, level = 0.95))
 # Waiting for profiling to be done...
-#                       2.5 %    97.5 %
-# (Intercept)       1.0000000 1.0000000
-# HSP.GAPS          0.2862122 0.4089079
-# HSP.IDENTITY.PERC 0.3965387 0.4523549
-
+# 2.5 %    97.5 %
+#   (Intercept)       1.0000000 1.0000000
+# HSP.IDENTITY.PERC 0.4015468 0.4572379
+# HSP.GAPS          0.2910357 0.4134078
 
 # __i) Other model reporting ----
 
@@ -1274,10 +1269,10 @@ fish_asv_at_locs |> group_by(NOT.NZ) |> summarise(across(c("SPECIES", "ASV"), li
 # A tibble: 2 × 3
 # NOT.NZ SPECIES_1 ASV_1
 # <fct>      <int> <int>
-#   1 FALSE         14    25
-#   2 TRUE          29    71
+# 1 FALSE          9    20
+# 2 TRUE          34    76
 
-coeff_plot <- sjPlot::plot_model(glm_mod, vline.color = "red", show.values = TRUE, type = "est") +
+coeff_plot <- sjPlot::plot_model(glm_mod_3, vline.color = "red", show.values = TRUE, type = "est") +
   theme_bw() +
   scale_x_discrete(labels = c("Algn. Cov.", "Gaps")) +
   ggtitle("Relationship between non-native status and alignment quality")
@@ -1292,7 +1287,7 @@ ggsave("7_model_coefficients_v2.pdf", plot = coeff_plot,
        scale = 0.75, width = 200, height = 135, units = c("mm"),
        dpi = 500, limitsize = TRUE)
 
-model_plot <- plot_model(glm_mod, type = "pred", terms = c("HSP.IDENTITY.PERC", "HSP.GAPS"), show.data = TRUE, jitter = 0.0, ci.lvl = 0.95) +
+model_plot <- plot_model(glm_mod_3, type = "pred", terms = c("HSP.IDENTITY.PERC", "HSP.GAPS"), show.data = TRUE, jitter = 0.0, ci.lvl = 0.95) +
                 theme_bw() +       
                 ylab("Probabilty of observing non-native species") +
                 xlab("Alignment identity percentage") +
@@ -1309,8 +1304,15 @@ ggsave("230515_999_r_summarize_results__asv_bin_regression.pdf", plot = last_plo
        scale = 1, width = 200, height = 135, units = c("mm"),
        dpi = 500, limitsize = TRUE)
 
-tab_model(glm_mod)
+tab_model(glm_mod_3)
 
+#___ saving environment ----
+
+# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
+
+# >>>> continue here after 14.06.2023, by loading ----
+
+load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
 
 # IX. Report on eDNA data including BLAST results ----
 

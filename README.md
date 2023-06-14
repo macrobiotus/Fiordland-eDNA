@@ -1122,17 +1122,23 @@
      * commenting on set differences and intersection in manuscript 
  * commit `a70a08c1edebbbb870aacf259734f2eb979df73d`
 
+## **14-June-2023** - re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+ 
+ * added MEGAN annotations to export items
+ * exportaed raw DI's for manual adjustment
+ * progressed to line 1315 and saved environment - continue with section XI line 1317
 
 ## **important queue** (last updated 12-May-2023):
 
- * [x] start updating Supplement 
+ * [ ] update supplemnet with analysis run 14-06-2023 
+ * [ ] revise DIs - copy to main folder
  * [ ] revise erroneous species tables 
-    * [x] by correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
-    * [ ] by adding MEGAN results from `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__read_to_taxon.txt`
-    * [ ] by revising duplciates in species table DI and exports
+    * [ ] by finishing correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
+    * [x] by adding MEGAN results from `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__read_to_taxon.txt`
+    * [x] by revising duplicates in species table DI and exports
     * [ ] by commenting on MEAG results in manuscript
- * [ ] finish supplement - *started - continue with query 34**
- * [ ] revise rebuttal - **started**
+ * [ ] continue supplement revision - **started - continue with query 34**
+ * [ ] revise rebuttal - **started - continue with query 34**
  * [ ] copy files to rebuttal folder
  * [ ] start editing main display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
  * [ ] replace old display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission`
