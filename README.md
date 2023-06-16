@@ -1137,22 +1137,29 @@
  * copying `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__geoheat_edna_bruv_obis.pdf`
  * to `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/figure_1.pdf`
  * updated figure 1 in folder and manuscript and results script
-
+ * updated figure 2 as well in main file and manuscript `cp /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__biodiv_tiles_only.pdf /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/figure_2.pdf`
+ * updated figure 3 as well in main file and manuscript `cp /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__euler_edna_bruv_obis.pdf /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/figure_3_unedited.pdf` 
+ * updated table 1 in main text: `cp /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__spcies_obs_matching_tiles.html /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/table_1.html` 
+ * updated table 1 in main text: `cp /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__spcies_obs_matching_tiles.docx /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/table_1.docx` 
+ * overwrote last file after successful lyx import - did all work transforming table 1 in lyx 
 
 ## **important queue** (last updated 12-May-2023):
 
- * [ ] update supplemnet with analysis run 14-06-2023 
- * [ ] revise DIs - copy to main folder
- * [ ] revise erroneous species tables 
-    * [ ] by finishing correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
-    * [x] by adding MEGAN results from `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__read_to_taxon.txt`
-    * [x] by revising duplicates in species table DI and exports
-    * [ ] by commenting on MEAG results in manuscript
+ * [ ]  decide whether to work on main text or supplemnet next
+ * [ ] comment on MEGAN results in main text and supplement 
+ * [ ] update supplement - with analysis run 14-06-2023 
+ * [ ] update supplement - isolate DIs of run  14-06-2023 to supplemnets folder 
+ 
  * [ ] continue supplement revision - **started - continue with query 34**
  * [ ] revise rebuttal - **started - continue with query 34**
- * [ ] copy files to rebuttal folder
- * [ ] start editing main display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
- * [ ] replace old display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission`
+ * [x] revise erroneous species tables 
+    * [x] by finishing correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
+    * [x] by adding MEGAN results from `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__read_to_taxon.txt`
+    * [x] by revising duplicates in species table DI and exports
+    
+ * [ ] possibly copy files to rebuttal folder
+ * [x] get new main display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
+ * [x] replace old display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission`
  * [ ] re-outline main document
  * [ ] write main document
  * [ ] update cover letter

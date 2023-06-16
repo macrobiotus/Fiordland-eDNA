@@ -1459,6 +1459,8 @@ ft <-  flextable(tibl_plot) %>%
      autofit(add_w = 1, add_h = 0, part = c("all"))
 
 save_as_html(ft, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__spcies_obs_matching_tiles.html")
+save_as_docx(ft, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__spcies_obs_matching_tiles.docx")
+
 
 # __i) Get tile display item of all biodiversity data ----
 
