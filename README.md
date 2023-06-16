@@ -1131,10 +1131,12 @@
 
 ## **16-June-2023** - finished re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
 
- * see /Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r
+ * see `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
  * for paths to new display items
  * for new numerical summaries
-
+ * copying `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__geoheat_edna_bruv_obis.pdf`
+ * to `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/figure_1.pdf`
+ * updated figure 1 in folder and manuscript and results script
 
 
 ## **important queue** (last updated 12-May-2023):

@@ -956,7 +956,7 @@ map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_get
 
 ggsave("230515_999_r_summarize_results_map_main.pdf", plot = map_a, 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1.5, width = 152, height = 121, units = c("mm"),
+         scale = 1, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 # map 2: eDNA observations
@@ -984,7 +984,7 @@ map_b <- ggplot() +
 
 ggsave("230515_999_r_summarize_results_map_edna.pdf", plot = map_b, 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 152, height = 121, units = c("mm"),
+         scale = 0.5, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 # map 2: BRUV observations
@@ -1012,7 +1012,7 @@ map_c <- ggplot() +
 
 ggsave("230515_999_r_summarize_results_map_bruv.pdf", plot = map_c, 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 152, height = 121, units = c("mm"),
+         scale = 0.5, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 # map 3: local OBIS observations
@@ -1040,7 +1040,7 @@ map_d <- ggplot() +
 
 ggsave("230515_999_r_summarize_results_map_obis.pdf", plot = map_d, 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 152, height = 121, units = c("mm"),
+         scale = .5, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
 #___ saving environment ----
@@ -1048,16 +1048,31 @@ ggsave("230515_999_r_summarize_results_map_obis.pdf", plot = map_d,
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping.Rdata")
 
 # slooooooooow
-ggarrange( 
-  ggarrange(map_a,              ncol = 1, nrow = 1, labels = c("a")),
-  ggarrange(map_b, map_c, map_d, ncol = 1, nrow = 3, labels = c("b","c", "d")),
-  widths = c(2, 1), ncol = 2, nrow = 1  
-  )
-  
+ggarrange(
+  ggarrange(
+    map_a,
+    ncol = 1,
+    nrow = 1,
+    labels = c("a")
+  ),
+  ggarrange(
+    map_b,
+    map_c,
+    map_d,
+    ncol = 1,
+    nrow = 3,
+    labels = c("b", "c", "d"),
+    align = "hv"
+  ),
+  widths = c(2, 1),
+  ncol = 2,
+  nrow = 1
+)
+
 # save compound plot with better labels then with plot_label = TRUE above
 ggsave("230515_999_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1.5, width = 152, height = 121, units = c("mm"),
+         scale = 1, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")
