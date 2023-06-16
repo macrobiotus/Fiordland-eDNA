@@ -1310,7 +1310,7 @@ tab_model(glm_mod_3)
 
 # save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
 
-# >>>> continue here after 14.06.2023, by loading ----
+# >>>> continue here after 14.06.2023, by loading environmneta saved below----
 
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
 
@@ -1320,7 +1320,7 @@ load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results_
 
 # for reporting - summaries for gaps and query coverage
 fish_biodiv_blast_unq <- fish_biodiv_blast |> distinct(across(c("ASV","FAMILY", "SPECIES","NCBI.LEVEL", "NCBI.TAXDB.INC", "NCBI.TAXID", "NCBI.TAXID.INC", contains("HSP"))))
-nrow(fish_biodiv_blast_unq) # fromerly 92 ASV resolved to species, now 96
+nrow(fish_biodiv_blast_unq) # formerly 92 ASV resolved to species, now 96
 
 fish_biodiv_blast_unq |> filter(HSP.GAPS == 0) |> filter(HSP.IDENTITY.PERC == 1) 
 
@@ -1378,7 +1378,6 @@ fish_biodiv_blast_gap <- fish_biodiv_blast |>
 
 # 15-05-2023 - adding  Bit score parmeters
 glimpse(fish_biodiv_blast)
-
 
 fish_biodiv_blast_avgbitsc <- fish_biodiv_blast |> 
   group_by(SPECIES) |> 
@@ -1612,7 +1611,7 @@ summary(mpatt_results_fish[[1]])
 # Multilevel pattern analysis
 # ---------------------------
 #   
-#   Association function: r.g
+# Association function: r.g
 # Significance level (alpha): 0.05
 # 
 # Total number of species: 26
@@ -1625,18 +1624,18 @@ summary(mpatt_results_fish[[1]])
 # 
 # List of species associated to each combination: 
 #   
-#   Group WJ CTRL+WJ MR  #sps.  1 
+# Group WJ CTRL+WJ MR  #sps.  1 
 # stat p.value  
 # Bodianus unimaculatus 0.725  0.0304 *
-#   ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 summary(mpatt_results_fish[[2]])
 
 # Multilevel pattern analysis
 # ---------------------------
 #   
-#   Association function: r.g
+# Association function: r.g
 # Significance level (alpha): 0.05
 # 
 # Total number of species: 24
@@ -1649,19 +1648,18 @@ summary(mpatt_results_fish[[2]])
 # 
 # List of species associated to each combination: 
 #   
-#   Group WJ CTRL+WJ MR  #sps.  1 
+# Group WJ CTRL+WJ MR  #sps.  1 
 # stat p.value  
 # Bodianus 0.725  0.0285 *
-#   ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
-
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
 
 summary(mpatt_results_fish[[3]])
 
 # Multilevel pattern analysis
 # ---------------------------
 #   
-#   Association function: r.g
+# Association function: r.g
 # Significance level (alpha): 0.05
 # 
 # Total number of species: 19
@@ -1674,18 +1672,18 @@ summary(mpatt_results_fish[[3]])
 # 
 # List of species associated to each combination: 
 #   
-#   Group FF CTRL+FF MR+WJ CTRL+WJ MR  #sps.  1 
+# Group FF CTRL+FF MR+WJ CTRL+WJ MR  #sps.  1 
 # stat p.value  
 # Labridae 0.67  0.0418 *
-#   ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1  
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
 
 summary(mpatt_results_fish[[4]])
 
 # Multilevel pattern analysis
 # ---------------------------
 #   
-#   Association function: r.g
+# Association function: r.g
 # Significance level (alpha): 0.05
 # 
 # Total number of species: 12
@@ -1698,11 +1696,11 @@ summary(mpatt_results_fish[[4]])
 # 
 # List of species associated to each combination: 
 #   
-#   Group FF MR+WJ CTRL+WJ MR  #sps.  1 
+# Group FF MR+WJ CTRL+WJ MR  #sps.  1 
 # stat p.value  
 # Perciformes 0.699  0.0299 *
 #   ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__multipatt_done.Rdata")
 

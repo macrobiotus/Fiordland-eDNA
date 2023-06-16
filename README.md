@@ -1125,8 +1125,17 @@
 ## **14-June-2023** - re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
  
  * added MEGAN annotations to export items
- * exportaed raw DI's for manual adjustment
+ * exported raw DI's for manual adjustment
  * progressed to line 1315 and saved environment - continue with section XI line 1317
+ * commit `2e53436d971ccae8100c5666fc0c9370883d68d8`
+
+## **16-June-2023** - finished re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+
+ * see /Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r
+ * for paths to new display items
+ * for new numerical summaries
+
+
 
 ## **important queue** (last updated 12-May-2023):
 
@@ -1154,12 +1163,8 @@
  * figures for **main text** are here (see dates): `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
  * **for supplement**: keep in mind fish and non-NZ-fish, and references in `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
  * **for rebuttal**: keep in mind changed overal counts in script 999...: line ~643 starting with `# Summary: general species counts`
-  * keep in mind that ASV counts counts have changed: 
-                  # NOT.NZ was: 92 ASV: 39 False (42.4% False) / 53 True (57% True)
-                  #        now: 96 ASV: 25 False (26%  False)  / 71 True (73% True) 
- * keep in mind that Species counts counts have changed: 
-                  # NOT.NZ was: 92 ASV: 39 False (42.4% False) / 53 True (57% True)
-                  #        now: 96 ASV: 25 False (26%  False)  / 71 True (73% True) 
+ * keep in mind that ASV counts counts have changed - see script 999
+ * keep in mind that Species counts counts have changed - see script 999
  * keep in mind that new plots have been generated e.g. by script 990
  * run finished MetaFishLib Blast`/Users/paul/Documents/OU_eDNA/200901_scripts/752_bash_fasta_blast_nesi.sh`
  * get taxonomy information for MetaFishLib
