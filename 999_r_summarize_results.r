@@ -864,6 +864,17 @@ bruv_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYP
 # Number of species in eDNA
 edna_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct()
 
+edna_species %>% pull
+
+# we have 156 eDNA observations
+fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA")
+
+# we have 43 distinct eDNA observations
+fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct() 
+
+fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA")
+
+
 # Number of species in OBIS
 obis_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "OBIS") |> distinct()
 
@@ -872,6 +883,8 @@ publ_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYP
 
 # Number of species in OBIS and PUBL
 pbob_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("OBIS", "PUBL")) |> distinct()
+unique(pbob_species[["SPECIES"]]) # Species in OBIS and literature - 70 
+
 
 # eDNA species that are also in OBIS or Literature
 # =================================================
@@ -894,7 +907,6 @@ pbob_species[["SPECIES"]][pbob_species[["SPECIES"]] %in% edna_species[["SPECIES"
 
 # number of BRUV species in OBIS and literture
 sum(pbob_species[["SPECIES"]] %>% unique() %in% bruv_species[["SPECIES"]]) # 20
-
 
 # below -  species in BRUV not in BRUV or literature
 
@@ -938,7 +950,6 @@ six_bruv_specvies <- bruv_species[bruv_species %!in% publ_species] |> sort()
 
 # species in BRUV in OBIS or literature
 twenty_bruv_specvies <- bruv_species[bruv_species %in% publ_species] |> sort()
-
 
 # "Bodianus unimaculatus"      "Chelidonichthys kumu"       "Galeorhinus galeus"         "Mustelus lenticulatus"      "Notorynchus cepedianus ***" "Scorpaena cardinalis"
 
@@ -1393,9 +1404,8 @@ load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results_
 
 # IX. Report on eDNA data including BLAST results ----
 
-# __a) Numerical summaries ----
+# __a) Numerical summaries, 5 pargraph of results ----
 
-# for reporting - summaries for gaps and query coverage
 fish_biodiv_blast_unq <- fish_biodiv_blast |> distinct(across(c("ASV","FAMILY", "SPECIES","NCBI.LEVEL", "NCBI.TAXDB.INC", "NCBI.TAXID", "NCBI.TAXID.INC", contains("HSP"))))
 nrow(fish_biodiv_blast_unq) # formerly 92 ASV resolved to species, now 96
 

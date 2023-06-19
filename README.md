@@ -1147,12 +1147,14 @@
   
   * in manuscript text refreshing results reporting
   * thus addling many reporting lines to script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
-  * commit 
+  * commit `e21ce694d8f4e332c1a6bd4012db41595247067e`
 
 
 ## **important queue** (last updated 12-May-2023):
 
- * [ ] decide whether to work on main text or supplemnet next
+ * [X] update percentages in results text, with main Fig. 2
+ * [X] decide whether to work on main text or supplemnet next
+ * [ ] update results, beyond line 206  
  * [ ] comment on MEGAN results in main text and supplement 
  * [ ] update supplement - with analysis run 14-06-2023 
  * [ ] update supplement - isolate DIs of run  14-06-2023 to supplemnets folder 
