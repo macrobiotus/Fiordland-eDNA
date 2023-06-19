@@ -671,7 +671,10 @@ fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", 
 
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 
-# IV. get table summaries for supplement (What data is available for Fiordland?) ----
+# IV. Get table summaries for supplement (What data is available for Fiordland?) ----
+
+# _1.) Flex table  ----
+
 
 # format data for flex table
 obs_sums <- fish_biodiv %>% ungroup() %>% group_by(SPECIES) %>%  
@@ -722,17 +725,27 @@ save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_ma
 # save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.html")
 save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230512_998_r_summarize_results__all_data.html")
 
+# _2.) Summaries for main text, results section  ----
+
 # Summary: general species counts 
 nrow(spcies_obs_sums)                                    # found 116 species across all data sets
-nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       150 Actinopteri
+nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       105 Actinopteri
 nrow(spcies_obs_sums |> filter (CLASS == "Chondrichthyes")) #     10 Chondrichthyes
-
-nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 -> 26 BRUV (in study area)
-nrow(spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)))  # 44 -> 43 EDNA (in study area)
-nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 -> 28 OBIS (in circle)
+nrow(spcies_obs_sums |> filter (CLASS == "Myxini")) #              1 Myxini
+ 
 nrow(spcies_obs_sums |> filter (!is.na(PUBL.OBS.PRES.SUM)))  # 59 -> 61 PUBL (Fiordland)
+nrow(spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)))  # 44 -> 43 EDNA (in study area)
+nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 -> 26 BRUV (in study area)
+nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 -> 28 OBIS (in circle)
 
 view(fish_biodiv)
+
+# How many sites yielded BRUV or eDNA data?
+fish_biodiv |> 
+  filter(SET.ID %!in% c(98, 99)) |>
+  filter(SAMPLE.TYPE %in% c("BRUV", "EDNA")) |> 
+  select(SET.ID, SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
+  distinct() |> pull(SET.ID) |> unique()  # 1  3  4  5  7  9 10 12 17 18 22 23 26 29  8 11 19 21 24 27 28
 
 # Summary: OBIS data in small circles 
 fish_biodiv |> pull(SET.ID) |> unique() |> sort()
@@ -743,13 +756,14 @@ fish_biodiv |>
   distinct() |> pull(RESERVE.GROUP.LOCATION) |> unique()
 # "LS CTRL" "FF MR"   "FF CTRL" "WJ MR"   "WJ CTRL"
 
+# how many sites yielded OBIS data?
 fish_biodiv |> 
   filter(SET.ID %!in% c(98, 99)) |>
   filter(SAMPLE.TYPE == "OBIS") |> 
   select(SET.ID, SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
   distinct() |> pull(SET.ID) |> unique()  # 7  9 11 12 17 18 19 21 26
-  
 
+# OBIS species  
 fish_biodiv |> 
   filter(SET.ID %!in% c(98, 99)) |>
   filter(SAMPLE.TYPE == "OBIS") |> 
@@ -844,7 +858,47 @@ fish_biodiv |> filter(SET.ID %in% c(98, 99)) |> select(SPECIES) |> distinct()
 # 69 Thalasseleotris iota        
 # 70 Notothenia angustata 
 
-# Summary: Fish in BRUV that ar not in literture
+# Number of species in BRUV
+bruv_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "BRUV") |> distinct()
+
+# Number of species in eDNA
+edna_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct()
+
+# Number of species in OBIS
+obis_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "OBIS") |> distinct()
+
+# Number of species in PUBL
+publ_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("PUBL")) |> distinct()
+
+# Number of species in OBIS and PUBL
+pbob_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("OBIS", "PUBL")) |> distinct()
+
+# eDNA species that are also in OBIS or Literature
+# =================================================
+sum(pbob_species[["SPECIES"]] %in% edna_species[["SPECIES"]]) # 2
+
+# these are those two species
+pbob_species[["SPECIES"]][pbob_species[["SPECIES"]] %in% edna_species[["SPECIES"]]] # "Aldrichetta forsteri" "Thyrsites atun"
+
+"Aldrichetta forsteri" %in%  pbob_species[["SPECIES"]]
+"Aldrichetta forsteri" %in%  obis_species[["SPECIES"]]
+"Aldrichetta forsteri" %in%  publ_species[["SPECIES"]]
+
+"Thyrsites atun" %in%  pbob_species[["SPECIES"]]
+"Thyrsites atun" %in%  obis_species[["SPECIES"]]
+"Thyrsites atun" %in%  publ_species[["SPECIES"]]
+
+
+# BRUV species that are also in OBIS or Literature
+# =================================================
+
+# number of BRUV species in OBIS and literture
+sum(pbob_species[["SPECIES"]] %>% unique() %in% bruv_species[["SPECIES"]]) # 20
+
+
+# below -  species in BRUV not in BRUV or literature
+
+# Fish in BRUV
 bruv_species <- fish_biodiv |> 
   select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "BRUV") |> 
   distinct() |> pull(SPECIES)
@@ -855,8 +909,9 @@ bruv_species <- fish_biodiv |>
 # [19] "Helicolenus percoides*"     "Galeorhinus galeus"         "Hypoplectrodes huntii"      "Chelidonichthys kumu"       "Notorynchus cepedianus ***" "Latridopsis ciliaris"      
 # [25] "Aplodactylus arctidens"     "Pseudophycis barbata*
 
+# fish in obis or literature 
 publ_species <- fish_biodiv |> 
-  select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %!in% c("BRUV", "eDNA")) |> 
+  select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %!in% c("BRUV", "eDNA", "OBIS")) |> 
   distinct() |> pull(SPECIES)
 
 # [1] "Conger verreauxi"             "Atherinomorus lacunosus*"     "Bellapiscis lesleyae"         "Bellapiscis medius"           "Cryptichthys jojettae"       
@@ -878,9 +933,14 @@ publ_species <- fish_biodiv |>
 # [81] "Squalus acanthias"            "Forsterygion lapillum"        "Forsterygion flavonigrum"     "Notoclinus compressus"        "Galaxias argenteus"          
 # [86] "Caesioperca lepidoptera"      "Thalasseleotris iota"         "Notothenia angustata"         "Latridopsis ciliaris"        
 
-bruv_species[bruv_species %!in% publ_species] |> sort()
+# species in BRUV not in BRUV or literature
+six_bruv_specvies <- bruv_species[bruv_species %!in% publ_species] |> sort()
 
-# "Bodianus unimaculatus"      "Chelidonichthys kumu"       "Galeorhinus galeus"         "Mustelus lenticulatus"      "Notorynchus cepedianus ***" "Scorpaena cardinalis"  
+# "Bodianus unimaculatus"      "Chelidonichthys kumu"       "Galeorhinus galeus"         "Mustelus lenticulatus"      "Notorynchus cepedianus ***" "Scorpaena cardinalis"
+
+six_bruv_specvies %in% ( c(edna_species[["SPECIES"]], pbob_species[["SPECIES"]]) %>% unique() )
+six_bruv_specvies[which(six_bruv_specvies %!in% ( c(edna_species[["SPECIES"]], pbob_species[["SPECIES"]]) %>% unique() ))]
+six_bruv_specvies[  which(six_bruv_specvies %in% (c(edna_species[["SPECIES"]]) %>% unique())) ]
 
 # V. Get Euler plots ----
 
@@ -1043,7 +1103,7 @@ ggsave("230515_999_r_summarize_results_map_obis.pdf", plot = map_d,
          scale = .5, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-#___ saving environment ----
+#___ Saving environment ----
   
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping.Rdata")
 
@@ -1321,11 +1381,9 @@ ggsave("230515_999_r_summarize_results__asv_bin_regression.pdf", plot = last_plo
 
 tab_model(glm_mod_3)
 
-#___ saving environment ----
+#___ Saving environment ----
 
 # save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
-
-# >>>> continue here after 14.06.2023, by loading environmneta saved below----
 
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
 
@@ -1513,7 +1571,7 @@ ggsave("230515_999_r_summarize_results__biodiv_tiles_only.pdf", plot = plot_htmp
          dpi = 500, limitsize = TRUE)
 
 
-#  __k) Kombine heat map and flextable ----
+#  __k) Combine heat map and flextable ----
 
 # get flex table as ggplot object
 ft_raster <- as_raster(ft) # webshot and magick.

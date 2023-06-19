@@ -1143,9 +1143,16 @@
  * updated table 1 in main text: `cp /Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__spcies_obs_matching_tiles.docx /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/table_1.docx` 
  * overwrote last file after successful lyx import - did all work transforming table 1 in lyx 
 
+## **19-June-2023** - finished re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+  
+  * in manuscript text refreshing results reporting
+  * thus addling many reporting lines to script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+  * commit 
+
+
 ## **important queue** (last updated 12-May-2023):
 
- * [ ]  decide whether to work on main text or supplemnet next
+ * [ ] decide whether to work on main text or supplemnet next
  * [ ] comment on MEGAN results in main text and supplement 
  * [ ] update supplement - with analysis run 14-06-2023 
  * [ ] update supplement - isolate DIs of run  14-06-2023 to supplemnets folder 
