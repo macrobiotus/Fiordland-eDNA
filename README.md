@@ -1146,19 +1146,24 @@
 ## **19-June-2023** - finished re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
   
   * in manuscript text refreshing results reporting
-  * thus addling many reporting lines to script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+  * thus adding many reporting lines to script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
   * commit `e21ce694d8f4e332c1a6bd4012db41595247067e`
-
+  * continued updating numerical summaries in manuscript 
+  * thus adding even more reporting lines to script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+  * commit `foo` 
 
 ## **important queue** (last updated 12-May-2023):
 
  * [X] update percentages in results text, with main Fig. 2
  * [X] decide whether to work on main text or supplemnet next
- * [ ] update results, beyond line 206  
- * [ ] comment on MEGAN results in main text and supplement 
+ * [x] update results, beyond line 206
+ * [ ] update results, beyond line 210  
  * [ ] update supplement - with analysis run 14-06-2023 
  * [ ] update supplement - isolate DIs of run  14-06-2023 to supplemnets folder 
- 
+ * [ ] explode entire main text for reconstruction 
+ * [ ] reconstruct main text using rebuttal
+ * [ ] comment on MEGAN results in main text and supplement
+ * [ ] continue main text revision - **started - continue with query 34**
  * [ ] continue supplement revision - **started - continue with query 34**
  * [ ] revise rebuttal - **started - continue with query 34**
  * [x] revise erroneous species tables 
@@ -1173,6 +1178,8 @@
  * [ ] write main document
  * [ ] update cover letter
  * [ ] submit
+ 
+ * [ ] possibly tidy up script ``/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
  
 ## **Miscellaneous todo (last updated 16-Mar-2023):**
 

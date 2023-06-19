@@ -864,8 +864,6 @@ bruv_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYP
 # Number of species in eDNA
 edna_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct()
 
-edna_species %>% pull
-
 # we have 156 eDNA observations
 fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA")
 
@@ -873,7 +871,6 @@ fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA")
 fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct() 
 
 fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA")
-
 
 # Number of species in OBIS
 obis_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "OBIS") |> distinct()
@@ -901,6 +898,58 @@ pbob_species[["SPECIES"]][pbob_species[["SPECIES"]] %in% edna_species[["SPECIES"
 "Thyrsites atun" %in%  obis_species[["SPECIES"]]
 "Thyrsites atun" %in%  publ_species[["SPECIES"]]
 
+
+# eDNA species that not also in OBIS or Literature apart from Roberts
+# ===================================================================
+# -> species that ar known from NZ but not locally
+# =================================================
+
+
+only_edna_species <- edna_species[["SPECIES"]][which(edna_species[["SPECIES"]] %!in% unique(c(pbob_species[["SPECIES"]], bruv_species[["SPECIES"]])))]
+
+only_edna_species[ !grepl("\\*", only_edna_species)] # these species are listed below and the ones that were detected by Megan and have a triple star
+
+# eDNA species only in eDNA,  without a star (known from NZ)
+#
+# "Monocentris japonica"
+# "Hygophum hygomii"
+# "Maurolicus muelleri"
+# "Galaxias eldoni"
+# "Coptodon zillii"
+# "Lotella phycis"      
+# "Lophiodes mutilus"
+
+# eDNA species only in eDNA,  without a star (known from NZ), but with a triple star, so also found by MEGAN
+# 
+# Katsuwonus pelamis, 
+# Anguilla australis, 
+# Oncorhynchus mykiss, 
+# Macruronus novaezelandiae
+
+
+# On eDNA species not found in Roberts 2020
+# ========================================
+
+# Any star
+any_starred_edna <- edna_species[["SPECIES"]][ grepl("\\*" , edna_species[["SPECIES"]])]
+
+# Not known from New Zealand - found by MEGAN also
+
+double_starred_edna <- edna_species[["SPECIES"]][ grepl("\\* \\*\\*\\*" , edna_species[["SPECIES"]])]
+
+# Known from New Zealand - found by MEGAN also
+
+triple_starred_edna <- edna_species[["SPECIES"]][ grepl("[^(\\*)] \\*\\*\\*" , edna_species[["SPECIES"]])]
+
+# Non-NZ eDNA, some of which were also detected by MEGAN 
+
+non_nz_edna <- setdiff(any_starred_edna, triple_starred_edna)
+non_nz_edna <-  non_nz_edna[ order(non_nz_edna)]
+
+# Any non-NZ eDNA among other data ?
+intersect(non_nz_edna, bruv_species[["SPECIES"]])
+intersect(non_nz_edna, obis_species[["SPECIES"]])
+intersect(non_nz_edna, publ_species[["SPECIES"]])
 
 # BRUV species that are also in OBIS or Literature
 # =================================================
