@@ -933,8 +933,12 @@ publ_species <- fish_biodiv |>
 # [81] "Squalus acanthias"            "Forsterygion lapillum"        "Forsterygion flavonigrum"     "Notoclinus compressus"        "Galaxias argenteus"          
 # [86] "Caesioperca lepidoptera"      "Thalasseleotris iota"         "Notothenia angustata"         "Latridopsis ciliaris"        
 
-# species in BRUV not in BRUV or literature
+# species in BRUV not in OBIS or literature
 six_bruv_specvies <- bruv_species[bruv_species %!in% publ_species] |> sort()
+
+# species in BRUV in OBIS or literature
+twenty_bruv_specvies <- bruv_species[bruv_species %in% publ_species] |> sort()
+
 
 # "Bodianus unimaculatus"      "Chelidonichthys kumu"       "Galeorhinus galeus"         "Mustelus lenticulatus"      "Notorynchus cepedianus ***" "Scorpaena cardinalis"
 
