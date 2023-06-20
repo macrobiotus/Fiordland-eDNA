@@ -1150,17 +1150,23 @@
   * commit `e21ce694d8f4e332c1a6bd4012db41595247067e`
   * continued updating numerical summaries in manuscript 
   * thus adding even more reporting lines to script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
-  * commit `foo` 
+  * commit `30220f570e5d839676d276f10cd19f236fcc18aa` 
+
+## **20-June-2023** - finished re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+ 
+ * updated results section - extended results reporting script
+ * commit ``
 
 ## **important queue** (last updated 12-May-2023):
 
  * [X] update percentages in results text, with main Fig. 2
  * [X] decide whether to work on main text or supplemnet next
  * [x] update results, beyond line 206
- * [ ] update results, beyond line 210  
+ * [x] update results, beyond line 210  
  * [ ] update supplement - with analysis run 14-06-2023 
  * [ ] update supplement - isolate DIs of run  14-06-2023 to supplemnets folder 
  * [ ] explode entire main text for reconstruction 
+ * [ ] possibly tidy up script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
  * [ ] reconstruct main text using rebuttal
  * [ ] comment on MEGAN results in main text and supplement
  * [ ] continue main text revision - **started - continue with query 34**
@@ -1179,7 +1185,6 @@
  * [ ] update cover letter
  * [ ] submit
  
- * [ ] possibly tidy up script ``/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
  
 ## **Miscellaneous todo (last updated 16-Mar-2023):**
 

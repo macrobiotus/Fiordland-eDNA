@@ -290,8 +290,14 @@ get_vegan <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano = 
 
 # __i) Remove starr annoations from species strings ----
 
-get_clean_strings = function(x) { return(stringr::str_replace(x, "\\*+", ""))}
-
+get_clean_strings = function(x) { 
+  
+  x <- stringr::str_replace(x, "\\*+", "")
+  x <- stringr::str_replace(x, "\\*+", "")
+  x <- stringr::str_replace(x, " $", "")
+  
+  return(x)
+  }
 
 
 # II. Read in data ----
@@ -563,7 +569,12 @@ long_table %<>% mutate(GENUS =
 
 # ___ show currents species  ----
 
+# all assignments
 current_species <- long_table %>% pull(SPECIES) %>% unique() %>% sort() # keep in min the stars
+
+# eDNA assignments
+current_species <- long_table %>% filter(SAMPLE.TYPE == "eDNA") %>%  pull(SPECIES) %>% unique() %>% sort() # keep in min the stars
+
 
 
 # get these values from edited file /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__taxon_to_count_edited.txt
@@ -580,15 +591,28 @@ megan_species <- c("Notorynchus cepedianus", "Anguilla australis",  "Trachurus j
 
 # ___ show current species detected by MEGAN  ----
 
-megan_species_detected_by_blast <- intersect( get_clean_strings(current_species),  megan_species)
+megan_species_detected_by_blast <- intersect(get_clean_strings(current_species),  megan_species)
 
-# [1] "Caprodon schlegelii"        "Katsuwonus pelamis"         "Anguilla australis"         "Oncorhynchus mykiss"        "Asterropteryx semipunctata" "Odax pullus"               
-# [7] "Notorynchus cepedianus"     "Macruronus novaezelandiae"  "Arctocephalus forsteri"     "Callanthias japonicus"      "Trachurus japonicus"        "Engraulis japonicus"       
-# [13] "Tursiops truncatus"  
+# fish 
+# "Anguilla australis"         
+# "Asterropteryx semipunctata"
+# "Callanthias japonicus"
+# "Caprodon schlegelii"  
+# "Engraulis japonicus"
+# "Katsuwonus pelamis" 
+# "Macruronus novaezelandiae"
+# "Notorynchus cepedianus"
+# "Oncorhynchus mykiss"       
+# "Trachurus japonicus" 
+
+# vertebrates
+# "Arctocephalus forsteri"                
 
 
 # ___ show  species dtected by MEGAN  not in current fish data  ----
 setdiff(megan_species,  get_clean_strings(current_species))
+
+current_species[!grepl("\\*", current_species)]
 
 # fish 
 # "Peltorhamphus novaezeelandiae"
@@ -1315,6 +1339,14 @@ summary(glm_mod_3) # AIC: 351.97
 # 
 # Number of Fisher Scoring iterations: 5
 
+logit2prob <- function(logit){
+  odds <- exp(logit)
+  prob <- odds / (1 + odds)
+  return(prob)
+}
+
+coefficients(glm_mod_3)
+logit2prob(coefficients(glm_mod_3))
 
 # __e) Testing model significance ----
 
@@ -1686,7 +1718,6 @@ anosim_analysis_fish$significance <- unlist(lapply(anosim_results_fish, '[[', 2)
 anosim_analysis_fish
 anosim_analysis_fish %>% filter(significance <= 0.05 )
 
-
 # generate flex table - for supplement 
 ft_anosim <-  flextable(anosim_analysis_fish) %>% 
    merge_v(j = "distance", target = "distance") %>%
@@ -1710,6 +1741,7 @@ ft_anosim <-  flextable(anosim_analysis_fish) %>%
      fit_to_width(max_width = 12, inc = 1L, max_iter = 20)
 # save_as_html(ft_anosim, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__ANOSIM.html")
   save_as_html(ft_anosim, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__ANOSIM.html")
+  save_as_docx(ft_anosim, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__ANOSIM.docx")
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__anaosim_done.Rdata")
 
