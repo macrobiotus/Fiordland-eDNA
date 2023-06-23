@@ -1155,15 +1155,26 @@
 ## **20-June-2023** - finished re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
  
  * updated results section - extended results reporting script
- * commit ``
+ * commit `69a55986856d2834ed1ed106fa3ea495fbed8d37`
 
+## **23-June-2023** - 
+ 
+ * script is messy: `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+ * restructuring script to be comprehensible
+ * done to section `Get Euler plots`
+ * saved environment 
+ * 
+ 
 ## **important queue** (last updated 12-May-2023):
 
  * [X] update percentages in results text, with main Fig. 2
  * [X] decide whether to work on main text or supplemnet next
  * [x] update results, beyond line 206
- * [x] update results, beyond line 210  
- * [ ] update supplement - with analysis run 14-06-2023 
+ * [x] update results, beyond line 210 
+ * [ ] restructure results script to be comprehensible
+ * [ ] **possibly re-run** results script - check if results are stable
+ * [ ] update results - with analysis run 23-06-2023 and after  
+ * [ ] update supplement - with analysis run  23-06-2023 and after 
  * [ ] update supplement - isolate DIs of run  14-06-2023 to supplemnets folder 
  * [ ] explode entire main text for reconstruction 
  * [ ] possibly tidy up script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`

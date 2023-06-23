@@ -9,7 +9,9 @@ rm(list = ls(all.names = TRUE))
 gc()
 options(tibble.print_max = Inf) 
 
-# I. Environment setup ----
+# Environment setup ----
+
+# _1.) Packages ----
 
 library("tidyverse")	# because we can't stop using it anymore
 library("magrittr")		# get the %<>% pipe
@@ -23,21 +25,23 @@ library("grid")			  # convert flext table to ggplot grob
 library("sjPlot")		  # model plots
 library("jtools")		  # model plots
 
-# _1.) API key for Taxcise - trivial names lookup ----
+# _2.) API keys ----
+
+# Entrez API key - NCBI taxonomy lookup 
 Sys.setenv(ENTREZ_KEY="ecc505b227f772d346fb57816cac0bfda408")
 Sys.getenv("ENTREZ_KEY")
 
-# _2.) API key for Fishbase - synonyms lookup ----
+# Fishbase API key  - synonyms lookup 
 Sys.setenv(FISHBASE_API="sealifebase")
 Sys.getenv("FISHBASE_API")
 
-# _3.) Function definitions ----
+# _3.) Functions  ----
 
-# __a) "not in" ----
+# "not in"
 
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
-# __b) Get Euler objects for plotting ----
+# Euler objects
 
 get_euler_object = function(level, tibl){
   require("eulerr")
@@ -66,7 +70,7 @@ get_euler_object = function(level, tibl){
   return(euler(tibl[ , 2:5]))
 }
 
-# __c) Get Euler Ggplots  ---- 
+# Euler plots
 
 get_euler_ggplot = function(level, euler_ob, plot_label = TRUE){
   require("tidyverse")
@@ -83,9 +87,10 @@ get_euler_ggplot = function(level, euler_ob, plot_label = TRUE){
   return(euler_ggplot)
 }
 
-# __d) Get a table with relevant columns for mapping ----
+# Get spatial points data frames for map generation
 
 #   (from full_biodiv or fish_biodiv )
+
 get_sf_biodiv =  function(tibl){
   require("tidyverse")
   require("magrittr")
@@ -105,9 +110,8 @@ get_sf_biodiv =  function(tibl){
 
 }
 
-# __e) Get bounding box around an area defined by a variable (here default: RESERVE.GROUP.LOCATION) ----
-
-# from https://stackoverflow.com/questions/54696440/create-polygons-representing-bounding-boxes-for-subgroups-using-sf
+# Get bounding box around an area defined by a variable (here default: RESERVE.GROUP.LOCATION)
+# - from https://stackoverflow.com/questions/54696440/create-polygons-representing-bounding-boxes-for-subgroups-using-sf
 
 get_bbox_anyloc <- function(tibl, location = c("RESERVE.GROUP.LOCATION")){
   require("tidyverse")
@@ -139,11 +143,10 @@ get_bbox_anyloc <- function(tibl, location = c("RESERVE.GROUP.LOCATION")){
   return(bbox)
 }
 
-# __f) Get hacked data frame for heat-map plotting ----
-
-
+# Get data frame for heat-map plotting
 #  - isolate coordinates into seperate columns 
 #  - ass two crows matching mapping extend to extend plot
+
 get_plot_df = function(sf_df, show_var = NULL) {
   require("sf")
   require("purrr")
@@ -160,7 +163,8 @@ get_plot_df = function(sf_df, show_var = NULL) {
   return(sf_df)
 }
 
-# __g) Get matrix - for distance calculations ---- 
+# Get matrix for distance calculations needed for ANOSIM
+
 get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", group_row = "SPECIES", obs_methods = NULL, tbl = FALSE){
   
   # debugging
@@ -175,7 +179,7 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   # stopifnot(length(obs_methods) == 1)
   stopifnot(obs_methods %in% c("BRUV", "eDNA", "OBIS", "PUBL", NULL))
   
-  require("data.table") # re-use old code rather then finding out how to reimplement
+  require("data.table") # re-use old code rather then finding out how to re implement
   require("tidyverse")
   
   # subset for desired observation method if needed
@@ -231,15 +235,15 @@ get_matrix_or_table <- function(tibl, group_col = "RESERVE.GROUP.LOCATION", grou
   }
 }
 
-# __h) Get ANOSIM results for a given tibble ("tibl") ----
-#   aggregate observations for "group_col" on taxonomic level "group_row"
-#   aggregated observations ar replicates for ANOSIM as levels of "group_col_ano"
+# Get ANOSIM results for a given tibble ("tibl")
+# - aggregate observations for "group_col" on taxonomic level "group_row"
+# - aggregated observations ar replicates for ANOSIM as levels of "group_col_ano"
+
 get_vegan <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano = NULL, obs_methods = NULL, distance = NULL, mp = FALSE){
   
   require("vegan")        # for NMDS 
   require("indicspecies") # indicator species  - see citation below
 
-  
   # debugging
   #  tibl          = get(c("full_biodiv"))
   #  group_col     = c("SET.ID") 
@@ -288,7 +292,7 @@ get_vegan <- function(tibl, group_col = NULL, group_row = NULL, group_col_ano = 
 
 }
 
-# __i) Remove starr annoations from species strings ----
+# Strip asterisk annotations from species strings where needed
 
 get_clean_strings = function(x) { 
   
@@ -300,8 +304,7 @@ get_clean_strings = function(x) {
   }
 
 
-# II. Read in data ----
-
+# Data read in ----
 
 # check input data of previous script
 system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manuscript/5_online_repository/tables/999_r_map_and_add_obis__full_data_raw.xlsx\"")
@@ -309,14 +312,16 @@ system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manus
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_map_and_add_obis__full_data_raw.Rds")
 long_table <- ungroup(long_table)
 
-# III. Format data ----
+# Data shaping ----
 
 # - add trivial names 
 # - mark non-NZ species  **(possibly needs to be re-worked)**
 # - split "fish" and "full" data
 # - filter for data completeness **(possibly needs to be re-worked)**
 
-# _1.) Clean scientific taxonomy strings ----
+# _1.) Tidy scientific taxonomy strings ----
+
+# Needed for manuscript and lookup of trivial names 
 
 # erase all that may come after "sp." if there is an "sp." at all
 long_table %<>% mutate(SPECIES = gsub("sp\\..*", "sp.", SPECIES))
@@ -326,7 +331,7 @@ long_table %<>% mutate(SPECIES = str_replace(SPECIES, "\\s\\S*\\s\\S*(.*)", ""))
 long_table %<>% mutate(ORDER = ifelse(ORDER == "Squalidae", "Squaliformes", ORDER))
 long_table %<>% mutate(ORDER = ifelse(GENUS == "Callanthias", "Perciformes", ORDER))
 
-# _2.) Work with  trivial names ----
+# _2.) Add trivial names ----
 
 # __a) Fetch  trivial name synonyms from fishbase ----
 
@@ -336,12 +341,14 @@ spc_read <- long_table %>% pull("SPECIES") %>% unique() %>% sort()
 # fetch synonyms from Fishbase (20.12.2022)
 spc_in_syn <- rfishbase::synonyms(species_list = spc_read)
 
+
+# __b)  Save state ----
 # Last saved 15-May-2023
-# save state after fishbase lookup
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
 
-# __b) Inspect trivial name synonyms from fishbase ----
+# __c) Inspect trivial name synonyms from fishbase ----
+
 # inspect synonyms
 spc_in_syn %>% select(synonym, Species, Status)
 
@@ -378,7 +385,7 @@ long_table %<>%  mutate(GENUS = case_when(SPECIES == "Monocentris japonica" ~ "M
 # confirm that synonyms have been replaced - leaving one old species in query  - shoul only return one value
 long_table %>% filter(SPECIES %in% c("Monocentris japonica", "Helicolenus hilgendorfii"))
 
-# __c) Fetch trivial names from data base ---- 
+# __d) Add trivial names to main object  ---- 
 
 # get trivial names
 species_vector <- ungroup(long_table) |> select(SPECIES) |> distinct() |> pull(SPECIES)
@@ -392,11 +399,12 @@ trivial_df <- trivial_df |>  setNames( c("SPECIES", "TRIVIAL.SPECIES")) |> as_ti
 # add trivial names to object 
 long_table %<>% left_join(trivial_df)
 
-# Last saved 15-May-2023
+# __e) Save state ----
+
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
 
-# __d) Add more trivial names by manual look up ---- 
+# __f) Add more trivial names by manual look up ---- 
 
 # check initial state with of trivial species names:
 long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf)
@@ -482,48 +490,25 @@ long_table %<>% mutate(TRIVIAL.SPECIES =
 # check altered state with of trivial species names:
 long_table %>% dplyr::select(SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf)
 
-# Last saved 15-May-2023
+# __g) Correcting spelling mistakes  ----
+
+long_table %<>% mutate(SPECIES = 
+                         case_when(SPECIES %in% "Eptatretus cirrahtus"  ~ "Eptatretus cirrhatus",
+                                   TRUE ~ SPECIES)) #  %>% select(SPECIES) %>% distinct() %>% arrange(SPECIES)
+
+
+# __h) Save state ----
+
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
 
-# _3.) Establish non-fish and non-NZ status among taxonomy strings ----
+# _3.) Mark non-fish and non-New Zealand taxa  ----
 
-# look at taxonomy strings for manual lookup  
+# __a) Show current state of taxonomy strings ----
 
 long_table %>% dplyr::select(GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf) 
 
-# __a) Establish non-fish among taxonomy strings ----
-
-# genera that are not fish (found manually by inspecting table) - not used below anymore now sub-setting on Class information
-nonnz_othr <-
-  c(
-    "Aplidium",
-    "Aplidium",
-    "Aptenodytes",
-    "Arctocephalus",
-    "Arctocephalus",
-    "Botrylloides",
-    "Botrylloides",
-    "Botryllus",
-    "Cnemidocarpa",
-    "Cominella",
-    "Didemnum",
-    "Diomedea",
-    "Diplosoma",
-    "Eudistoma",
-    "Jasus",
-    "Lissoclinum",
-    "Macroctopus",
-    "Morus",
-    "Patiriella",
-    "Phalacrocorax",
-    "Ritterella",
-    "Synoicum",
-    "Trididemnum",
-    "Tursiops"
-  )
-
-# __b) Establish non-NZ fish among taxonomy strings ----
+# __b) Export data for manual inspection ----
 
 # export taxonomy strings for manual lookup  
 long_table %>% 
@@ -539,6 +524,8 @@ long_table %>%
 #         at : /Users/paul/Documents/OU_eDNA/200224_references/210908_MA_DOC001887_TePapa_Checklist-of-Fishes-of_full.pdf
 
 
+# __c) Define non-NZ fish taxa after manual inspection ----
+
 # fish genera not known from NZ waters (found manually by literature search)
 # - see `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx`
 
@@ -546,7 +533,7 @@ nonnz_fish <- c(
   "Alburnus alburnus", "Aplocheilus lineatus",  "Asterropteryx semipunctata",  "Atherinomorus lacunosus",  "Bostrychus zonatus",  "Bovichtus angustifrons",  "Callanthias japonicus",  "Caprodon schlegelii",  "Chaetodon zanzibarensis",  "Cheilodactylus variegatus",  "Chelidonichthys spinosus",  "Conodon nobilis",  "Engraulis japonicus",  "Erythrocles schlegelii",  "Gaidropsarus argentatus",  "Gobiesox maeandricus",  "Goniistius zonatus",  "Gymnoscopelus nicholsi",  "Helcogramma striata",  "Helicolenus hilgendorfii",  "Helicolenus percoides",  "Opistognathus iyonis",  "Opistognathus liturus",  "Opistognathus punctatus",  "Opistognathus sp.",  "Parapercis decemfasciata",  "Pseudophycis barbata",  "Scobinichthys granulatus",  "Scomber japonicus",  "Trachurus japonicus",  "Mustelus asterias",  "Squalus suckleyi"
   ) 
 
-# __c) Mark non-fish (not "Actinopteri" nor "Chondrichthyes", nor "Myxini") and non-NZ status among taxonomy string ----
+# __d) Mark non-fish and non-NZ status among taxonomy strings ----
 
 #   16-Mar-2021 add asterisks ("*") to non-NZ species, and ("**") to non-fish (mammals and crustaceans)
 #   see `/Users/paul/Documents/OU_eDNA/200403_manuscript/6_analysis_notes/999_r_summarize_results__long_table__part_annotated.xlsx` for an annoated list
@@ -564,23 +551,18 @@ long_table %<>% mutate(GENUS =
                        )
 
 
-# __d) Mark MEGAN-detected species among fish ----
+# __h) Save state ----
 
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__taxa_marked.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__taxa_marked.Rdata")
 
-# ___ show currents species  ----
+# _4.) Encode and Evaluate MEGAN species assignments ----
 
-# all assignments
-current_species <- long_table %>% pull(SPECIES) %>% unique() %>% sort() # keep in min the stars
+# __a) Get a list of spcies detected by MEGAN ----
 
-# eDNA assignments
-current_species <- long_table %>% filter(SAMPLE.TYPE == "eDNA") %>%  pull(SPECIES) %>% unique() %>% sort() # keep in min the stars
+# get the following vector from edited file /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__taxon_to_count_edited.txt
 
-
-
-# get these values from edited file /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__taxon_to_count_edited.txt
-
-# ___ show species detected by MEGAN  ----
-
+# manually created
 megan_species <- c("Notorynchus cepedianus", "Anguilla australis",  "Trachurus japonicus", "Peltorhamphus novaezeelandiae",
                    "Oplegnathus fasciatus", "Callanthias japonicus", "Asterropteryx semipunctata", "Entomacrodus stellifer",
                    "Poecilia reticulata", "Macruronus novaezelandiae", "Oncorhynchus mykiss", "Lampanyctodes hectoris", 
@@ -589,86 +571,36 @@ megan_species <- c("Notorynchus cepedianus", "Anguilla australis",  "Trachurus j
                    "Arctocephalus forsteri", "Katsuwonus pelamis", "Mus musculus", "Homo sapiens", "Pan troglodytes",
                    "Bos taurus", "Ovis aries", "Sus scrofa", "Porcellio scaber", "Brontispa longissima", "Odax pullus")
 
-# ___ show current species detected by MEGAN  ----
+# manually created
+megan_fish_species <- c("Anguilla australis", "Asterropteryx semipunctata", "Callanthias japonicus", "Caprodon schlegelii", "Engraulis japonicus", "Katsuwonus pelamis", 
+                        "Macruronus novaezelandiae", "Notorynchus cepedianus", "Oncorhynchus mykiss", "Trachurus japonicus" )
 
-megan_species_detected_by_blast <- intersect(get_clean_strings(current_species),  megan_species)
+# __b) Show eDNA species detected by MEGAN ----
 
-# fish 
-# "Anguilla australis"         
-# "Asterropteryx semipunctata"
-# "Callanthias japonicus"
-# "Caprodon schlegelii"  
-# "Engraulis japonicus"
-# "Katsuwonus pelamis" 
-# "Macruronus novaezelandiae"
-# "Notorynchus cepedianus"
-# "Oncorhynchus mykiss"       
-# "Trachurus japonicus" 
+long_table %>% filter(get_clean_strings(SPECIES) %in% megan_species) %>% select(SPECIES) %>% distinct()
 
-# vertebrates
-# "Arctocephalus forsteri"                
+# __c) Show eDNA species not detected by MEGAN ----
 
+long_table %>% filter(get_clean_strings(SPECIES) %!in% megan_species) %>% select(SPECIES) %>% distinct()
+                        
+# __d) Show eDNA fish species detected by MEGAN data filtered for fish  ----
 
-# ___ show  species dtected by MEGAN  not in current fish data  ----
-setdiff(megan_species,  get_clean_strings(current_species))
+long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>%  filter(get_clean_strings(SPECIES) %in% megan_fish_species) %>% select(SPECIES) %>% distinct()
 
-current_species[!grepl("\\*", current_species)]
+# __e) Show eDNA fish species detected by MEGAN data filtered for fish  ----
 
-# fish 
-# "Peltorhamphus novaezeelandiae"
-# "Oplegnathus fasciatus"
-# "Entomacrodus stellifer"
-# "Lampanyctodes hectoris"
-
-# non-fish but marine
-# "Pontoscolex corethrurus"
-# "Lamellibrachia barhami"
-# "Lamellibrachia satsuma" 
-
-# terrestrial
-# "Cervus elaphus"
-# "Canis lupus"                  
-# "Sus scrofa"
-# "Mus musculus"
-# "Pan troglodytes"
-# "Homo sapiens"
-# "Bos taurus"
-# "Ovis aries"
-# "Porcellio scaber"     
-# "Brontispa longissima"
-
-# ___ Saving environment ----
-
-# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__started_megan_integration.Rdata")
+long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>%  filter(get_clean_strings(SPECIES) %!in% megan_fish_species) %>% select(SPECIES) %>% distinct()
 
 
+# __f) Mark  MEGAN-detected species in long table ----
 
-# _4.) Highlighting Megan resuts in long table ----
-
-
-long_table %<>% mutate(SPECIES = 
-                         case_when(get_clean_strings(SPECIES) %in% megan_species_detected_by_blast  ~ paste0(SPECIES, " ***"),
-                                   TRUE ~ SPECIES)) # %>% select(SPECIES) %>% distinct()
-
-# ___ Check data state ----
-
-long_table %>% dplyr::select(GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>% arrange(SPECIES) %>% print(n = Inf) 
-
-# ___ Correcting spelling mistakes prior to final DI generation
-
-long_table %<>% mutate(SPECIES = 
-                         case_when(SPECIES %in% "Eptatretus cirrahtus"  ~ "Eptatretus cirrhatus",
-                                   TRUE ~ SPECIES)) #  %>% select(SPECIES) %>% distinct() %>% arrange(SPECIES)
+long_table %<>% mutate(SPECIES = case_when(get_clean_strings(SPECIES) %in% megan_species  ~ paste0(SPECIES, " ***"), TRUE ~ SPECIES))
 
 
-# ___ saving environment ----
+# __g) Save state ----
 
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")
 
-
-# _5.) Skipped: Filter for data completeness ----
-
-# - not done yet -
 
 # _6.) Get equivalent of `BOTH.PRES` ----
 
@@ -688,19 +620,22 @@ long_table %<>% mutate(ANY.OBS.PRES = case_when(BRUV.OBS.PRES == 1 ~ 1,
 
 # _7.) Split data into sets for "fish", "other", and "full" data ----
 
+# __a) Split data ----
+
 full_biodiv <- long_table %>% distinct()
 fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>% filter(!(GENUS %in% c("Sardinops")))
 
-# ___ saving environment ----
+# __b) Save state ----
 
 save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 
-# IV. Get table summaries for supplement (What data is available for Fiordland?) ----
+
+# Data summaries ----
 
 # _1.) Flex table  ----
 
+# __a) Format data for flex table ----
 
-# format data for flex table
 obs_sums <- fish_biodiv %>% ungroup() %>% group_by(SPECIES) %>%  
   select(SPECIES, BRUV.OBS.PRES, EDNA.OBS.PRES, OBIS.OBS.PRES, PUBL.OBS.PRES) %>%   
   summarize(BRUV.OBS.PRES.SUM = ifelse(sum(BRUV.OBS.PRES), sum(BRUV.OBS.PRES), NA),
@@ -711,6 +646,8 @@ obs_sums <- fish_biodiv %>% ungroup() %>% group_by(SPECIES) %>%
  
 spcies_obs_sums <- ungroup(fish_biodiv) %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>%
   left_join(obs_sums) %>% arrange(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES) 
+
+# __b) Generate Flextable ----
 
 # generate flex table - for merging with ggplot object
 ft_spcies_obs_sums <-  flextable(spcies_obs_sums) %>% 
@@ -741,22 +678,29 @@ ft_spcies_obs_sums <-  flextable(spcies_obs_sums) %>%
 #     page_size = page_size(orient = "portrait"), type = "continuous"
 #     ))
 
+# __c) Save Flextable as .docx file ----
+
 save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230512_999_r_summarize_results__all_data.docx",
              pr_section = prop_section(
                page_size = page_size(orient = "portrait"), type = "continuous"
              ))
+
+# __d) Save Flextable as .html file ----
 
 # save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.html")
 save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230512_998_r_summarize_results__all_data.html")
 
 # _2.) Summaries for main text, results section  ----
 
-# Summary: general species counts 
+# __a) General species counts ----
+
 nrow(spcies_obs_sums)                                    # found 116 species across all data sets
 nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       105 Actinopteri
 nrow(spcies_obs_sums |> filter (CLASS == "Chondrichthyes")) #     10 Chondrichthyes
 nrow(spcies_obs_sums |> filter (CLASS == "Myxini")) #              1 Myxini
  
+# __b) General species counts for each data type ----
+
 nrow(spcies_obs_sums |> filter (!is.na(PUBL.OBS.PRES.SUM)))  # 59 -> 61 PUBL (Fiordland)
 nrow(spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)))  # 44 -> 43 EDNA (in study area)
 nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 -> 26 BRUV (in study area)
@@ -764,15 +708,14 @@ nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 -> 28 OBIS (in
 
 view(fish_biodiv)
 
-# How many sites yielded BRUV or eDNA data?
+# __c) Count Sites that yielded BRUV or eDNA data ----
 fish_biodiv |> 
   filter(SET.ID %!in% c(98, 99)) |>
   filter(SAMPLE.TYPE %in% c("BRUV", "EDNA")) |> 
   select(SET.ID, SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
-  distinct() |> pull(SET.ID) |> unique()  # 1  3  4  5  7  9 10 12 17 18 22 23 26 29  8 11 19 21 24 27 28
+  distinct() |> pull(SET.ID) |> unique()  |> length() 
 
-# Summary: OBIS data in small circles 
-fish_biodiv |> pull(SET.ID) |> unique() |> sort()
+# __d) Show areas that yielded OBIS data ---- 
 fish_biodiv |> 
   filter(SET.ID %!in% c(98, 99)) |>
   filter(SAMPLE.TYPE == "OBIS") |> 
@@ -780,14 +723,14 @@ fish_biodiv |>
   distinct() |> pull(RESERVE.GROUP.LOCATION) |> unique()
 # "LS CTRL" "FF MR"   "FF CTRL" "WJ MR"   "WJ CTRL"
 
-# how many sites yielded OBIS data?
+# __e) Count Sites that yielded OBIS data ----
 fish_biodiv |> 
   filter(SET.ID %!in% c(98, 99)) |>
   filter(SAMPLE.TYPE == "OBIS") |> 
   select(SET.ID, SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
-  distinct() |> pull(SET.ID) |> unique()  # 7  9 11 12 17 18 19 21 26
+  distinct() |> pull(SET.ID) |> unique()  |> length()  
 
-# OBIS species  
+# __f) List species that were detected by OBIS ----
 fish_biodiv |> 
   filter(SET.ID %!in% c(98, 99)) |>
   filter(SAMPLE.TYPE == "OBIS") |> 
@@ -808,7 +751,8 @@ fish_biodiv |>
 # 12 Pseudophycis barbata*   
 # 13 Carcharodon carcharias
 
-# Summary: Literture species counts
+# __g) List species that are based on literture records ----
+
 fish_biodiv |> filter(SET.ID %in% c(98, 99)) |> select(SPECIES) |> distinct()
 
 # 1 Conger verreauxi            
@@ -882,155 +826,94 @@ fish_biodiv |> filter(SET.ID %in% c(98, 99)) |> select(SPECIES) |> distinct()
 # 69 Thalasseleotris iota        
 # 70 Notothenia angustata 
 
-# Number of species in BRUV
+# __h) List species in BRUV ----
 bruv_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "BRUV") |> distinct()
 
-# Number of species in eDNA
+# __i) List unique and non-unique species observations in eDNA ----
 edna_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct()
 
-# we have 156 eDNA observations
+# non-uniquly we have 156 eDNA observations
 fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA")
 
-# we have 43 distinct eDNA observations
-fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct() 
-
-fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA")
-
-# Number of species in OBIS
+# __j) List unique and non-unique species observations in OBIS ----
 obis_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "OBIS") |> distinct()
 
-# Number of species in PUBL
+fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "OBIS")
+
+# __k) List unique and non-unique species observations in Literature ----
+
 publ_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("PUBL")) |> distinct()
 
-# Number of species in OBIS and PUBL
+fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("PUBL"))
+
+# __l) List non-unique and  unique species observations in Literature and OBIS ----
+
 pbob_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("OBIS", "PUBL")) |> distinct()
 unique(pbob_species[["SPECIES"]]) # Species in OBIS and literature - 70 
 
+# __m) eDNA species that are also in OBIS or Literature ----
 
-# eDNA species that are also in OBIS or Literature
-# =================================================
 sum(pbob_species[["SPECIES"]] %in% edna_species[["SPECIES"]]) # 2
 
-# these are those two species
-pbob_species[["SPECIES"]][pbob_species[["SPECIES"]] %in% edna_species[["SPECIES"]]] # "Aldrichetta forsteri" "Thyrsites atun"
+# these are those two species - in literure - not in OBIS
+intersect(get_clean_strings(pbob_species[["SPECIES"]]), get_clean_strings(edna_species[["SPECIES"]])) # "Aldrichetta forsteri" "Thyrsites atun"
+intersect(get_clean_strings(obis_species[["SPECIES"]]), get_clean_strings(edna_species[["SPECIES"]])) # "Aldrichetta forsteri" "Thyrsites atun"
+intersect(get_clean_strings(publ_species[["SPECIES"]]), get_clean_strings(edna_species[["SPECIES"]])) # "Aldrichetta forsteri" "Thyrsites atun"
 
-"Aldrichetta forsteri" %in%  pbob_species[["SPECIES"]]
-"Aldrichetta forsteri" %in%  obis_species[["SPECIES"]]
-"Aldrichetta forsteri" %in%  publ_species[["SPECIES"]]
+# __m) OBIS or Literature species not detected by eDNA ----
 
-"Thyrsites atun" %in%  pbob_species[["SPECIES"]]
-"Thyrsites atun" %in%  obis_species[["SPECIES"]]
-"Thyrsites atun" %in%  publ_species[["SPECIES"]]
+setdiff(get_clean_strings(pbob_species[["SPECIES"]]), get_clean_strings(edna_species[["SPECIES"]]))
 
+# __n) eDNA species that are not in OBIS or Literature ----
 
-# eDNA species that not also in OBIS or Literature apart from Roberts
-# ===================================================================
-# -> species that ar known from NZ but not locally
-# =================================================
+setdiff(get_clean_strings(edna_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]]))
 
+# __o) eDNA species that are not in OBIS or Literature, not listed in Roberts 2020----
 
-only_edna_species <- edna_species[["SPECIES"]][which(edna_species[["SPECIES"]] %!in% unique(c(pbob_species[["SPECIES"]], bruv_species[["SPECIES"]])))]
+intersect(setdiff(get_clean_strings(edna_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish)
 
-only_edna_species[ !grepl("\\*", only_edna_species)] # these species are listed below and the ones that were detected by Megan and have a triple star
+# __p) eDNA species that are not in OBIS or Literature, listed in Roberts 2020 ----
 
-# eDNA species only in eDNA,  without a star (known from NZ)
-#
-# "Monocentris japonica"
-# "Hygophum hygomii"
-# "Maurolicus muelleri"
-# "Galaxias eldoni"
-# "Coptodon zillii"
-# "Lotella phycis"      
-# "Lophiodes mutilus"
+setdiff(setdiff(get_clean_strings(edna_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish)
 
-# eDNA species only in eDNA,  without a star (known from NZ), but with a triple star, so also found by MEGAN
-# 
-# Katsuwonus pelamis, 
-# Anguilla australis, 
-# Oncorhynchus mykiss, 
-# Macruronus novaezelandiae
+# __q) eDNA species that are not in OBIS or Literature, listed in Roberts 2020, detected by MEGAN ----
+
+intersect(setdiff(setdiff(get_clean_strings(edna_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
+
+# __r) eDNA species that are not in OBIS or Literature, listed in Roberts 2020, not detected by MEGAN ----
+
+setdiff(setdiff(setdiff(get_clean_strings(edna_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
 
 
-# On eDNA species not found in Roberts 2020
-# ========================================
+# __s) OBIS or Literature species not detected by BRUV ----
 
-# Any star
-any_starred_edna <- edna_species[["SPECIES"]][ grepl("\\*" , edna_species[["SPECIES"]])]
+setdiff(get_clean_strings(pbob_species[["SPECIES"]]), get_clean_strings(bruv_species))
 
-# Not known from New Zealand - found by MEGAN also
+# __t) BRUV species that are not in OBIS or Literature ----
 
-double_starred_edna <- edna_species[["SPECIES"]][ grepl("\\* \\*\\*\\*" , edna_species[["SPECIES"]])]
+setdiff(get_clean_strings(bruv_species), get_clean_strings(pbob_species[["SPECIES"]]))
 
-# Known from New Zealand - found by MEGAN also
+# __u) BRUV species that are not in OBIS or Literature, not listed in Roberts 2020----
 
-triple_starred_edna <- edna_species[["SPECIES"]][ grepl("[^(\\*)] \\*\\*\\*" , edna_species[["SPECIES"]])]
+intersect(setdiff(get_clean_strings(bruv_species), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish)
 
-# Non-NZ eDNA, some of which were also detected by MEGAN 
+# __v) BRUV species that are not in OBIS or Literature, listed in Roberts 2020 ----
 
-non_nz_edna <- setdiff(any_starred_edna, triple_starred_edna)
-non_nz_edna <-  non_nz_edna[ order(non_nz_edna)]
+setdiff(setdiff(get_clean_strings(bruv_species), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish)
 
-# Any non-NZ eDNA among other data ?
-intersect(non_nz_edna, bruv_species[["SPECIES"]])
-intersect(non_nz_edna, obis_species[["SPECIES"]])
-intersect(non_nz_edna, publ_species[["SPECIES"]])
+# __w) BRUV species that are not in OBIS or Literature, listed in Roberts 2020, detected by MEGAN ----
 
-# BRUV species that are also in OBIS or Literature
-# =================================================
+intersect(setdiff(setdiff(get_clean_strings(bruv_species), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
 
-# number of BRUV species in OBIS and literture
-sum(pbob_species[["SPECIES"]] %>% unique() %in% bruv_species[["SPECIES"]]) # 20
+# __r) bruv species that are not in OBIS or Literature, listed in Roberts 2020, not detected by MEGAN ----
 
-# below -  species in BRUV not in BRUV or literature
+setdiff(setdiff(setdiff(get_clean_strings(bruv_species), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
 
-# Fish in BRUV
-bruv_species <- fish_biodiv |> 
-  select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "BRUV") |> 
-  distinct() |> pull(SPECIES)
+# __s) Save state  ----
 
-# [1] "Parapercis colias"          "Nemadactylus macropterus"   "Squalus acanthias"          "Pseudolabrus miles"         "Cephaloscyllium isabella"   "Meuschenia scaber"         
-# [7] "Odax pullus ***"            "Eptatretus cirrhatus"       "Thyrsites atun"             "Caesioperca lepidoptera"    "Mustelus lenticulatus"      "Notolabrus fucicola"       
-# [13] "Scorpaena cardinalis"       "Notolabrus celidotus"       "Lotella rhacina"            "Forsterygion maryannae"     "Notolabrus cinctus"         "Bodianus unimaculatus"     
-# [19] "Helicolenus percoides*"     "Galeorhinus galeus"         "Hypoplectrodes huntii"      "Chelidonichthys kumu"       "Notorynchus cepedianus ***" "Latridopsis ciliaris"      
-# [25] "Aplodactylus arctidens"     "Pseudophycis barbata*
+save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__summaries_done.Rdata")
 
-# fish in obis or literature 
-publ_species <- fish_biodiv |> 
-  select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %!in% c("BRUV", "eDNA", "OBIS")) |> 
-  distinct() |> pull(SPECIES)
-
-# [1] "Conger verreauxi"             "Atherinomorus lacunosus*"     "Bellapiscis lesleyae"         "Bellapiscis medius"           "Cryptichthys jojettae"       
-# [6] "Forsterygion capito"          "Forsterygion flavonigrum"     "Forsterygion lapillum"        "Forsterygion malcolmi"        "Forsterygion maryannae"      
-# [11] "Forsterygion varium"          "Karalepis stewarti"           "Notoclinops caerulepunctus"   "Notoclinops segmentatus"      "Notoclinus fenestratus"      
-# [16] "Ruanoho decemdigitatus"       "Ruanoho whero"                "Aplodactylus arctidens"       "Nemadactylus macropterus"     "Scorpis lineolata"           
-# [21] "Latridopsis ciliaris"         "Latridopsis forsteri"         "Latris lineata"               "Mendosoma lineatum"           "Callanthias allporti"        
-# [26] "Gaidropsarus novaezelandi"    "Lotella rhacina"              "Pseudophycis barbata*"        "Modicus minimus"              "Modicus tangaroa"            
-# [31] "Gobiopsis atrata"             "Notolabrus celidotus"         "Notolabrus cinctus"           "Notolabrus fucicola"          "Pseudolabrus miles"          
-# [36] "Odax pullus ***"              "Aldrichetta forsteri"         "Fiordichthys slartibartfasti" "Retropinna retropinna"        "Acanthoclinus fuscus"        
-# [41] "Acanthoclinus littoreus"      "Acanthoclinus marilynae"      "Acanthoclinus matti"          "Acanthoclinus rua"            "Polyprion oxygeneios"        
-# [46] "Bovichtus variegatus"         "Scorpaena papillosa"          "Helicolenus percoides*"       "Caesioperca lepidoptera"      "Hypoplectrodes huntii"       
-# [51] "Lepidoperca tasmanica"        "Rhombosolea plebeia"          "Thyrsites atun"               "Lissocampus filum"            "Meuschenia scaber"           
-# [56] "Paratrachichthys trailli"     "Parapercis colias"            "Parapercis gilliesii"         "Cephaloscyllium isabella"     "Squalus acanthias"           
-# [61] "Eptatretus cirrhatus"         "Acanthoclinus matti"          "Lepidoperca tasmanica"        "Parapercis colias"            "Pseudolabrus miles"          
-# [66] "Notolabrus cinctus"           "Eptatretus cirrhatus"         "Latris lineata"               "Notolabrus fucicola"          "Nemadactylus macropterus"    
-# [71] "Notolabrus celidotus"         "Scorpaena papillosa"          "Pseudophycis barbata*"        "Carcharodon carcharias"       "Isurus oxyrinchus"           
-# [76] "Hemerocoetes monopterygius"   "Meuschenia scaber"            "Prionace glauca"              "Peltorhamphus latus"          "Bellapiscis medius"          
-# [81] "Squalus acanthias"            "Forsterygion lapillum"        "Forsterygion flavonigrum"     "Notoclinus compressus"        "Galaxias argenteus"          
-# [86] "Caesioperca lepidoptera"      "Thalasseleotris iota"         "Notothenia angustata"         "Latridopsis ciliaris"        
-
-# species in BRUV not in OBIS or literature
-six_bruv_specvies <- bruv_species[bruv_species %!in% publ_species] |> sort()
-
-# species in BRUV in OBIS or literature
-twenty_bruv_specvies <- bruv_species[bruv_species %in% publ_species] |> sort()
-
-# "Bodianus unimaculatus"      "Chelidonichthys kumu"       "Galeorhinus galeus"         "Mustelus lenticulatus"      "Notorynchus cepedianus ***" "Scorpaena cardinalis"
-
-six_bruv_specvies %in% ( c(edna_species[["SPECIES"]], pbob_species[["SPECIES"]]) %>% unique() )
-six_bruv_specvies[which(six_bruv_specvies %!in% ( c(edna_species[["SPECIES"]], pbob_species[["SPECIES"]]) %>% unique() ))]
-six_bruv_specvies[  which(six_bruv_specvies %in% (c(edna_species[["SPECIES"]]) %>% unique())) ]
-
-# V. Get Euler plots ----
+# Get Euler plots ----
 
 # get euler analysis results for plotting / plot_label = TRUE shrinks plots a lot
 # euler_obs_full_bio <- lapply(list("PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), get_euler_object, full_biodiv)
@@ -1053,7 +936,7 @@ ggsave("230515_999_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_p
          dpi = 500, limitsize = TRUE)
 
 
-# VI. Get geographical maps with heat overlays ----
+# Get geographical maps with heat overlays ----
 
 # compare script  ~/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r
 
@@ -1225,7 +1108,7 @@ ggsave("230515_999_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last
 
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")
          
-# VII. Get biodiversity heat map and matching flex table ----
+# Get biodiversity heat map and matching flex table ----
 
 # a.) get plotting data sets
 
@@ -1285,7 +1168,7 @@ fish_asv_at_locs |> select(SPECIES, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
   arrange(NOT.NZ) # was: 44 SPECIES: 25 False (56.8% True) / 19 True (43.1% True)
                   # now: 43 SPECIES:  9 False (32.5% True) / 34 True (67.4% True)
 
-# VIII. Regression analysis of Alignment parameters ---- 
+# Regression analysis of alignment parameters ---- 
 
 # _1.) Inspect modelling data ----
 
