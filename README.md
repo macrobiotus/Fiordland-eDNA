@@ -1152,12 +1152,12 @@
   * thus adding even more reporting lines to script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
   * commit `30220f570e5d839676d276f10cd19f236fcc18aa` 
 
-## **20-June-2023** - finished re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+## **20-June-2023** - working on main text
  
  * updated results section - extended results reporting script
  * commit `69a55986856d2834ed1ed106fa3ea495fbed8d37`
 
-## **23-June-2023** - restructuring confusing script 
+## **23-June-2023** - restructured and re-ran confusing script `999_r_summarize_results.r`
  
  * script `999_r_summarize_results.r` is messy: 
    * restructuring script to be comprehensible
@@ -1173,10 +1173,8 @@
  * re-ran script `999_r_summarize_results.r` from   section `2e` to finish saving all intermediate environments
  * commit `8c7c288ff7f4c8e8268034ddd611c63507666e32`
  * updated ToDo below 
- * commit ``
+ * commit `8d433b77d031bb4fdc851750a894b252d9258240`
 
-   
-  
 ## **important queue** (last updated 23-June-2023):
 
  * [x] revise erroneous species tables 
