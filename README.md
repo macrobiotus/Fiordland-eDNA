@@ -1157,30 +1157,29 @@
  * updated results section - extended results reporting script
  * commit `69a55986856d2834ed1ed106fa3ea495fbed8d37`
 
-## **23-June-2023** - 
+## **23-June-2023** - restructuring confusing script 
  
  * script is messy: `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
  * restructuring script to be comprehensible
  * done to section `Get Euler plots`
  * saved environment 
- * 
- 
+ * commit `706aa8b4fe810329ac1d3372075dc2b923f1ea86`
+ * updated todo list and code structure
+ * commit 
+  
 ## **important queue** (last updated 12-May-2023):
 
  * [X] update percentages in results text, with main Fig. 2
  * [X] decide whether to work on main text or supplemnet next
  * [x] update results, beyond line 206
  * [x] update results, beyond line 210 
- * [ ] restructure results script to be comprehensible
- * [ ] **possibly re-run** results script - check if results are stable
- * [ ] update results - with analysis run 23-06-2023 and after  
- * [ ] update supplement - with analysis run  23-06-2023 and after 
- * [ ] update supplement - isolate DIs of run  14-06-2023 to supplemnets folder 
- * [ ] explode entire main text for reconstruction 
- * [ ] possibly tidy up script `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
- * [ ] reconstruct main text using rebuttal
- * [ ] comment on MEGAN results in main text and supplement
- * [ ] continue main text revision - **started - continue with query 34**
+ * [ ] explode main text for restructuring, using reviewer queries
+ * [ ] restructure main text, using reveiwer queries
+ * [ ] extend introduction
+ * [ ] alter results while rerunning results script 
+ * [ ] re-write Discussion
+ * [ ] update SI *
+ * [ ] update rebuttal  **started - continue with query 34**
  * [ ] continue supplement revision - **started - continue with query 34**
  * [ ] revise rebuttal - **started - continue with query 34**
  * [x] revise erroneous species tables 
@@ -1191,8 +1190,6 @@
  * [ ] possibly copy files to rebuttal folder
  * [x] get new main display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
  * [x] replace old display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission`
- * [ ] re-outline main document
- * [ ] write main document
  * [ ] update cover letter
  * [ ] submit
  
