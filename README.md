@@ -1171,40 +1171,39 @@
    * saving all states after cleaning script 
    * checking concordance of results with previous results -looks ok results are consistent
  * re-ran script `999_r_summarize_results.r` from   section `2e` to finish saving all intermediate environments
+ * commit `8c7c288ff7f4c8e8268034ddd611c63507666e32`
+ * updated ToDo below 
  * commit ``
 
    
   
-## **important queue** (last updated 12-May-2023):
+## **important queue** (last updated 23-June-2023):
 
- * [X] update percentages in results text, with main Fig. 2
- * [X] decide whether to work on main text or supplemnet next
- * [x] update results, beyond line 206
- * [x] update results, beyond line 210 
- * [ ] finish re-structuring results script `999_r_summarize_results.r` 
- * [ ] re-run `999_r_summarize_results.r`  to get stable environmental saves
- * [ ] establish stable analysis results available from  `999_r_summarize_results.r` , otherwise update
- * [ ] explode main text for restructuring, using reviewer queries
- * [ ] restructure main text, using reveiwer queries
- * [ ] extend introduction
- * [ ] alter results while rerunning results script 
- * [ ] re-write Discussion
- * [ ] update SI 
- * [ ] update rebuttal  **started - continue with query 34**
- * [ ] continue supplement revision - **started - continue with query 34**
- * [ ] revise rebuttal - **started - continue with query 34**
  * [x] revise erroneous species tables 
     * [x] by finishing correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
     * [x] by adding MEGAN results from `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__read_to_taxon.txt`
     * [x] by revising duplicates in species table DI and exports
-    
- * [ ] possibly copy files to rebuttal folder
  * [x] get new main display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components`
  * [x] replace old display items in `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission`
+ * [X] update percentages in results text, with main Fig. 2
+ * [X] decide whether to work on main text or supplemnet next
+ * [x] update results, beyond line 206
+ * [x] update results, beyond line 210 
+ * [x] finish re-structuring results script `999_r_summarize_results.r` 
+ * [x] re-run `999_r_summarize_results.r`  to get stable environmental saves
+ * [x] establish stable analysis results available from  `999_r_summarize_results.r` , otherwise update
+ * [ ] supplemnet: update including DIs, copy DIs
+ * [ ] main text: explode for restructuring using reviewer queries
+ * [ ] main text: restructure using reviewer queries
+ * [ ] main text: adjust Introduction
+ * [ ] main text: adjust Results., possibly while extending `999_r_summarize_results.r`
+ * [ ] main text: adjust Discussion
+ * [ ] rebuttal: ****continue with query 34**
+ * [ ] all files: check crosslinks
+ * [ ] all files: collate data and update all links
  * [ ] update cover letter
  * [ ] submit
- 
- 
+  
 ## **Miscellaneous todo (last updated 16-Mar-2023):**
 
  * for **new manuscript**
@@ -1252,4 +1251,3 @@
 * `/Users/paul/Documents/OU_eDNA/200901_scripts/800_r_get_q2_tax-tab.r`
   * used until 21-Jun-2022 for "eDNA" submission
   * superseded for "eDNA"  resubmission after 26-Aug-2022 by `/Users/paul/Documents/OU_eDNA/200901_scripts/801_r_get_q2_tax-tab.r`
-  
