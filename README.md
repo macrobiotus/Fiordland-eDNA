@@ -1159,13 +1159,21 @@
 
 ## **23-June-2023** - restructuring confusing script 
  
- * script is messy: `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
- * restructuring script to be comprehensible
- * done to section `Get Euler plots`
- * saved environment 
- * commit `706aa8b4fe810329ac1d3372075dc2b923f1ea86`
- * updated todo list and code structure
- * commit 
+ * script `999_r_summarize_results.r` is messy: 
+   * restructuring script to be comprehensible
+   * done to section `Get Euler plots`
+   * saved environment 
+   * commit `706aa8b4fe810329ac1d3372075dc2b923f1ea86`
+   * updated todo list and code structure
+   * commit `ca1bfe8605562ceaed581876364cfaae81589c09`
+ * script `999_r_summarize_results.r` is messy: 
+   * re-running from section `2e`, 
+   * saving all states after cleaning script 
+   * checking concordance of results with previous results -looks ok results are consistent
+ * re-ran script `999_r_summarize_results.r` from   section `2e` to finish saving all intermediate environments
+ * commit ``
+
+   
   
 ## **important queue** (last updated 12-May-2023):
 
@@ -1173,12 +1181,15 @@
  * [X] decide whether to work on main text or supplemnet next
  * [x] update results, beyond line 206
  * [x] update results, beyond line 210 
+ * [ ] finish re-structuring results script `999_r_summarize_results.r` 
+ * [ ] re-run `999_r_summarize_results.r`  to get stable environmental saves
+ * [ ] establish stable analysis results available from  `999_r_summarize_results.r` , otherwise update
  * [ ] explode main text for restructuring, using reviewer queries
  * [ ] restructure main text, using reveiwer queries
  * [ ] extend introduction
  * [ ] alter results while rerunning results script 
  * [ ] re-write Discussion
- * [ ] update SI *
+ * [ ] update SI 
  * [ ] update rebuttal  **started - continue with query 34**
  * [ ] continue supplement revision - **started - continue with query 34**
  * [ ] revise rebuttal - **started - continue with query 34**

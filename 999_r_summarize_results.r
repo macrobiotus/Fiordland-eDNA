@@ -303,6 +303,13 @@ get_clean_strings = function(x) {
   return(x)
   }
 
+# Logit to probabilities
+
+logit2prob <- function(logit){
+  odds <- exp(logit)
+  prob <- odds / (1 + odds)
+  return(prob)
+}
 
 # Data read in ----
 
@@ -343,9 +350,9 @@ spc_in_syn <- rfishbase::synonyms(species_list = spc_read)
 
 
 # __b)  Save state ----
-# Last saved 15-May-2023
+
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
-load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__syn_lookup.Rdata")
 
 # __c) Inspect trivial name synonyms from fishbase ----
 
@@ -399,7 +406,7 @@ trivial_df <- trivial_df |>  setNames( c("SPECIES", "TRIVIAL.SPECIES")) |> as_ti
 # add trivial names to object 
 long_table %<>% left_join(trivial_df)
 
-# __e) Save state ----
+# __e) Save state, but currently loading from here ----
 
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
 load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_trivial-names.Rdata")
@@ -500,7 +507,7 @@ long_table %<>% mutate(SPECIES =
 # __h) Save state ----
 
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
-load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__got_more_trivial-names.Rdata")
 
 # _3.) Mark non-fish and non-New Zealand taxa  ----
 
@@ -591,16 +598,14 @@ long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %
 
 long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>%  filter(get_clean_strings(SPECIES) %!in% megan_fish_species) %>% select(SPECIES) %>% distinct()
 
-
 # __f) Mark  MEGAN-detected species in long table ----
 
 long_table %<>% mutate(SPECIES = case_when(get_clean_strings(SPECIES) %in% megan_species  ~ paste0(SPECIES, " ***"), TRUE ~ SPECIES))
 
-
 # __g) Save state ----
 
-save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")
-
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")
 
 # _6.) Get equivalent of `BOTH.PRES` ----
 
@@ -627,8 +632,13 @@ fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", 
 
 # __b) Save state ----
 
-save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 
+# __c) Export data fro analysis by MdL ----
+
+fish_biodiv_tbls <- fish_biodiv |> filter(!(SAMPLE.TYPE %in% c("OBIS") & SET.ID %in% c(1,3,4,5,7,8,9,10,11,12,17,18,19,21,22,23,24,26,27,28,29))) 
+saveRDS(fish_biodiv_tbls, "/Users/paul/Documents/OU_eDNA/201028_Robjects/230515_999_r_summarize_results__data_gtestimate_accumulation_curves.Rds")
 
 # Data summaries ----
 
@@ -673,11 +683,6 @@ ft_spcies_obs_sums <-  flextable(spcies_obs_sums) %>%
      fontsize(part = "all", size = 9) %>%
      fit_to_width(max_width = 12, inc = 1L, max_iter = 20)
 
-# save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.docx",
-#   pr_section = prop_section(
-#     page_size = page_size(orient = "portrait"), type = "continuous"
-#     ))
-
 # __c) Save Flextable as .docx file ----
 
 save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230512_999_r_summarize_results__all_data.docx",
@@ -687,7 +692,6 @@ save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_ma
 
 # __d) Save Flextable as .html file ----
 
-# save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__all_data.html")
 save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230512_998_r_summarize_results__all_data.html")
 
 # _2.) Summaries for main text, results section  ----
@@ -705,8 +709,6 @@ nrow(spcies_obs_sums |> filter (!is.na(PUBL.OBS.PRES.SUM)))  # 59 -> 61 PUBL (Fi
 nrow(spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)))  # 44 -> 43 EDNA (in study area)
 nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 -> 26 BRUV (in study area)
 nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 -> 28 OBIS (in circle)
-
-view(fish_biodiv)
 
 # __c) Count Sites that yielded BRUV or eDNA data ----
 fish_biodiv |> 
@@ -832,7 +834,7 @@ bruv_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYP
 # __i) List unique and non-unique species observations in eDNA ----
 edna_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct()
 
-# non-uniquly we have 156 eDNA observations
+# non-uniquely we have 156 eDNA observations
 fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA")
 
 # __j) List unique and non-unique species observations in OBIS ----
@@ -860,66 +862,62 @@ intersect(get_clean_strings(pbob_species[["SPECIES"]]), get_clean_strings(edna_s
 intersect(get_clean_strings(obis_species[["SPECIES"]]), get_clean_strings(edna_species[["SPECIES"]])) # "Aldrichetta forsteri" "Thyrsites atun"
 intersect(get_clean_strings(publ_species[["SPECIES"]]), get_clean_strings(edna_species[["SPECIES"]])) # "Aldrichetta forsteri" "Thyrsites atun"
 
-# __m) OBIS or Literature species not detected by eDNA ----
+# __n) OBIS or Literature species not detected by eDNA ----
 
 setdiff(get_clean_strings(pbob_species[["SPECIES"]]), get_clean_strings(edna_species[["SPECIES"]]))
 
-# __n) eDNA species that are not in OBIS or Literature ----
+# __o) eDNA species that are not in OBIS or Literature ----
 
 setdiff(get_clean_strings(edna_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]]))
 
-# __o) eDNA species that are not in OBIS or Literature, not listed in Roberts 2020----
+# __p) eDNA species that are not in OBIS or Literature, not listed in Roberts 2020----
 
 intersect(setdiff(get_clean_strings(edna_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish)
 
-# __p) eDNA species that are not in OBIS or Literature, listed in Roberts 2020 ----
+# __q) eDNA species that are not in OBIS or Literature, listed in Roberts 2020 ----
 
 setdiff(setdiff(get_clean_strings(edna_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish)
 
-# __q) eDNA species that are not in OBIS or Literature, listed in Roberts 2020, detected by MEGAN ----
+# __r) eDNA species that are not in OBIS or Literature, listed in Roberts 2020, detected by MEGAN ----
 
 intersect(setdiff(setdiff(get_clean_strings(edna_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
 
-# __r) eDNA species that are not in OBIS or Literature, listed in Roberts 2020, not detected by MEGAN ----
+# __s) eDNA species that are not in OBIS or Literature, listed in Roberts 2020, not detected by MEGAN ----
 
 setdiff(setdiff(setdiff(get_clean_strings(edna_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
 
+# __t) OBIS or Literature species not detected by BRUV ----
 
-# __s) OBIS or Literature species not detected by BRUV ----
+setdiff(get_clean_strings(pbob_species[["SPECIES"]]), get_clean_strings(bruv_species[["SPECIES"]]))
 
-setdiff(get_clean_strings(pbob_species[["SPECIES"]]), get_clean_strings(bruv_species))
+# __u) BRUV species that are not in OBIS or Literature ----
 
-# __t) BRUV species that are not in OBIS or Literature ----
+setdiff(get_clean_strings(bruv_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]]))
 
-setdiff(get_clean_strings(bruv_species), get_clean_strings(pbob_species[["SPECIES"]]))
+# __v) BRUV species that are not in OBIS or Literature, not listed in Roberts 2020----
 
-# __u) BRUV species that are not in OBIS or Literature, not listed in Roberts 2020----
+intersect(setdiff(get_clean_strings(bruv_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish)
 
-intersect(setdiff(get_clean_strings(bruv_species), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish)
+# __w) BRUV species that are not in OBIS or Literature, listed in Roberts 2020 ----
 
-# __v) BRUV species that are not in OBIS or Literature, listed in Roberts 2020 ----
+setdiff(setdiff(get_clean_strings(bruv_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish)
 
-setdiff(setdiff(get_clean_strings(bruv_species), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish)
+# __x) BRUV species that are not in OBIS or Literature, listed in Roberts 2020, detected by MEGAN ----
 
-# __w) BRUV species that are not in OBIS or Literature, listed in Roberts 2020, detected by MEGAN ----
+intersect(setdiff(setdiff(get_clean_strings(bruv_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
 
-intersect(setdiff(setdiff(get_clean_strings(bruv_species), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
+# __y) bruv species that are not in OBIS or Literature, listed in Roberts 2020, not detected by MEGAN ----
 
-# __r) bruv species that are not in OBIS or Literature, listed in Roberts 2020, not detected by MEGAN ----
+setdiff(setdiff(setdiff(get_clean_strings(bruv_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
 
-setdiff(setdiff(setdiff(get_clean_strings(bruv_species), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
+# __z) Save state  ----
 
-# __s) Save state  ----
-
-save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__summaries_done.Rdata")
+# save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__summaries_done.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__summaries_done.Rdata")
 
 # Get Euler plots ----
 
-# get euler analysis results for plotting / plot_label = TRUE shrinks plots a lot
-# euler_obs_full_bio <- lapply(list("PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), get_euler_object, full_biodiv)
-# euler_ggp_full_bio <- mapply(get_euler_ggplot, list("PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), euler_obs_full_bio, plot_label = FALSE, SIMPLIFY = FALSE)
-
-# plot euler analysis results
+# create Euler plots 
 euler_obs_fish_bio <- lapply(list("SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), get_euler_object, fish_biodiv)
 euler_ggp_fish_bio <- mapply(get_euler_ggplot, list("SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), euler_obs_fish_bio, plot_label = FALSE, SIMPLIFY = FALSE)
 
@@ -935,12 +933,11 @@ ggsave("230515_999_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_p
          scale = 2.0, width = 100, height = 100, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-
 # Get geographical maps with heat overlays ----
 
 # compare script  ~/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r
 
-# data preparation
+# _1.) Data preparation ----
 
 # keep only data relevant for plotting 
 fish_biodiv_gh <- fish_biodiv |> filter(SAMPLE.TYPE %in% c("eDNA","BRUV","OBIS") & SET.ID %!in% c(98,99))
@@ -980,6 +977,8 @@ fish_biodiv_df_obis <- get_plot_df(fish_biodiv_sf_km, "OBIS")
 
 # mapping
 
+# _2.) Main map ----
+
 # map 1: sampling map from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
 # map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
 
@@ -989,6 +988,8 @@ ggsave("230515_999_r_summarize_results_map_main.pdf", plot = map_a,
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
          scale = 1, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)
+
+# _3.) Mini maps ----
 
 # map 2: eDNA observations
 map_b <- ggplot() +
@@ -1074,9 +1075,12 @@ ggsave("230515_999_r_summarize_results_map_obis.pdf", plot = map_d,
          scale = .5, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-#___ Saving environment ----
+# _4.) Save state ----
   
-save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping.Rdata")
+# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping.Rdata")
+
+# _5.) Arrange and save compound map ----
 
 # slooooooooow
 ggarrange(
@@ -1106,33 +1110,14 @@ ggsave("230515_999_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last
          scale = 1, width = 152, height = 121, units = c("mm"),
          dpi = 500, limitsize = TRUE)  
 
-save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")
-         
-# Get biodiversity heat map and matching flex table ----
+# _6.)  Save state ----
 
-# a.) get plotting data sets
+# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")
 
-fish_biodiv_tbls <- fish_biodiv |> filter(!(SAMPLE.TYPE %in% c("OBIS") & SET.ID %in% c(1,3,4,5,7,8,9,10,11,12,17,18,19,21,22,23,24,26,27,28,29))) 
+# Analyse BLAST results  ----
 
-# export data fro analysis by MdL
-# saveRDS(fish_biodiv_tbls, "/Users/paul/Documents/OU_eDNA/201028_Robjects/210703_998_r_summarize_results__data_gtestimate_accumulation_curves.Rds")
-saveRDS(fish_biodiv_tbls, "/Users/paul/Documents/OU_eDNA/201028_Robjects/230515_999_r_summarize_results__data_gtestimate_accumulation_curves.Rds")
-
-  # |>
-  # select(SET.ID, SAMPLE.TYPE, RESERVE.GROUP, RESERVE.GROUP.LOCATION) |>
-  # distinct()
-
-htmp_tibl_fish <- bind_rows(
-  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "eDNA", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
-  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "BRUV", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "BRUV"), 
-  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "OBIS", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "OBIS"),
-  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "PUBL", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "PUBL"),
-)
-
-# b.) add and analyse eDNA BLAST results
-
-# summary for ms - all species
-ms_all_species <- fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(SPECIES)
+# _1.) ASV summaries, format data for regression analysis ----
 
 # summary for ms - all asvs
 ms_all_asvs <- fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(ASV)
@@ -1154,11 +1139,10 @@ fish_asv_at_locs <- fish_asv_at_locs |> mutate(NOT.NZ = as.factor(ifelse( grepl(
 fish_asv_at_locs <- fish_asv_at_locs |> mutate(HSP.IDENTITY.PERC = 100 * HSP.IDENTITY.PERC)
 
 # for regression analysis -  save object for external inspection if desirable
-# saveRDS({fish_asv_at_locs |> select(LOC.PER.SPC, HSP.GAPS, HSP.IDENTITY.PERC, NOT.NZ)}, "/Users/paul/Documents/OU_eDNA/201028_Robjects/210703_998_r_summarize_results__data_spc_distribution_vs_quality.Rds")
 saveRDS(fish_asv_at_locs, "/Users/paul/Documents/OU_eDNA/201028_Robjects/230514_999_r_summarize_results__data_spc_distribution_vs_quality.Rds")
 
 # for manuscript - count fraction of NOT.NZ species among unique eDNA assignments
-fish_asv_at_locs |> select(ASV, SPECIES, NOT.NZ) |> View()
+fish_asv_at_locs |> select(ASV, SPECIES, NOT.NZ)
 
 fish_asv_at_locs |> select(ASV, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
   arrange(NOT.NZ) # was: 92 ASV: 39 False (42.4% False) / 53 True (57% True)
@@ -1168,33 +1152,30 @@ fish_asv_at_locs |> select(SPECIES, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
   arrange(NOT.NZ) # was: 44 SPECIES: 25 False (56.8% True) / 19 True (43.1% True)
                   # now: 43 SPECIES:  9 False (32.5% True) / 34 True (67.4% True)
 
-# Regression analysis of alignment parameters ---- 
+# _2.) Regression analysis of alignment parameters ---- 
 
-# _1.) Inspect modelling data ----
+# __a) Inspect modelling data ----
 
 glimpse(fish_asv_at_locs)
 
-# _2.) Build logistic regressions ----
+# __b) Build logistic regressions ----
 
-# __a) Null model ----
+# ____ Null model ----
 
 glm_mod_0 <-  glm(NOT.NZ ~ 1, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
 summary(glm_mod_0) # AIC: 385.11
 
-
-# __b)  Gaps only ----
+# ____ Gaps only ----
 
 glm_mod_1 <-  glm(NOT.NZ ~ HSP.GAPS, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
 summary(glm_mod_1) # AIC: 386.34
 
-
-# __c)  Identity percentage only ----
+# ____ Identity percentage only ----
 
 glm_mod_2 <-  glm(NOT.NZ ~ HSP.IDENTITY.PERC, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
 summary(glm_mod_2) # AIC:  374.28
 
-
-# __d) HSP.GAPS + HSP.IDENTITY.PERC
+# ____ HSP.GAPS + HSP.IDENTITY.PERC
 glm_mod_3 <-  glm(NOT.NZ ~ HSP.IDENTITY.PERC + HSP.GAPS, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
 summary(glm_mod_3) # AIC: 351.97
 
@@ -1222,16 +1203,10 @@ summary(glm_mod_3) # AIC: 351.97
 # 
 # Number of Fisher Scoring iterations: 5
 
-logit2prob <- function(logit){
-  odds <- exp(logit)
-  prob <- odds / (1 + odds)
-  return(prob)
-}
-
 coefficients(glm_mod_3)
 logit2prob(coefficients(glm_mod_3))
 
-# __e) Testing model significance ----
+# ____  Testing model significance ----
 
 anova(glm_mod_0, glm_mod_1, test="Chisq") # Gaps only **not significant**
 anova(glm_mod_0, glm_mod_2, test="Chisq") # Match percentage **significant**
@@ -1239,38 +1214,17 @@ anova(glm_mod_2, glm_mod_3, test="Chisq") # both together **significant**
 anova(glm_mod_1, glm_mod_3, test="Chisq") # both together **significant**
 anova(glm_mod_0, glm_mod_3, test="Chisq") # both together **significant**
 
-# __f) Ranking models ----
+# ____  Ranking models ----
 
 AIC(glm_mod_0)
 AIC(glm_mod_1)
 AIC(glm_mod_2)
 AIC(glm_mod_3) # best, AIC 351.9707
 
-# __g) Inspect model ----
+# ____ Inspect model ----
 
 jtools::summ(glm_mod_3)
 
-# MODEL INFO:
-#   Observations: 156
-# Dependent Variable: NOT.NZ
-# Type: Generalized linear model
-# Family: binomial 
-# Link function: logit 
-# 
-# MODEL FIT:
-#   χ²(2) = 37.14, p = 0.00
-# Pseudo-R² (Cragg-Uhler) = 0.23
-# Pseudo-R² (McFadden) = 0.10
-# AIC = 351.97, BIC = 361.12 
-# 
-# Standard errors: MLE
-# ------------------------------------------------------
-#   Est.   S.E.   z val.      p
-# ----------------------- ------- ------ -------- ------
-#   (Intercept)               28.80   5.66     5.09   0.00
-# HSP.IDENTITY.PERC         -0.28   0.06    -4.78   0.00
-# HSP.GAPS                  -0.60   0.14    -4.41   0.00
-# ------------------------------------------------------
 
 plot <- plot_summs(glm_mod_3)
 plot + theme_bw() + 
@@ -1281,7 +1235,7 @@ plot + theme_bw() +
 ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/230515_999_logistic_rgression_alignmnet_parameters.pdf", scale = 1.65, width = 4, height = 3, units = "in", dpi = 300)
 ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_si_di_development/7_model_coefficients_v1.pdf", scale = 1.65, width = 4, height = 3, units = "in", dpi = 300)
 
-# __h) Calculating confidence intervalls ----
+# ____ Calculating confidence intervalls ----
 
 confint(glm_mod_3, level = 0.95) # probabilities
 
@@ -1307,7 +1261,7 @@ ilink(confint(glm_mod_3, level = 0.95))
 # HSP.IDENTITY.PERC 0.4015468 0.4572379
 # HSP.GAPS          0.2910357 0.4134078
 
-# __i) Other model reporting ----
+# ____ Other model reporting ----
 
 # check_observation among true/false for figure legend
 fish_asv_at_locs |> group_by(NOT.NZ) |> summarise(across(c("SPECIES", "ASV"), list(n_distinct)))
@@ -1360,15 +1314,13 @@ ggsave("230515_999_r_summarize_results__asv_bin_regression.pdf", plot = last_plo
 
 tab_model(glm_mod_3)
 
-#___ Saving environment ----
+# __c)  Save state ----
 
 # save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
 
-load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
 
-# IX. Report on eDNA data including BLAST results ----
-
-# __a) Numerical summaries, 5 pargraph of results ----
+# __d) More numerical summaries, 5 pargraph of results ----
 
 fish_biodiv_blast_unq <- fish_biodiv_blast |> distinct(across(c("ASV","FAMILY", "SPECIES","NCBI.LEVEL", "NCBI.TAXDB.INC", "NCBI.TAXID", "NCBI.TAXID.INC", contains("HSP"))))
 nrow(fish_biodiv_blast_unq) # formerly 92 ASV resolved to species, now 96
@@ -1407,7 +1359,10 @@ mean(fish_biodiv_blast_unq$HSP.GAPS)      # 0.9791667
 sd(fish_biodiv_blast_unq$HSP.GAPS)      # 1.800463
 
 
-# __b) Creating table columns for manuscript: HSP.IDENTITY.PERC ----
+
+# _3.) Build Flextable  ----
+
+# __a) Creating table columns for manuscript: HSP.IDENTITY.PERC ----
 
 fish_biodiv_blast_cov <- fish_biodiv_blast |> 
   group_by(SPECIES) |> 
@@ -1416,7 +1371,7 @@ fish_biodiv_blast_cov <- fish_biodiv_blast |>
                                      paste0( signif(100*min(HSP.IDENTITY.PERC),3), "%")
                                      ))
 
-# __c) Creating table columns for manuscript: HSP.GAPS ----
+# __b) Creating table columns for manuscript: HSP.GAPS ----
 
 fish_biodiv_blast_gap <- fish_biodiv_blast |> 
   group_by(SPECIES) |> 
@@ -1425,7 +1380,7 @@ fish_biodiv_blast_gap <- fish_biodiv_blast |>
                                      paste0( signif(min(HSP.GAPS), 3))
                                      ))
 
-# __d) Creating table columns for manuscript: AVG.HSP.BIT.SCORE  ----
+# __c) Creating table columns for manuscript: AVG.HSP.BIT.SCORE  ----
 
 # 15-05-2023 - adding  Bit score parmeters
 glimpse(fish_biodiv_blast)
@@ -1439,7 +1394,7 @@ fish_biodiv_blast_avgbitsc <- fish_biodiv_blast |>
     )
               
               
-# __e) Creating table columns for manuscript: MAX.HSP.BIT.SCORE  ----
+# __d) Creating table columns for manuscript: MAX.HSP.BIT.SCORE  ----
 
 fish_biodiv_blast_maxbitsc <- fish_biodiv_blast |> 
   group_by(SPECIES) |> 
@@ -1449,7 +1404,7 @@ fish_biodiv_blast_maxbitsc <- fish_biodiv_blast |>
   ))
   
   
-# __f) Get useful bit score columns ----
+# __e) Get useful bit score columns ----
 
 # use this to use all values
 fish_biodiv_blast_bitsc <- left_join(fish_biodiv_blast_avgbitsc, fish_biodiv_blast_maxbitsc)
@@ -1459,12 +1414,19 @@ fish_biodiv_blast_bitsc <-  fish_biodiv_blast_bitsc |> mutate(BLAST.BSC.RNG = pa
 fish_biodiv_blast_bitsc <- left_join(fish_biodiv_blast_avgbitsc, fish_biodiv_blast_maxbitsc)
 fish_biodiv_blast_bitsc <- fish_biodiv_blast_bitsc |> mutate(BLAST.BSC.RNG = BLAST.AVG.RNG) |> select(-c("BLAST.MAX.RNG", "BLAST.AVG.RNG"))
 
-# __g) Extend table plot ----
+# __f) Extend table plot ----
 
-# extended data (possibly) for table plot 
+htmp_tibl_fish <- bind_rows(
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "eDNA", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "eDNA"),
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "BRUV", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "BRUV"), 
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "OBIS", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "OBIS"),
+  get_matrix_or_table(fish_biodiv_tbls, obs_methods = "PUBL", tbl = TRUE) %>% add_column(SAMPLE.TYPE = "PUBL"),
+)
+
+
 htmp_tibl_fish_blrngs <- htmp_tibl_fish |> left_join(fish_biodiv_blast_cov) |> left_join(fish_biodiv_blast_gap) |> left_join(fish_biodiv_blast_bitsc)
 
-# __h) Get Flextable ----
+# __g) Get Flextable ----
 
 # format data for flex table
 tibl_plot <- htmp_tibl_fish_blrngs %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SPECIES, BLAST.COV.RNG, BLAST.GAP.RNG, BLAST.BSC.RNG) %>% 
@@ -1497,8 +1459,7 @@ ft <-  flextable(tibl_plot) %>%
 save_as_html(ft, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__spcies_obs_matching_tiles.html")
 save_as_docx(ft, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__spcies_obs_matching_tiles.docx")
 
-
-# __i) Get tile display item of all biodiversity data ----
+# __h) Get tile display item of all biodiversity data ----
 
 # order factors in plotting object to match flex table  
 y_axis_label_order <- fct_relevel(htmp_tibl_fish$SPECIES, rev(c(tibl_plot$SPECIES)))  # y_axis_label_order <- reorder(htmp_tibl_full$SPECIES, desc(htmp_tibl_full$SPECIES))
@@ -1549,7 +1510,7 @@ ggsave("230515_999_r_summarize_results__biodiv_tiles_only.pdf", plot = plot_htmp
          dpi = 500, limitsize = TRUE)
 
 
-#  __k) Combine heat map and flextable ----
+#  __i) Combine heat map and flextable ----
 
 # get flex table as ggplot object
 ft_raster <- as_raster(ft) # webshot and magick.
@@ -1563,21 +1524,23 @@ ggsave("230515_999_r_summarize_results__biodiv_heat.pdf", plot = last_plot(),
          scale = 1.5, width = 210, height = 297, units = c("mm"),
          dpi = 500, limitsize = TRUE)
 
-save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__dis_done.Rdata")
+# __k) Save state ----
 
-# X. ANOSIM of observation types and variables ----
-# ~~~~~~~~~~~~
+# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__dis_done.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__dis_done.Rdata")
+
+# ANOSIM of observation types and variables ----
+
+# _1.) Set up analysis ----
 
 # subset to local observation without OBIS, OBIS data is too sparse to allow meaningful conclusions
 fish_biodiv_local <- fish_biodiv |> filter(SET.ID %!in% c(98, 99)) |> filter(SAMPLE.TYPE %in% c("eDNA", "BRUV", "OBIS"))
-
 
 # testing function with one data set
 get_vegan(distance = "jaccard", tibl = fish_biodiv_local, group_col = "SET.ID", group_row = c("SPECIES"), group_col_ano = "RESERVE.GROUP.LOCATION", obs_methods = "BRUV")
 
 
 # Analysis for fish (as per eDNA markers) for BRUV and eDNA (data complete across all sets)
-# ~~~~~~~~~~~~
 
 # setting up parameter combinations for complete ANOSIM analysis
 anosim_analysis_fish <- expand.grid(
@@ -1589,7 +1552,8 @@ anosim_analysis_fish <- expand.grid(
   obs_methods   = c("eDNA", "BRUV")
   )
 
-# run ANOSIM analysis
+# _2.) Run ANOSIM analysis ----
+
 anosim_results_fish <- apply(anosim_analysis_fish, 1, FUN = function(x) try(get_vegan(distance = x[1], tibl = get(x[2]), group_col = x[3], group_row = x[4], group_col_ano = x[5], obs_methods = x[6])))
 
 # inspect results
@@ -1622,21 +1586,29 @@ ft_anosim <-  flextable(anosim_analysis_fish) %>%
      highlight(j = ~ significance, color = function(x) {ifelse(x < 0.05, "lightgreen", "white")} ) %>%
      fontsize(part = "all", size = 9) %>%
      fit_to_width(max_width = 12, inc = 1L, max_iter = 20)
+
+# _3.) Export ANOSIM results ----  
+
 # save_as_html(ft_anosim, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/210712_998_r_summarize_results__ANOSIM.html")
   save_as_html(ft_anosim, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__ANOSIM.html")
   save_as_docx(ft_anosim, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__ANOSIM.docx")
 
-save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__anaosim_done.Rdata")
 
+# _4.) Save state ----  
 
-# XI. Indicator species analysis for significant ANOMSIM results  ----
-# ~~~~~~~~~~~
+# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__anaosim_done.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__anaosim_done.Rdata")
+  
+# Indicator species analysis for significant ANOMSIM results  ----
 
-# testing indicator species analysis - note flag "map" set to TRUE
+# _1.) Testing indicator species analysis ----
+  
+# - note flag "map" set to TRUE
 get_vegan(distance = "jaccard", tibl = fish_biodiv_local, group_col = "SET.ID", group_row = c("SPECIES"), group_col_ano = "RESERVE.GROUP.LOCATION", obs_methods = "BRUV", mp = TRUE)
 
+# _2.) Running analysis ----
+
 # Analysis for fish (as per eDNA markers) for BRUV and eDNA (data complete across all sets)
-# ~~~~~
 
 # setting up parameter combinations for complete ANOSIM analysis
 mpatt_analysis_fish <- expand.grid(
@@ -1651,6 +1623,8 @@ mpatt_analysis_fish <- expand.grid(
 # run Indicator species analysis
 mpatt_results_fish <- apply(mpatt_analysis_fish, 1, FUN = function(x) try(get_vegan(distance = x[1], tibl = get(x[2]), group_col = x[3], group_row = x[4], group_col_ano = x[5], obs_methods = x[6], mp = TRUE)))
 
+# _3.) Inspect analysis results ----
+
 # inspect results
 str(mpatt_results_fish)
 str(mpatt_results_fish[[1]])
@@ -1662,7 +1636,6 @@ mpatt_results_fish[[4]]
 summary(mpatt_results_fish[[1]])
 
 # Multilevel pattern analysis
-# ---------------------------
 #   
 # Association function: r.g
 # Significance level (alpha): 0.05
@@ -1686,7 +1659,6 @@ summary(mpatt_results_fish[[1]])
 summary(mpatt_results_fish[[2]])
 
 # Multilevel pattern analysis
-# ---------------------------
 #   
 # Association function: r.g
 # Significance level (alpha): 0.05
@@ -1710,7 +1682,6 @@ summary(mpatt_results_fish[[2]])
 summary(mpatt_results_fish[[3]])
 
 # Multilevel pattern analysis
-# ---------------------------
 #   
 # Association function: r.g
 # Significance level (alpha): 0.05
@@ -1734,7 +1705,6 @@ summary(mpatt_results_fish[[3]])
 summary(mpatt_results_fish[[4]])
 
 # Multilevel pattern analysis
-# ---------------------------
 #   
 # Association function: r.g
 # Significance level (alpha): 0.05
@@ -1755,5 +1725,8 @@ summary(mpatt_results_fish[[4]])
 #   ---
 # Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__multipatt_done.Rdata")
+# _4.) Save state ----
+
+# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__multipatt_done.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__multipatt_done.Rdata")
 
