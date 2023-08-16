@@ -1173,9 +1173,42 @@
  * re-ran script `999_r_summarize_results.r` from   section `2e` to finish saving all intermediate environments
  * commit `8c7c288ff7f4c8e8268034ddd611c63507666e32`
  * updated ToDo below 
- * commit `8d433b77d031bb4fdc851750a894b252d9258240`
+ * commit `d4cfcdeda2aa006e181d8076051463f2314f8a52`
 
-## **important queue** (last updated 23-June-2023):
+
+## **16-August-2023** - revising rebeuttal and main text
+ 
+ * updated cover letter and cover page
+ * updated rebuttal letter
+ * updated main text
+ * updated imprortant que queue
+
+## **Pending important queue** (last updated 16-August-2023):
+
+ * [ ] main text -re-read entirley and check for flow
+ * [ ] get notes document - assemble new aspects for improvements
+   * [ ] highlight throughout - Fiordland  
+   * [ ] highlight throughout - biodiversity survey using eDNA and other sources  
+   * [ ] highlight throughout - intentional ambiguity of assignments
+   * [ ] highlight throughout - LCA results
+   * [ ] discuss better - misassignments - bit score assignments using Hleap 2121
+   * [ ] discuss better - misassignments - both LCA and bit score assignments)
+   * [ ] discuss better - whole NCBI – e.g. invasive species could be found
+   * [ ] discuss better - Colllins 2021 Gold 2021 and others
+   * [ ] discuss better - regession results
+ * [ ] main text - explode for restructuring using reviewer queries
+ * [ ] main text - adjust Introduction
+ * [ ] main text - adjust Results, possibly while extending `999_r_summarize_results.r`
+ * [ ] main text - adjust Discussion
+ * [ ] supplemnet - adjust after main text 
+ * [ ] rebuttal - adjust after supplement
+ * [ ] all files -  check crosslinks
+ * [ ] all files - collate data 
+ * [ ] all files - and upload data
+ * [ ] circulate
+ * [ ] submit
+ 
+## **Done from important queue** (last updated 16-August-2023):
 
  * [x] revise erroneous species tables 
     * [x] by finishing correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
@@ -1190,18 +1223,9 @@
  * [x] finish re-structuring results script `999_r_summarize_results.r` 
  * [x] re-run `999_r_summarize_results.r`  to get stable environmental saves
  * [x] establish stable analysis results available from  `999_r_summarize_results.r` , otherwise update
- * [ ] supplemnet: update including DIs, copy DIs
- * [ ] main text: explode for restructuring using reviewer queries
- * [ ] main text: restructure using reviewer queries
- * [ ] main text: adjust Introduction
- * [ ] main text: adjust Results., possibly while extending `999_r_summarize_results.r`
- * [ ] main text: adjust Discussion
- * [ ] rebuttal: ****continue with query 34**
- * [ ] all files: check crosslinks
- * [ ] all files: collate data and update all links
- * [ ] update cover letter
- * [ ] submit
-  
+ * [x] update cover letter
+
+ 
 ## **Miscellaneous todo (last updated 16-Mar-2023):**
 
  * for **new manuscript**
