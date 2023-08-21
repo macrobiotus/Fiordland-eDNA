@@ -4,7 +4,7 @@
 #  *                                *
 #  **********************************
 
-lapply(paste('package:', names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
+lapply(paste('package:', names(sessionInfo()$otherPkgs),sep=""),detach, character.only=TRUE, unload=TRUE)
 rm(list = ls(all.names = TRUE))
 gc()
 options(tibble.print_max = Inf) 
@@ -319,7 +319,7 @@ system("open -a \"Microsoft Excel\" \"/Users/paul/Documents/OU_eDNA/200403_manus
 long_table <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_map_and_add_obis__full_data_raw.Rds")
 long_table <- ungroup(long_table)
 
-# Data shaping ----
+# Data shaping and formatting ----
 
 # - add trivial names 
 # - mark non-NZ species  **(possibly needs to be re-worked)**
@@ -594,7 +594,7 @@ long_table %>% filter(get_clean_strings(SPECIES) %!in% megan_species) %>% select
 
 long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>%  filter(get_clean_strings(SPECIES) %in% megan_fish_species) %>% select(SPECIES) %>% distinct()
 
-# __e) Show eDNA fish species detected by MEGAN data filtered for fish  ----
+# __e) Show eDNA fish species not detected by MEGAN data filtered for fish  ----
 
 long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>%  filter(get_clean_strings(SPECIES) %!in% megan_fish_species) %>% select(SPECIES) %>% distinct()
 
@@ -627,7 +627,7 @@ long_table %<>% mutate(ANY.OBS.PRES = case_when(BRUV.OBS.PRES == 1 ~ 1,
 
 # __a) Split data ----
 
-full_biodiv <- long_table %>% distinct()
+long_table %>% distinct()
 fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>% filter(!(GENUS %in% c("Sardinops")))
 
 # __b) Save state ----
@@ -635,16 +635,14 @@ fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", 
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 # load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 
-# __c) Export data fro analysis by MdL ----
+# __c) Export data fot analysis by MdL ----
 
 fish_biodiv_tbls <- fish_biodiv |> filter(!(SAMPLE.TYPE %in% c("OBIS") & SET.ID %in% c(1,3,4,5,7,8,9,10,11,12,17,18,19,21,22,23,24,26,27,28,29))) 
 saveRDS(fish_biodiv_tbls, "/Users/paul/Documents/OU_eDNA/201028_Robjects/230515_999_r_summarize_results__data_gtestimate_accumulation_curves.Rds")
 
-# Data summaries ----
+# Get and Export Plain Flextable ----
 
-# _1.) Flex table  ----
-
-# __a) Format data for flex table ----
+# _1.) Format data for flex table ----
 
 obs_sums <- fish_biodiv %>% ungroup() %>% group_by(SPECIES) %>%  
   select(SPECIES, BRUV.OBS.PRES, EDNA.OBS.PRES, OBIS.OBS.PRES, PUBL.OBS.PRES) %>%   
@@ -657,7 +655,7 @@ obs_sums <- fish_biodiv %>% ungroup() %>% group_by(SPECIES) %>%
 spcies_obs_sums <- ungroup(fish_biodiv) %>% select(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES, TRIVIAL.SPECIES) %>% distinct() %>%
   left_join(obs_sums) %>% arrange(PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES) 
 
-# __b) Generate Flextable ----
+# _2.) Generate Flextable ----
 
 # generate flex table - for merging with ggplot object
 ft_spcies_obs_sums <-  flextable(spcies_obs_sums) %>% 
@@ -683,41 +681,211 @@ ft_spcies_obs_sums <-  flextable(spcies_obs_sums) %>%
      fontsize(part = "all", size = 9) %>%
      fit_to_width(max_width = 12, inc = 1L, max_iter = 20)
 
-# __c) Save Flextable as .docx file ----
+# _3.) Save Flextable as .docx file ----
 
 save_as_docx(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230512_999_r_summarize_results__all_data.docx",
              pr_section = prop_section(
                page_size = page_size(orient = "portrait"), type = "continuous"
              ))
 
-# __d) Save Flextable as .html file ----
+# _4.) Save Flextable as .html file ----
 
 save_as_html(ft_spcies_obs_sums, path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230512_998_r_summarize_results__all_data.html")
 
-# _2.) Summaries for main text, results section  ----
+# Get Figure 1 - geographical maps with heat overlays (Figure 1)----
 
-# __a) General species counts ----
+# compare script  ~/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r
 
-nrow(spcies_obs_sums)                                    # found 116 species across all data sets
-nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       105 Actinopteri
-nrow(spcies_obs_sums |> filter (CLASS == "Chondrichthyes")) #     10 Chondrichthyes
-nrow(spcies_obs_sums |> filter (CLASS == "Myxini")) #              1 Myxini
- 
-# __b) General species counts for each data type ----
+# _1.) Data preparation ----
 
-nrow(spcies_obs_sums |> filter (!is.na(PUBL.OBS.PRES.SUM)))  # 59 -> 61 PUBL (Fiordland)
-nrow(spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)))  # 44 -> 43 EDNA (in study area)
-nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 -> 26 BRUV (in study area)
-nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 -> 28 OBIS (in circle)
+# keep only data relevant for plotting 
+fish_biodiv_gh <- fish_biodiv |> filter(SAMPLE.TYPE %in% c("eDNA","BRUV","OBIS") & SET.ID %!in% c(98,99))
 
-# __c) Count Sites that yielded BRUV or eDNA data ----
+# for mapping: get column-subset sf's with WGS 84 in degrees 
+fish_biodiv_sf <- get_sf_biodiv(fish_biodiv_gh)
+
+# for mapping: get map layers 
+nzshp_hires_WGS84_sf <- read_sf("/Users/paul/GIS/NZ_coast/NZ_Coast_isl.shp") %>% st_transform(crs = 4326)
+nzshp_lores_WGS84_sf <- rmapshaper::ms_simplify(input = as(nzshp_hires_WGS84_sf, 'Spatial')) %>% st_as_sf
+
+# for mapping: define bounding boxes as in map in previous script 
+#  field work area & sample groups
+bbox_fwork <- st_as_sfc(st_bbox(c(xmin = (166.5-0.1), xmax = (167.0+0.1), ymax = (-46.04-0.1), ymin = (-45.52+0.1)), crs = st_crs(4326)))
+#  boxes around default value RESERVE.GROUP.LOCATION  
+bbox_rgl_fish_biodiv <- get_bbox_anyloc(fish_biodiv_gh) # must use original object, not sf
+
+# for mapping and buffer calculations at correct scale: re-project all sf's to local km  
+get_reprojection <- function(sf) st_transform(sf, crs = st_crs(2193))
+
+fish_biodiv_sf_km <- get_reprojection(fish_biodiv_sf)
+
+nzshp_hires_WGS84_sf_km <- get_reprojection(nzshp_hires_WGS84_sf)
+nzshp_lores_WGS84_sf_km <- get_reprojection(nzshp_lores_WGS84_sf)
+
+bbox_fwork_km <- get_reprojection(bbox_fwork)
+
+bbox_rgl_fish_biodiv_km <- get_reprojection(bbox_rgl_fish_biodiv)
+
+# calculate 2.5 km buffers
+fish_biodiv_sf_km_sid_buff <- fish_biodiv_sf_km %>% select("SET.ID") %>% distinct %>% st_buffer(2.5)
+
+# get data frames suitable for plotting with below functions - write as function
+fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "eDNA")
+fish_biodiv_df_bruv <- get_plot_df(fish_biodiv_sf_km, "BRUV")
+fish_biodiv_df_obis <- get_plot_df(fish_biodiv_sf_km, "OBIS")
+
+# mapping
+
+# _2.) Main map ----
+
+# map 1: sampling map from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
+# map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
+
+map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_get_OBIS_and_map__mapggplot.Rds")
+
+ggsave("230515_999_r_summarize_results_map_main.pdf", plot = map_a, 
+       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+       scale = 1, width = 152, height = 121, units = c("mm"),
+       dpi = 500, limitsize = TRUE)
+
+# _3.) Mini maps ----
+
+# map 2: eDNA observations
+map_b <- ggplot() +
+  geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "eDNA"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
+  # facet_grid(. ~ SAMPLE.TYPE) +
+  geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
+  # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
+  geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
+  # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
+  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "eDNA")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 3) +
+  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "eDNA")}, aes(shape = RESERVE.GROUP), color = "white", size = 2) +
+  coord_sf(xlim = c((1125643-40000), (1125643+4000)), ylim = c((4909254-30000),(4909254+31600)), expand = FALSE) +
+  theme_bw() + 
+  theme(legend.position= "none",
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+ggsave("230515_999_r_summarize_results_map_edna.pdf", plot = map_b, 
+       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+       scale = 0.5, width = 152, height = 121, units = c("mm"),
+       dpi = 500, limitsize = TRUE)
+
+# map 2: BRUV observations
+map_c <- ggplot() +
+  geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "BRUV"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
+  # facet_grid(. ~ SAMPLE.TYPE) +
+  geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
+  # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
+  geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
+  # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
+  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "BRUV")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 3) +
+  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "BRUV")}, aes(shape = RESERVE.GROUP), color = "white", size = 2) +
+  coord_sf(xlim = c((1125643-40000), (1125643+4000)), ylim = c((4909254-30000),(4909254+31600)), expand = FALSE) +
+  theme_bw() + 
+  theme(legend.position= "none",
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+ggsave("230515_999_r_summarize_results_map_bruv.pdf", plot = map_c, 
+       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+       scale = 0.5, width = 152, height = 121, units = c("mm"),
+       dpi = 500, limitsize = TRUE)
+
+# map 3: local OBIS observations
+map_d <- ggplot() +
+  geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "OBIS"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
+  # facet_grid(. ~ SAMPLE.TYPE) +
+  geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
+  # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
+  geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
+  # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
+  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "OBIS")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 3) +
+  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "OBIS")}, aes(shape = RESERVE.GROUP), color = "white", size = 2) +
+  coord_sf(xlim = c((1125643-40000), (1125643-800)), ylim = c((4909254-30000),(4909254+30750)), expand = FALSE) +
+  theme_bw() + 
+  theme(legend.position= "none",
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+  )
+
+ggsave("230515_999_r_summarize_results_map_obis.pdf", plot = map_d, 
+       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+       scale = .5, width = 152, height = 121, units = c("mm"),
+       dpi = 500, limitsize = TRUE)
+
+# _4.) Save state ----
+
+# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping.Rdata")
+
+# _5.) Arrange and save compound map ----
+
+# slooooooooow
+ggarrange(
+  ggarrange(
+    map_a,
+    ncol = 1,
+    nrow = 1,
+    labels = c("a")
+  ),
+  ggarrange(
+    map_b,
+    map_c,
+    map_d,
+    ncol = 1,
+    nrow = 3,
+    labels = c("b", "c", "d"),
+    align = "hv"
+  ),
+  widths = c(2, 1),
+  ncol = 2,
+  nrow = 1
+)
+
+# save compound plot with better labels then with plot_label = TRUE above
+ggsave("230515_999_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last_plot(), 
+       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+       scale = 1, width = 152, height = 121, units = c("mm"),
+       dpi = 500, limitsize = TRUE)  
+
+# _6.)  Save state ----
+
+# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")
+
+# Results for main text   ----
+
+# _0.) Results - Data collation ----
+
+# __a) Count Sites that yielded BRUV or eDNA data ----
 fish_biodiv |> 
   filter(SET.ID %!in% c(98, 99)) |>
   filter(SAMPLE.TYPE %in% c("BRUV", "EDNA")) |> 
   select(SET.ID, SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
   distinct() |> pull(SET.ID) |> unique()  |> length() 
 
-# __d) Show areas that yielded OBIS data ---- 
+# __b) Show areas that yielded OBIS data ---- 
 fish_biodiv |> 
   filter(SET.ID %!in% c(98, 99)) |>
   filter(SAMPLE.TYPE == "OBIS") |> 
@@ -725,131 +893,356 @@ fish_biodiv |>
   distinct() |> pull(RESERVE.GROUP.LOCATION) |> unique()
 # "LS CTRL" "FF MR"   "FF CTRL" "WJ MR"   "WJ CTRL"
 
-# __e) Count Sites that yielded OBIS data ----
+# __c) Count Sites that yielded OBIS data ----
 fish_biodiv |> 
   filter(SET.ID %!in% c(98, 99)) |>
   filter(SAMPLE.TYPE == "OBIS") |> 
   select(SET.ID, SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
   distinct() |> pull(SET.ID) |> unique()  |> length()  
+# 9
 
-# __f) List species that were detected by OBIS ----
-fish_biodiv |> 
-  filter(SET.ID %!in% c(98, 99)) |>
-  filter(SAMPLE.TYPE == "OBIS") |> 
-  select(SPECIES, SAMPLE.TYPE, RESERVE.GROUP.LOCATION) |> 
-  distinct(SPECIES)
+# _1.) Results - Obtaining a fish species list of southern Fjordland ----
 
-# 1 Acanthoclinus matti     
-# 2 Lepidoperca tasmanica   
-# 3 Parapercis colias       
-# 4 Pseudolabrus miles      
-# 5 Notolabrus cinctus      
-# 6 Eptatretus cirrhatus    
-# 7 Latris lineata          
-# 8 Notolabrus fucicola     
-# 9 Nemadactylus macropterus
-# 10 Notolabrus celidotus    
-# 11 Scorpaena papillosa     
-# 12 Pseudophycis barbata*   
-# 13 Carcharodon carcharias
+# __a) What does the list look like? ----
 
-# __g) List species that are based on literture records ----
+# ____ General species counts ----
 
-fish_biodiv |> filter(SET.ID %in% c(98, 99)) |> select(SPECIES) |> distinct()
+nrow(spcies_obs_sums)                                    # found 116 species across all data sets
+nrow(spcies_obs_sums |> filter (CLASS == "Actinopteri")) #       105 Actinopteri
+nrow(spcies_obs_sums |> filter (CLASS == "Chondrichthyes")) #     10 Chondrichthyes
+nrow(spcies_obs_sums |> filter (CLASS == "Myxini")) #              1 Myxini
+ 
+# ____ General species counts for each data type ----
 
-# 1 Conger verreauxi            
-# 2 Atherinomorus lacunosus*    
-# 3 Bellapiscis lesleyae        
-# 4 Bellapiscis medius          
-# 5 Cryptichthys jojettae       
-# 6 Forsterygion capito         
-# 7 Forsterygion flavonigrum    
-# 8 Forsterygion lapillum       
-# 9 Forsterygion malcolmi       
-# 10 Forsterygion maryannae      
-# 11 Forsterygion varium         
-# 12 Karalepis stewarti          
-# 13 Notoclinops caerulepunctus  
-# 14 Notoclinops segmentatus     
-# 15 Notoclinus fenestratus      
-# 16 Ruanoho decemdigitatus      
-# 17 Ruanoho whero               
-# 18 Aplodactylus arctidens      
-# 19 Nemadactylus macropterus    
-# 20 Scorpis lineolata           
-# 21 Latridopsis ciliaris        
-# 22 Latridopsis forsteri        
-# 23 Latris lineata              
-# 24 Mendosoma lineatum          
-# 25 Callanthias allporti        
-# 26 Gaidropsarus novaezelandi   
-# 27 Lotella rhacina             
-# 28 Pseudophycis barbata*       
-# 29 Modicus minimus             
-# 30 Modicus tangaroa            
-# 31 Gobiopsis atrata            
-# 32 Notolabrus celidotus        
-# 33 Notolabrus cinctus          
-# 34 Notolabrus fucicola         
-# 35 Pseudolabrus miles          
-# 36 Odax pullus ***             
-# 37 Aldrichetta forsteri        
-# 38 Fiordichthys slartibartfasti
-# 39 Retropinna retropinna       
-# 40 Acanthoclinus fuscus        
-# 41 Acanthoclinus littoreus     
-# 42 Acanthoclinus marilynae     
-# 43 Acanthoclinus matti         
-# 44 Acanthoclinus rua           
-# 45 Polyprion oxygeneios        
-# 46 Bovichtus variegatus        
-# 47 Scorpaena papillosa         
-# 48 Helicolenus percoides*      
-# 49 Caesioperca lepidoptera     
-# 50 Hypoplectrodes huntii       
-# 51 Lepidoperca tasmanica       
-# 52 Rhombosolea plebeia         
-# 53 Thyrsites atun              
-# 54 Lissocampus filum           
-# 55 Meuschenia scaber           
-# 56 Paratrachichthys trailli    
-# 57 Parapercis colias           
-# 58 Parapercis gilliesii        
-# 59 Cephaloscyllium isabella    
-# 60 Squalus acanthias           
-# 61 Eptatretus cirrhatus        
-# 62 Carcharodon carcharias      
-# 63 Isurus oxyrinchus           
-# 64 Hemerocoetes monopterygius  
-# 65 Prionace glauca             
-# 66 Peltorhamphus latus         
-# 67 Notoclinus compressus       
-# 68 Galaxias argenteus          
-# 69 Thalasseleotris iota        
-# 70 Notothenia angustata 
+nrow(spcies_obs_sums |> filter (!is.na(PUBL.OBS.PRES.SUM)))  # 59 -> 61 PUBL (Fiordland)
+nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 -> 28 OBIS (in circle)
+nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 -> 26 BRUV (in study area)
+nrow(spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)))  # 44 -> 43 EDNA (in study area)
 
-# __h) List species in BRUV ----
-bruv_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "BRUV") |> distinct()
+# ____ Augmentation of  OBIS and literature by eDNA and BRUV ----
 
-# __i) List unique and non-unique species observations in eDNA ----
-edna_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct()
+# ** CONSTRUCTION SITE BELOW, CONTINUE HERE AFTER 21.08.2023 ** ----
 
-# non-uniquely we have 156 eDNA observations
-fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA")
+# ____ - Species in OBIS and literature ----
+pbob_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("OBIS", "PUBL")) |> distinct()
+unique(pbob_species[["SPECIES"]]) # Species in OBIS and literature - 70 
 
-# __j) List unique and non-unique species observations in OBIS ----
+
+
+
+
+# ** CONSTRUCTION SITE ABOVE, CONTINUE HERE AFTER 21.08.2023 ** ----
+
+# __b) Interesting fish hits ----
+
+# ____ Not needed here: OBIS fish species
+
 obis_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "OBIS") |> distinct()
+obis_species |> print(n = Inf)
 
-fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "OBIS")
-
-# __k) List unique and non-unique species observations in Literature ----
+# ____ Not needed here: Literature fish species
 
 publ_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("PUBL")) |> distinct()
+publ_species |> print(n = Inf)
 
-fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("PUBL"))
+# ____ On eDNA fish species ----
 
-# __l) List non-unique and  unique species observations in Literature and OBIS ----
+edna_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct()
+edna_species |> print(n = Inf)
 
+# ____ On BRUV fish species ----
+
+bruv_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "BRUV") |> distinct()
+bruv_species |> print(n = Inf)
+
+
+# __c) Interesting non-fish hits ----
+
+# ** CONSTRUCTION SITE BELOW, CONTINUE HERE AFTER 21.08.2023 ** ----
+
+# Missing so far
+
+# ** CONSTRUCTION SITE ABOVE, CONTINUE HERE AFTER 21.08.2023 ** ----
+
+
+# _2.) Results - Evaluating the usefulness of eDNA survey without local reference data ----
+
+# __a) Comparison to LCA ----
+
+# ** CONSTRUCTION SITE BELOW, CONTINUE HERE AFTER 21.08.2023 ** ----
+
+# Missing so far
+
+# ** CONSTRUCTION SITE ABOVE, CONTINUE HERE AFTER 21.08.2023 ** ----
+
+# __b) Summary of alignment qualities  ----
+
+# Among eDNA data there are 156 species observations
+fish_biodiv |> select(ASV, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct(ASV)
+
+# Get distcict observations
+fish_biodiv_blast_unq <- fish_biodiv_blast |> distinct(across(c("ASV","FAMILY", "SPECIES","NCBI.LEVEL", "NCBI.TAXDB.INC", "NCBI.TAXID", "NCBI.TAXID.INC", contains("HSP"))))
+
+# There are 96 eDNA distcict observations
+nrow(fish_biodiv_blast_unq) 
+
+# ASV with 0 gaps and full coverage
+fish_biodiv_blast_unq |> filter(HSP.GAPS == 0) |> filter(HSP.IDENTITY.PERC == 1) 
+
+# Eighty-eight ASVs had variable query coverage, and families 
+fish_biodiv_blast_unq |> filter(HSP.IDENTITY.PERC != 1)
+fish_biodiv_blast_unq |> filter(HSP.IDENTITY.PERC != 0) |> pull("FAMILY") |> unique()
+
+# 33 ASVs had variable gap counts 
+fish_biodiv_blast_unq |> filter(HSP.GAPS != 0)
+fish_biodiv_blast_unq |> filter(HSP.GAPS != 0) |> pull("FAMILY") |> unique()
+
+# Query coverage statistsics
+summary(fish_biodiv_blast_unq$HSP.IDENTITY.PERC)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.7868  0.9037  0.9702  0.9379  0.9827  1.0000
+mean(fish_biodiv_blast_unq$HSP.IDENTITY.PERC)  # 0.9379318
+sd(fish_biodiv_blast_unq$HSP.IDENTITY.PERC)    # 0.06043447
+
+# Gap count statistix
+summary(fish_biodiv_blast_unq$HSP.GAPS)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.0000  0.0000  0.0000  0.9792  1.0000 10.0000
+mean(fish_biodiv_blast_unq$HSP.GAPS)  # 0.9791667
+sd(fish_biodiv_blast_unq$HSP.GAPS)    # 1.800463
+
+# __c) Regression analysis ----
+
+# ____ Format data for regression analysis ----
+
+# summary for ms - all asvs
+ms_all_asvs <- fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(ASV)
+
+# for regression analysis - isolate BLAST results from raw data 
+fish_biodiv_blast <- fish_biodiv |> 
+  filter(SAMPLE.TYPE == "eDNA") |> 
+  select(ASV, RESERVE.GROUP.LOCATION, EDNA.OBS.PRES, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC, contains("HSP")) |>
+  arrange(FAMILY, GENUS, SPECIES)
+
+# for regression analysis - add  count locations per species and asv
+fish_asv_at_locs <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(LOC.PER.SPC = n_distinct(RESERVE.GROUP.LOCATION)) |> arrange(LOC.PER.SPC) 
+fish_asv_at_locs <- fish_biodiv_blast |> select(ASV, EDNA.OBS.PRES, FAMILY, GENUS, SPECIES, RESERVE.GROUP.LOCATION, HSP.GAPS, HSP.IDENTITY.PERC, contains("HSP")) |>  left_join(fish_asv_at_locs)
+
+# for regression analysis - get a column with non-nz species as per above
+fish_asv_at_locs <- fish_asv_at_locs |> mutate(NOT.NZ = as.factor(ifelse( grepl("*", SPECIES, fixed = TRUE), TRUE, FALSE)))
+
+# for regression analysis - re-scale percentages as per MdL - for CIs more easily understandable
+fish_asv_at_locs <- fish_asv_at_locs |> mutate(HSP.IDENTITY.PERC = 100 * HSP.IDENTITY.PERC)
+
+# for regression analysis -  save object for external inspection if desirable
+saveRDS(fish_asv_at_locs, "/Users/paul/Documents/OU_eDNA/201028_Robjects/230514_999_r_summarize_results__data_spc_distribution_vs_quality.Rds")
+
+# for manuscript - count fraction of NOT.NZ species among unique eDNA assignments
+fish_asv_at_locs |> select(ASV, SPECIES, NOT.NZ)
+
+fish_asv_at_locs |> select(ASV, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
+  arrange(NOT.NZ) # was: 92 ASV: 39 False (42.4% False) / 53 True (57% True)
+# now: 96 ASV: 20 False (21%  False) / 76 True (79% True) 
+
+fish_asv_at_locs |> select(SPECIES, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
+  arrange(NOT.NZ) # was: 44 SPECIES: 25 False (56.8% True) / 19 True (43.1% True)
+# now: 43 SPECIES:  9 False (32.5% True) / 34 True (67.4% True)
+
+# ____ Regression analysis of alignment parameters ---- 
+
+# ____ - Inspect modelling data
+
+glimpse(fish_asv_at_locs)
+
+# ____ - Build logistic regressions
+
+# Null model
+
+glm_mod_0 <-  glm(NOT.NZ ~ 1, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
+summary(glm_mod_0) # AIC: 385.11
+
+# Gaps only
+
+glm_mod_1 <-  glm(NOT.NZ ~ HSP.GAPS, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
+summary(glm_mod_1) # AIC: 386.34
+
+# Identity percentage only 
+
+glm_mod_2 <-  glm(NOT.NZ ~ HSP.IDENTITY.PERC, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
+summary(glm_mod_2) # AIC:  374.28
+
+# Both gaps and coverage 
+
+glm_mod_3 <-  glm(NOT.NZ ~ HSP.IDENTITY.PERC + HSP.GAPS, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
+summary(glm_mod_3) # AIC: 351.97
+
+coefficients(glm_mod_3)
+logit2prob(coefficients(glm_mod_3))
+
+# ____ - Testing model significance
+
+anova(glm_mod_0, glm_mod_1, test="Chisq") # Gaps only **not significant**
+anova(glm_mod_0, glm_mod_2, test="Chisq") # Match percentage **significant**
+anova(glm_mod_2, glm_mod_3, test="Chisq") # both together **significant**
+anova(glm_mod_1, glm_mod_3, test="Chisq") # both together **significant**
+anova(glm_mod_0, glm_mod_3, test="Chisq") # both together **significant**
+
+# ____ - Ranking models
+
+AIC(glm_mod_0)
+AIC(glm_mod_1)
+AIC(glm_mod_2)
+AIC(glm_mod_3) # best, AIC 351.9707
+
+# ____ - Inspect best model
+
+jtools::summ(glm_mod_3)
+
+plot <- plot_summs(glm_mod_3)
+plot + theme_bw() + 
+  labs(title = "Coefficient estimates", 
+       subtitle = paste("R model formula: ", as.character(paste(deparse(formula(glm_mod_3), width.cutoff = 500), collapse=""))),
+       x="estimate, incl. CI [log odds]", y = "model coefficients")
+
+ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/230515_999_logistic_rgression_alignmnet_parameters.pdf", scale = 1.65, width = 4, height = 3, units = "in", dpi = 300)
+ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_si_di_development/7_model_coefficients_v1.pdf", scale = 1.65, width = 4, height = 3, units = "in", dpi = 300)
+
+# ____ - Calculating confidence intervalls
+
+confint(glm_mod_3, level = 0.95) # probabilities
+
+# Waiting for profiling to be done...
+# 2.5 %     97.5 %
+#   (Intercept)       18.4984397 40.7178969
+# HSP.IDENTITY.PERC -0.3990242 -0.1714674
+# HSP.GAPS          -0.8903591 -0.3498952
+
+# Calculating CIS on the scale of the link function and not the response scale
+#   https://fromthebottomoftheheap.net/2018/12/10/confidence-intervals-for-glms/
+#   getting inverse link function for calculating CIS
+
+# unit changes of predictors
+fam <- family(glm_mod_3)
+ilink <- fam$linkinv
+ilink(confint(glm_mod_3, level = 0.95))
+
+# > ilink(confint(glm_mod, level = 0.95))
+# Waiting for profiling to be done...
+# 2.5 %    97.5 %
+#   (Intercept)       1.0000000 1.0000000
+# HSP.IDENTITY.PERC 0.4015468 0.4572379
+# HSP.GAPS          0.2910357 0.4134078
+
+# ____ - Other model reporting
+
+# check_observation among true/false for figure legend
+fish_asv_at_locs |> group_by(NOT.NZ) |> summarise(across(c("SPECIES", "ASV"), list(n_distinct)))
+
+# **now**
+# A tibble: 2 × 3
+# NOT.NZ SPECIES_1 ASV_1
+# <fct>      <int> <int>
+# 1 FALSE          9    20
+# 2 TRUE          34    76
+
+coeff_plot <- sjPlot::plot_model(glm_mod_3, vline.color = "red", show.values = TRUE, type = "est") +
+  theme_bw() +
+  scale_x_discrete(labels = c("Algn. Cov.", "Gaps")) +
+  ggtitle("Relationship between non-native status and alignment quality")
+
+ggsave("230515_999_r_summarize_results__coeff_plot.pdf", plot = coeff_plot, 
+       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+       scale = 0.75, width = 200, height = 135, units = c("mm"),
+       dpi = 500, limitsize = TRUE)
+
+ggsave("7_model_coefficients_v2.pdf", plot = coeff_plot, 
+       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_si_di_development",
+       scale = 0.75, width = 200, height = 135, units = c("mm"),
+       dpi = 500, limitsize = TRUE)
+
+model_plot <- plot_model(glm_mod_3, type = "pred", terms = c("HSP.IDENTITY.PERC", "HSP.GAPS"), show.data = TRUE, jitter = 0.0, ci.lvl = 0.95) +
+  theme_bw() +       
+  ylab("Probabilty of observing non-native species") +
+  xlab("Alignment identity percentage") +
+  ggtitle("Predicted probabilities of non-native status") +
+  labs(col = "Gaps") +
+  theme(legend.position = c(.9, .6),
+        legend.justification = c("right", "top"),
+        legend.box.just = "left",
+        legend.box.background = element_rect(color="grey30", size=0.5)
+  )
+
+ggsave("230515_999_r_summarize_results__asv_bin_regression.pdf", plot = last_plot(), 
+       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+       scale = 1, width = 200, height = 135, units = c("mm"),
+       dpi = 500, limitsize = TRUE)
+
+tab_model(glm_mod_3)
+
+# # ____ - Save state
+
+# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
+# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
+
+# __d) Inspected species accumulation curves ----
+
+# Done by MDL
+
+# __d) Calculated Good-Turing estimators ----
+
+# Done by MDL
+
+# __f) Analysed divergence of species observations by data source ----
+
+# ____ Get Figure 3 - Euler plots ----
+
+# "Concordance of taxonomic information between the four data sources diverged with lowering taxonomic levels, most pronounced among eDNA data (Fig. 3"
+
+# ____ - Create Euler plots ----
+euler_obs_fish_bio <- lapply(list("SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), get_euler_object, fish_biodiv)
+euler_ggp_fish_bio <- mapply(get_euler_ggplot, list("SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), euler_obs_fish_bio, plot_label = FALSE, SIMPLIFY = FALSE)
+
+# ____ - Create compound plot with better labels then with plot_label = TRUE above ----
+ggarrange( plotlist = euler_ggp_fish_bio[4:7],
+           labels = str_to_sentence(c("ORDER", "FAMILY", "GENUS", "SPECIES")),
+           font.label = list(size = 12, color = "black", face = "bold.italic", family = NULL),
+           ncol = 2, nrow = 2)
+
+# ____ - Save compound plot with better labels then with plot_label = TRUE above ----
+ggsave("230515_999_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_plot(), 
+       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
+       scale = 2.0, width = 100, height = 100, units = c("mm"),
+       dpi = 500, limitsize = TRUE)
+
+
+# ** CONSTRUCTION SITE BELOW, CONTINUE HERE AFTER 21.08.2023 ** ----
+
+# ____ eDNA: unique (copy to section 1 b)  ----
+
+# not done yet 
+
+# ____ BRUV unique (copy to section 1 b) 
+
+# not done yet 
+
+# ____ PUBL unique (copy to section 1 b, add count to manuscript) 
+
+# not done yet
+
+
+
+# ** CONSTRUCTION SITE ABOVE, CONTINUE HERE AFTER 21.08.2023 ** ----
+
+
+
+
+
+
+# ** OLD CODE BELOW, RE-SORT CODE FROM HERE AFTER 21.08.2023 ** ----
+
+# __l) List non-unique and unique species observations in Literature and OBIS ----
+
+# Species in OBIS and literature 
 pbob_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("OBIS", "PUBL")) |> distinct()
 unique(pbob_species[["SPECIES"]]) # Species in OBIS and literature - 70 
 
@@ -906,7 +1299,7 @@ setdiff(setdiff(get_clean_strings(bruv_species[["SPECIES"]]), get_clean_strings(
 
 intersect(setdiff(setdiff(get_clean_strings(bruv_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
 
-# __y) bruv species that are not in OBIS or Literature, listed in Roberts 2020, not detected by MEGAN ----
+# __y) BRUV species that are not in OBIS or Literature, listed in Roberts 2020, not detected by MEGAN ----
 
 setdiff(setdiff(setdiff(get_clean_strings(bruv_species[["SPECIES"]]), get_clean_strings(pbob_species[["SPECIES"]])), nonnz_fish), megan_fish_species)
 
@@ -915,452 +1308,10 @@ setdiff(setdiff(setdiff(get_clean_strings(bruv_species[["SPECIES"]]), get_clean_
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__summaries_done.Rdata")
 # load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__summaries_done.Rdata")
 
-# Get Euler plots ----
 
-# create Euler plots 
-euler_obs_fish_bio <- lapply(list("SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), get_euler_object, fish_biodiv)
-euler_ggp_fish_bio <- mapply(get_euler_ggplot, list("SUPERKINGDOM", "PHYLUM", "CLASS", "ORDER", "FAMILY", "GENUS", "SPECIES"), euler_obs_fish_bio, plot_label = FALSE, SIMPLIFY = FALSE)
 
-# create compound plot with better labels then with plot_label = TRUE above
-ggarrange( plotlist = euler_ggp_fish_bio[4:7],
-           labels = str_to_sentence(c("ORDER", "FAMILY", "GENUS", "SPECIES")),
-           font.label = list(size = 12, color = "black", face = "bold.italic", family = NULL),
-           ncol = 2, nrow = 2)
-           
-# save compound plot with better labels then with plot_label = TRUE above
-ggsave("230515_999_r_summarize_results__euler_edna_bruv_obis.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 2.0, width = 100, height = 100, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
 
-# Get geographical maps with heat overlays ----
-
-# compare script  ~/Documents/OU_eDNA/200901_scripts/998_r_map_and_add_obis.r
-
-# _1.) Data preparation ----
-
-# keep only data relevant for plotting 
-fish_biodiv_gh <- fish_biodiv |> filter(SAMPLE.TYPE %in% c("eDNA","BRUV","OBIS") & SET.ID %!in% c(98,99))
-
-# for mapping: get column-subset sf's with WGS 84 in degrees 
-fish_biodiv_sf <- get_sf_biodiv(fish_biodiv_gh)
-
-# for mapping: get map layers 
-nzshp_hires_WGS84_sf <- read_sf("/Users/paul/GIS/NZ_coast/NZ_Coast_isl.shp") %>% st_transform(crs = 4326)
-nzshp_lores_WGS84_sf <- rmapshaper::ms_simplify(input = as(nzshp_hires_WGS84_sf, 'Spatial')) %>% st_as_sf
-
-# for mapping: define bounding boxes as in map in previous script 
-#  field work area & sample groups
-bbox_fwork <- st_as_sfc(st_bbox(c(xmin = (166.5-0.1), xmax = (167.0+0.1), ymax = (-46.04-0.1), ymin = (-45.52+0.1)), crs = st_crs(4326)))
-#  boxes around default value RESERVE.GROUP.LOCATION  
-bbox_rgl_fish_biodiv <- get_bbox_anyloc(fish_biodiv_gh) # must use original object, not sf
-
-# for mapping and buffer calculations at correct scale: re-project all sf's to local km  
-get_reprojection <- function(sf) st_transform(sf, crs = st_crs(2193))
-
-fish_biodiv_sf_km <- get_reprojection(fish_biodiv_sf)
-
-nzshp_hires_WGS84_sf_km <- get_reprojection(nzshp_hires_WGS84_sf)
-nzshp_lores_WGS84_sf_km <- get_reprojection(nzshp_lores_WGS84_sf)
-
-bbox_fwork_km <- get_reprojection(bbox_fwork)
-
-bbox_rgl_fish_biodiv_km <- get_reprojection(bbox_rgl_fish_biodiv)
-
-# calculate 2.5 km buffers
-fish_biodiv_sf_km_sid_buff <- fish_biodiv_sf_km %>% select("SET.ID") %>% distinct %>% st_buffer(2.5)
-
-# get data frames suitable for plotting with below functions - write as function
-fish_biodiv_df_edna <- get_plot_df(fish_biodiv_sf_km, "eDNA")
-fish_biodiv_df_bruv <- get_plot_df(fish_biodiv_sf_km, "BRUV")
-fish_biodiv_df_obis <- get_plot_df(fish_biodiv_sf_km, "OBIS")
-
-# mapping
-
-# _2.) Main map ----
-
-# map 1: sampling map from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
-# map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
-
-map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_get_OBIS_and_map__mapggplot.Rds")
-
-ggsave("230515_999_r_summarize_results_map_main.pdf", plot = map_a, 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 152, height = 121, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-# _3.) Mini maps ----
-
-# map 2: eDNA observations
-map_b <- ggplot() +
-      geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "eDNA"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
-      # facet_grid(. ~ SAMPLE.TYPE) +
-      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
-      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
-      geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
-      # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
-      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "eDNA")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 3) +
-      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "eDNA")}, aes(shape = RESERVE.GROUP), color = "white", size = 2) +
-      coord_sf(xlim = c((1125643-40000), (1125643+4000)), ylim = c((4909254-30000),(4909254+31600)), expand = FALSE) +
-      theme_bw() + 
-      theme(legend.position= "none",
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank()
-            )
-
-ggsave("230515_999_r_summarize_results_map_edna.pdf", plot = map_b, 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 0.5, width = 152, height = 121, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-# map 2: BRUV observations
-map_c <- ggplot() +
-      geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "BRUV"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
-      # facet_grid(. ~ SAMPLE.TYPE) +
-      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
-      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
-      geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
-      # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
-      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "BRUV")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 3) +
-      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "BRUV")}, aes(shape = RESERVE.GROUP), color = "white", size = 2) +
-  coord_sf(xlim = c((1125643-40000), (1125643+4000)), ylim = c((4909254-30000),(4909254+31600)), expand = FALSE) +
-      theme_bw() + 
-      theme(legend.position= "none",
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank()
-            )
-
-ggsave("230515_999_r_summarize_results_map_bruv.pdf", plot = map_c, 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 0.5, width = 152, height = 121, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-# map 3: local OBIS observations
-map_d <- ggplot() +
-      geom_density_2d_filled(data = get_plot_df(fish_biodiv_sf_km, "OBIS"), aes(x= lon , y = lat), contour_var = "count", alpha = 0.5) +
-      # facet_grid(. ~ SAMPLE.TYPE) +
-      geom_sf(data = nzshp_lores_WGS84_sf_km, color=alpha("grey20",1), alpha = 0.8) +
-      # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
-      geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
-      # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
-      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "OBIS")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 3) +
-      stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "OBIS")}, aes(shape = RESERVE.GROUP), color = "white", size = 2) +
-  coord_sf(xlim = c((1125643-40000), (1125643-800)), ylim = c((4909254-30000),(4909254+30750)), expand = FALSE) +
-      theme_bw() + 
-      theme(legend.position= "none",
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank()
-            )
-
-ggsave("230515_999_r_summarize_results_map_obis.pdf", plot = map_d, 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = .5, width = 152, height = 121, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-# _4.) Save state ----
-  
-# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping.Rdata")
-# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping.Rdata")
-
-# _5.) Arrange and save compound map ----
-
-# slooooooooow
-ggarrange(
-  ggarrange(
-    map_a,
-    ncol = 1,
-    nrow = 1,
-    labels = c("a")
-  ),
-  ggarrange(
-    map_b,
-    map_c,
-    map_d,
-    ncol = 1,
-    nrow = 3,
-    labels = c("b", "c", "d"),
-    align = "hv"
-  ),
-  widths = c(2, 1),
-  ncol = 2,
-  nrow = 1
-)
-
-# save compound plot with better labels then with plot_label = TRUE above
-ggsave("230515_999_r_summarize_results__geoheat_edna_bruv_obis.pdf", plot = last_plot(), 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 1, width = 152, height = 121, units = c("mm"),
-         dpi = 500, limitsize = TRUE)  
-
-# _6.)  Save state ----
-
-# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")
-# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")
-
-# Analyse BLAST results  ----
-
-# _1.) ASV summaries, format data for regression analysis ----
-
-# summary for ms - all asvs
-ms_all_asvs <- fish_biodiv |> filter(SAMPLE.TYPE == "eDNA") |> select(ASV, SPECIES) |> distinct(ASV)
-
-# for regression analysis - isolate BLAST results from raw data 
-fish_biodiv_blast <- fish_biodiv |> 
-  filter(SAMPLE.TYPE == "eDNA") |> 
-  select(ASV, RESERVE.GROUP.LOCATION, EDNA.OBS.PRES, FAMILY, GENUS, SPECIES, NCBI.LEVEL, NCBI.TAXDB.INC, NCBI.TAXID, NCBI.TAXID.INC, HSP.GAPS, HSP.IDENTITY.PERC, contains("HSP")) |>
-  arrange(FAMILY, GENUS, SPECIES)
-
-# for regression analysis - add  count locations per species and asv
-fish_asv_at_locs <- fish_biodiv_blast |> group_by(SPECIES) |> summarize(LOC.PER.SPC = n_distinct(RESERVE.GROUP.LOCATION)) |> arrange(LOC.PER.SPC) 
-fish_asv_at_locs <- fish_biodiv_blast |> select(ASV, EDNA.OBS.PRES, FAMILY, GENUS, SPECIES, RESERVE.GROUP.LOCATION, HSP.GAPS, HSP.IDENTITY.PERC, contains("HSP")) |>  left_join(fish_asv_at_locs)
-
-# for regression analysis - get a column with non-nz species as per above
-fish_asv_at_locs <- fish_asv_at_locs |> mutate(NOT.NZ = as.factor(ifelse( grepl("*", SPECIES, fixed = TRUE), TRUE, FALSE)))
-
-# for regression analysis - re-scale percentages as per MdL - for CIs more easily understandable
-fish_asv_at_locs <- fish_asv_at_locs |> mutate(HSP.IDENTITY.PERC = 100 * HSP.IDENTITY.PERC)
-
-# for regression analysis -  save object for external inspection if desirable
-saveRDS(fish_asv_at_locs, "/Users/paul/Documents/OU_eDNA/201028_Robjects/230514_999_r_summarize_results__data_spc_distribution_vs_quality.Rds")
-
-# for manuscript - count fraction of NOT.NZ species among unique eDNA assignments
-fish_asv_at_locs |> select(ASV, SPECIES, NOT.NZ)
-
-fish_asv_at_locs |> select(ASV, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
-  arrange(NOT.NZ) # was: 92 ASV: 39 False (42.4% False) / 53 True (57% True)
-                  # now: 96 ASV: 20 False (21%  False) / 76 True (79% True) 
-
-fish_asv_at_locs |> select(SPECIES, NOT.NZ) |> distinct() |> group_by(NOT.NZ) |>
-  arrange(NOT.NZ) # was: 44 SPECIES: 25 False (56.8% True) / 19 True (43.1% True)
-                  # now: 43 SPECIES:  9 False (32.5% True) / 34 True (67.4% True)
-
-# _2.) Regression analysis of alignment parameters ---- 
-
-# __a) Inspect modelling data ----
-
-glimpse(fish_asv_at_locs)
-
-# __b) Build logistic regressions ----
-
-# ____ Null model ----
-
-glm_mod_0 <-  glm(NOT.NZ ~ 1, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
-summary(glm_mod_0) # AIC: 385.11
-
-# ____ Gaps only ----
-
-glm_mod_1 <-  glm(NOT.NZ ~ HSP.GAPS, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
-summary(glm_mod_1) # AIC: 386.34
-
-# ____ Identity percentage only ----
-
-glm_mod_2 <-  glm(NOT.NZ ~ HSP.IDENTITY.PERC, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
-summary(glm_mod_2) # AIC:  374.28
-
-# ____ HSP.GAPS + HSP.IDENTITY.PERC
-glm_mod_3 <-  glm(NOT.NZ ~ HSP.IDENTITY.PERC + HSP.GAPS, weights = LOC.PER.SPC, family = binomial, data = fish_asv_at_locs)
-summary(glm_mod_3) # AIC: 351.97
-
-# Call:
-#   glm(formula = NOT.NZ ~ HSP.IDENTITY.PERC + HSP.GAPS, family = binomial, 
-#       data = fish_asv_at_locs, weights = LOC.PER.SPC)
-# 
-# Deviance Residuals: 
-#   Min       1Q   Median       3Q      Max  
-# -6.2345   0.2086   0.7227   1.1792   1.4256  
-# 
-# Coefficients:
-#   Estimate Std. Error z value Pr(>|z|)    
-# (Intercept)       28.80408    5.65866   5.090 3.58e-07 ***
-#   HSP.IDENTITY.PERC -0.27727    0.05796  -4.784 1.72e-06 ***
-#   HSP.GAPS          -0.59636    0.13537  -4.406 1.06e-05 ***
-#   ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# (Dispersion parameter for binomial family taken to be 1)
-# 
-# Null deviance: 383.11  on 155  degrees of freedom
-# Residual deviance: 345.97  on 153  degrees of freedom
-# AIC: 351.97
-# 
-# Number of Fisher Scoring iterations: 5
-
-coefficients(glm_mod_3)
-logit2prob(coefficients(glm_mod_3))
-
-# ____  Testing model significance ----
-
-anova(glm_mod_0, glm_mod_1, test="Chisq") # Gaps only **not significant**
-anova(glm_mod_0, glm_mod_2, test="Chisq") # Match percentage **significant**
-anova(glm_mod_2, glm_mod_3, test="Chisq") # both together **significant**
-anova(glm_mod_1, glm_mod_3, test="Chisq") # both together **significant**
-anova(glm_mod_0, glm_mod_3, test="Chisq") # both together **significant**
-
-# ____  Ranking models ----
-
-AIC(glm_mod_0)
-AIC(glm_mod_1)
-AIC(glm_mod_2)
-AIC(glm_mod_3) # best, AIC 351.9707
-
-# ____ Inspect model ----
-
-jtools::summ(glm_mod_3)
-
-
-plot <- plot_summs(glm_mod_3)
-plot + theme_bw() + 
-  labs(title = "Coefficient estimates", 
-       subtitle = paste("R model formula: ", as.character(paste(deparse(formula(glm_mod_3), width.cutoff = 500), collapse=""))),
-       x="estimate, incl. CI [log odds]", y = "model coefficients")
-
-ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/230515_999_logistic_rgression_alignmnet_parameters.pdf", scale = 1.65, width = 4, height = 3, units = "in", dpi = 300)
-ggsave("/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_si_di_development/7_model_coefficients_v1.pdf", scale = 1.65, width = 4, height = 3, units = "in", dpi = 300)
-
-# ____ Calculating confidence intervalls ----
-
-confint(glm_mod_3, level = 0.95) # probabilities
-
-# Waiting for profiling to be done...
-# 2.5 %     97.5 %
-#   (Intercept)       18.4984397 40.7178969
-# HSP.IDENTITY.PERC -0.3990242 -0.1714674
-# HSP.GAPS          -0.8903591 -0.3498952
-
-# Calculating CIS on the scale of the link function and not the response scale
-#   https://fromthebottomoftheheap.net/2018/12/10/confidence-intervals-for-glms/
-#   getting inverse link function for calculating CIS
-
-# unit changes of predictors
-fam <- family(glm_mod_3)
-ilink <- fam$linkinv
-ilink(confint(glm_mod_3, level = 0.95))
-
-# > ilink(confint(glm_mod, level = 0.95))
-# Waiting for profiling to be done...
-# 2.5 %    97.5 %
-#   (Intercept)       1.0000000 1.0000000
-# HSP.IDENTITY.PERC 0.4015468 0.4572379
-# HSP.GAPS          0.2910357 0.4134078
-
-# ____ Other model reporting ----
-
-# check_observation among true/false for figure legend
-fish_asv_at_locs |> group_by(NOT.NZ) |> summarise(across(c("SPECIES", "ASV"), list(n_distinct)))
-
-# **Was** 
-# # A tibble: 2 × 3
-#   NOT.NZ SPECIES_1 ASV_1
-#   <fct>      <int> <int>
-# 1 FALSE         25    39
-# 2 TRUE          19    53
-
-# **now**
-# A tibble: 2 × 3
-# NOT.NZ SPECIES_1 ASV_1
-# <fct>      <int> <int>
-# 1 FALSE          9    20
-# 2 TRUE          34    76
-
-coeff_plot <- sjPlot::plot_model(glm_mod_3, vline.color = "red", show.values = TRUE, type = "est") +
-  theme_bw() +
-  scale_x_discrete(labels = c("Algn. Cov.", "Gaps")) +
-  ggtitle("Relationship between non-native status and alignment quality")
-  
-ggsave("230515_999_r_summarize_results__coeff_plot.pdf", plot = coeff_plot, 
-         device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-         scale = 0.75, width = 200, height = 135, units = c("mm"),
-         dpi = 500, limitsize = TRUE)
-
-ggsave("7_model_coefficients_v2.pdf", plot = coeff_plot, 
-       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_si_di_development",
-       scale = 0.75, width = 200, height = 135, units = c("mm"),
-       dpi = 500, limitsize = TRUE)
-
-model_plot <- plot_model(glm_mod_3, type = "pred", terms = c("HSP.IDENTITY.PERC", "HSP.GAPS"), show.data = TRUE, jitter = 0.0, ci.lvl = 0.95) +
-                theme_bw() +       
-                ylab("Probabilty of observing non-native species") +
-                xlab("Alignment identity percentage") +
-                ggtitle("Predicted probabilities of non-native status") +
-                labs(col = "Gaps") +
-                theme(legend.position = c(.9, .6),
-                      legend.justification = c("right", "top"),
-                      legend.box.just = "left",
-                      legend.box.background = element_rect(color="grey30", size=0.5)
-                      )
-
-ggsave("230515_999_r_summarize_results__asv_bin_regression.pdf", plot = last_plot(), 
-       device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
-       scale = 1, width = 200, height = 135, units = c("mm"),
-       dpi = 500, limitsize = TRUE)
-
-tab_model(glm_mod_3)
-
-# __c)  Save state ----
-
-# save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
-# load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")
-
-
-# __d) More numerical summaries, 5 pargraph of results ----
-
-fish_biodiv_blast_unq <- fish_biodiv_blast |> distinct(across(c("ASV","FAMILY", "SPECIES","NCBI.LEVEL", "NCBI.TAXDB.INC", "NCBI.TAXID", "NCBI.TAXID.INC", contains("HSP"))))
-nrow(fish_biodiv_blast_unq) # formerly 92 ASV resolved to species, now 96
-
-fish_biodiv_blast_unq |> filter(HSP.GAPS == 0) |> filter(HSP.IDENTITY.PERC == 1) 
-
-fish_biodiv_blast_unq |> filter(HSP.IDENTITY.PERC != 1)
-fish_biodiv_blast_unq |> filter(HSP.IDENTITY.PERC != 0) |> pull("FAMILY") |> unique()
-
-fish_biodiv_blast_unq |> filter(HSP.GAPS != 0)
-fish_biodiv_blast_unq |> filter(HSP.GAPS != 0) |> pull("FAMILY") |> unique()
-
-summary(fish_biodiv_blast_unq$HSP.IDENTITY.PERC)
-# was:
-#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#  0.7868  0.8933  0.9702  0.9321  0.9763  1.0000 
-
-# now:
-# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.7868  0.9037  0.9702  0.9379  0.9827  1.0000 
-
-mean(fish_biodiv_blast_unq$HSP.IDENTITY.PERC)    # 0.9379318
-sd(fish_biodiv_blast_unq$HSP.IDENTITY.PERC)      # 0.06043447
-
-summary(fish_biodiv_blast_unq$HSP.GAPS)
-
-# was:
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#       0       0       0       1       1      10
-
-# now:
-# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.0000  0.0000  0.0000  0.9792  1.0000 10.0000
-
-mean(fish_biodiv_blast_unq$HSP.GAPS)      # 0.9791667
-sd(fish_biodiv_blast_unq$HSP.GAPS)      # 1.800463
-
-
-
-# _3.) Build Flextable  ----
+# _3.) Build Flextable with BLAST results ----
 
 # __a) Creating table columns for manuscript: HSP.IDENTITY.PERC ----
 

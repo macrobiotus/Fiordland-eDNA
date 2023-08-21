@@ -1176,16 +1176,41 @@
  * commit `d4cfcdeda2aa006e181d8076051463f2314f8a52`
 
 
-## **16-August-2023** - revising rebeuttal and main text
+## **16-August-2023** - revising rebuttal and main text
  
  * updated cover letter and cover page
  * updated rebuttal letter
  * updated main text
- * updated imprortant que queue
+ * updated important queue
+ * commit `0ef9ed513dd6b73c5c4e765b6c5fde27e7559712`
+ 
+## **17-August-2023** - revising  main text
+
+ * working on main text - extending outline document
+ 
+## **18-August-2023** - revising  main text
+
+ * working on main text  - extending outline document
+
+## **21-August-2023** - work day 127 - revising  main text
+
+ * working on main text  - extending results section
+ * getting new branch `git checkout -b "results_revision""`
+ * erasing superseded scripts `rm 998_r_summarize_results.r 800_r_get_q2_tax-tab.r 990_r_get_eDNA_long_table.r 995_r_get_BRUV_long_table.r 995_r_get_PUBL_long_table.r 997_r_format_longtables.r 998_r_get_OBIS_and_map.r`
+ * opening script `999_r_summarize_results.r`
+  * loading data from section 4g line 608 `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")`
+  * re-running to add information to outline
+  * started to match up script strucuture to results, marks set in text file and script 
+  * -> continue at main text, Results 1, point 2.
+  * -> continue at script line 925 ("Augmentation of  OBIS and literature by eDNA and BRUV")
+  * commit `` 
+   
+
+
 
 ## **Pending important queue** (last updated 16-August-2023):
 
- * [ ] main text -re-read entirley and check for flow
+ * [ ] main text -re-read entirely and check for flow
  * [ ] get notes document - assemble new aspects for improvements
    * [ ] highlight throughout - Fiordland  
    * [ ] highlight throughout - biodiversity survey using eDNA and other sources  
@@ -1195,7 +1220,7 @@
    * [ ] discuss better - misassignments - both LCA and bit score assignments)
    * [ ] discuss better - whole NCBI – e.g. invasive species could be found
    * [ ] discuss better - Colllins 2021 Gold 2021 and others
-   * [ ] discuss better - regession results
+   * [ ] discuss better - regression results
  * [ ] main text - explode for restructuring using reviewer queries
  * [ ] main text - adjust Introduction
  * [ ] main text - adjust Results, possibly while extending `999_r_summarize_results.r`
