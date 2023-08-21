@@ -1203,28 +1203,18 @@
   * started to match up script strucuture to results, marks set in text file and script 
   * -> continue at main text, Results 1, point 2.
   * -> continue at script line 925 ("Augmentation of  OBIS and literature by eDNA and BRUV")
-  * commit `` 
-   
-
-
+  * commit `d04923f0be2b14b0e42606934d69140f1f94c2d5` 
 
 ## **Pending important queue** (last updated 16-August-2023):
-
- * [ ] main text -re-read entirely and check for flow
- * [ ] get notes document - assemble new aspects for improvements
-   * [ ] highlight throughout - Fiordland  
-   * [ ] highlight throughout - biodiversity survey using eDNA and other sources  
-   * [ ] highlight throughout - intentional ambiguity of assignments
-   * [ ] highlight throughout - LCA results
-   * [ ] discuss better - misassignments - bit score assignments using Hleap 2121
-   * [ ] discuss better - misassignments - both LCA and bit score assignments)
-   * [ ] discuss better - whole NCBI – e.g. invasive species could be found
-   * [ ] discuss better - Colllins 2021 Gold 2021 and others
-   * [ ] discuss better - regression results
- * [ ] main text - explode for restructuring using reviewer queries
- * [ ] main text - adjust Introduction
+ 
+ * [ ] main text - finish results section
+ * [ ] finish and re-run from  stable version of `999_r_summarize_results.r` from `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")`
+ * [x] get notes document - assemble new aspects for improvements
+ * [x] main text - explode for restructuring using reviewer queries
+ * [x] main text - adjust Introduction
  * [ ] main text - adjust Results, possibly while extending `999_r_summarize_results.r`
  * [ ] main text - adjust Discussion
+ * [ ] main text -re-read entirely and check for flow
  * [ ] supplemnet - adjust after main text 
  * [ ] rebuttal - adjust after supplement
  * [ ] all files -  check crosslinks
