@@ -1203,9 +1203,19 @@
   * started to match up script strucuture to results, marks set in text file and script 
   * -> continue at main text, Results 1, point 2.
   * -> continue at script line 925 ("Augmentation of  OBIS and literature by eDNA and BRUV")
-  * commit `d04923f0be2b14b0e42606934d69140f1f94c2d5` 
+  * commit `b14eb83a123d91984da3b9d7904f907f4956b827` 
 
-## **Pending important queue** (last updated 16-August-2023):
+## **23-August-2023** - work day 128 - revising  main text, results
+
+ * finished results section `[0]` and `[1]`
+ * matching `999_r_summarize_results.r` to results section `[0]` and `[1]`
+ * loading data from section 4g line 608 `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")`
+ * running to subsequent save point - next load from line 874, just prior to `Results for main text`
+ * `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")`
+ * stepped through to line 1013, and updated results
+ * commit ``
+
+## **Pending important queue** (last updated 21-August-2023):
  
  * [ ] main text - finish results section
  * [ ] finish and re-run from  stable version of `999_r_summarize_results.r` from `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")`

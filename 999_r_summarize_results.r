@@ -584,21 +584,21 @@ megan_fish_species <- c("Anguilla australis", "Asterropteryx semipunctata", "Cal
 
 # __b) Show eDNA species detected by MEGAN ----
 
-long_table %>% filter(get_clean_strings(SPECIES) %in% megan_species) %>% select(SPECIES) %>% distinct()
+long_table %>% filter(SAMPLE.TYPE == "eDNA") %>% filter(get_clean_strings(SPECIES) %in% megan_species) %>% select(SPECIES) %>% distinct()
 
 # __c) Show eDNA species not detected by MEGAN ----
 
-long_table %>% filter(get_clean_strings(SPECIES) %!in% megan_species) %>% select(SPECIES) %>% distinct()
+long_table %>% filter(SAMPLE.TYPE == "eDNA") %>% filter(get_clean_strings(SPECIES) %!in% megan_species) %>% select(SPECIES) %>% distinct()
                         
 # __d) Show eDNA fish species detected by MEGAN data filtered for fish  ----
 
-long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>%  filter(get_clean_strings(SPECIES) %in% megan_fish_species) %>% select(SPECIES) %>% distinct()
+long_table %>% filter(SAMPLE.TYPE == "eDNA") %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>%  filter(get_clean_strings(SPECIES) %in% megan_fish_species) %>% select(SPECIES) %>% distinct()
 
 # __e) Show eDNA fish species not detected by MEGAN data filtered for fish  ----
 
-long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>%  filter(get_clean_strings(SPECIES) %!in% megan_fish_species) %>% select(SPECIES) %>% distinct()
+long_table %>% filter(SAMPLE.TYPE == "eDNA") %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>%  filter(get_clean_strings(SPECIES) %!in% megan_fish_species) %>% select(SPECIES) %>% distinct()
 
-# __f) Mark  MEGAN-detected species in long table ----
+# __f) Mark MEGAN-detected species in long table ----
 
 long_table %<>% mutate(SPECIES = case_when(get_clean_strings(SPECIES) %in% megan_species  ~ paste0(SPECIES, " ***"), TRUE ~ SPECIES))
 
@@ -919,61 +919,105 @@ nrow(spcies_obs_sums |> filter (!is.na(OBIS.OBS.PRES.SUM)))  # 25 -> 28 OBIS (in
 nrow(spcies_obs_sums |> filter (!is.na(BRUV.OBS.PRES.SUM)))  # 25 -> 26 BRUV (in study area)
 nrow(spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)))  # 44 -> 43 EDNA (in study area)
 
+# show the 43 eDNA species - for LCA see way above in script at section `Encode and Evaluate MEGAN species assignment`
+spcies_obs_sums |> filter (!is.na(EDNA.OBS.PRES.SUM)) %>% select(-c(PHYLUM, CLASS, ORDER, FAMILY, GENUS))
+
 # ____ Augmentation of  OBIS and literature by eDNA and BRUV ----
 
-# ** CONSTRUCTION SITE BELOW, CONTINUE HERE AFTER 21.08.2023 ** ----
 
-# ____ - Species in OBIS and literature ----
+# ____ - Get fish species in OBIS and literature ----
+
 pbob_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("OBIS", "PUBL")) |> distinct()
 unique(pbob_species[["SPECIES"]]) # Species in OBIS and literature - 70 
 
-
-
-
-
-# ** CONSTRUCTION SITE ABOVE, CONTINUE HERE AFTER 21.08.2023 ** ----
-
-# __b) Interesting fish hits ----
-
-# ____ Not needed here: OBIS fish species
-
-obis_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "OBIS") |> distinct()
-obis_species |> print(n = Inf)
-
-# ____ Not needed here: Literature fish species
-
-publ_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE %in% c("PUBL")) |> distinct()
-publ_species |> print(n = Inf)
-
-# ____ On eDNA fish species ----
+# ____ - Get fish species in eDNA  ----
 
 edna_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "eDNA") |> distinct()
 edna_species |> print(n = Inf)
 
-# ____ On BRUV fish species ----
+# ____ - Get BRUV fish species ----
 
 bruv_species <- fish_biodiv |> select(SPECIES, SAMPLE.TYPE) |> filter(SAMPLE.TYPE == "BRUV") |> distinct()
 bruv_species |> print(n = Inf)
 
+# ____ - Intersect BRUV and literture ----
 
-# __c) Interesting non-fish hits ----
+intersect(bruv_species$SPECIES, pbob_species$SPECIES)
 
-# ** CONSTRUCTION SITE BELOW, CONTINUE HERE AFTER 21.08.2023 ** ----
+# ____ - Intersect eDNA and literature ----
 
-# Missing so far
+intersect(edna_species$SPECIES, pbob_species$SPECIES)
 
-# ** CONSTRUCTION SITE ABOVE, CONTINUE HERE AFTER 21.08.2023 ** ----
+
+# __b) Interesting fish hits ----
+
+# ____ - Notable fish species detected only using eDNA - but see main text and table 
+
+setdiff(
+  # eDNA with perfect alignments
+  long_table %>% filter(HSP.GAPS == 0 & HSP.IDENTITY.PERC == 1) %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>% pull(SPECIES) %>% unique(),
+  
+  # all others
+  union(bruv_species$SPECIES, pbob_species$SPECIES)
+)
+
+# ____ - Notable fish species detected only using BRUV - but see main text and table 
+
+setdiff(
+  # eDNA with perfect alignments
+  bruv_species$SPECIES,
+  
+  # all others
+  union(edna_species$SPECIES, pbob_species$SPECIES)
+)
+
+# ____ - Notable fish species detected using BRUV and eDNA - but see main text and table 
+
+intersect(bruv_species$SPECIES, edna_species$SPECIES)
+
+# __c)  Interesting non-fish hits ----
+
+# For eDNA and LCA see MEGAN file `/Users/paul/Documents/OU_eDNA/201126_preprocessing/megan/751_12S_single_end_ee3-seq_blast-noenv.rma6`
+
+# For BRUV previous script `/Users/paul/Documents/OU_eDNA/200901_scripts/996_r_get_BRUV_long_table.r`
 
 
 # _2.) Results - Evaluating the usefulness of eDNA survey without local reference data ----
 
 # __a) Comparison to LCA ----
 
-# ** CONSTRUCTION SITE BELOW, CONTINUE HERE AFTER 21.08.2023 ** ----
 
-# Missing so far
 
-# ** CONSTRUCTION SITE ABOVE, CONTINUE HERE AFTER 21.08.2023 ** ----
+# See section above `Encode and Evaluate MEGAN species assignments`
+
+# All MEAGN assignmnets not New Zealand
+setdiff(
+  
+edna_species$SPECIES[grep("\\* \\*\\*\\*",  edna_species$SPECIES)], 
+
+# all others
+union(bruv_species$SPECIES, pbob_species$SPECIES)
+)
+
+
+# All eDNA assignmnets not New Zealand
+
+setdiff(
+  # eDNA with perfect alignments
+  long_table %>% filter(CLASS %in% c("Actinopteri", "Chondrichthyes", "Myxini")) %>% pull(SPECIES) %>% unique(),
+  
+  # all others
+  union(bruv_species$SPECIES, pbob_species$SPECIES)
+)
+
+# ** CONSTRUCTION SITE BELOW, CONTINUE HERE AFTER 23.08.2023 ** ----
+
+
+
+
+# ** CONSTRUCTION SITE ABOVE, CONTINUE HERE AFTER 23.08.2023 ** ----
+
+# ** OLD CODE BELOW, CONTINUE HERE AFTER 23.08.2023 ** ----
 
 # __b) Summary of alignment qualities  ----
 
