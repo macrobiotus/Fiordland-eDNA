@@ -1213,7 +1213,21 @@
  * running to subsequent save point - next load from line 874, just prior to `Results for main text`
  * `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")`
  * stepped through to line 1013, and updated results
+ * commit `9f79855c0f6d8a14c976055128e3ab2fc33588a3`
+
+## **24-August-2023** - work day 128 - revising  main text, results
+
+ * in script `999_r_summarize_results.r`
+   * re-ran from `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")`
+   * saved state at `save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__moidelling_done.Rdata")`
+   * saved state at `save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__summaries_done.Rdata")`
+   * saved state at `save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__dis_done.Rdata")`
+   * saved state after ANOSIM `save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__anaosim_done.Rdata")`
+   * saved state after indicator species analysis `save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__multipatt_done.Rdata")`
+ * obtaing stable results from `999_r_summarize_results.r`
+ * in word file with todays date (24.08.2023) results are done matching file
  * commit ``
+
 
 ## **Pending important queue** (last updated 21-August-2023):
  
