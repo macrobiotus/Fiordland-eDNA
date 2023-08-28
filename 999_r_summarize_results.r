@@ -1559,7 +1559,7 @@ mpatt_analysis_fish <- expand.grid(
 # run Indicator species analysis
 mpatt_results_fish <- apply(mpatt_analysis_fish, 1, FUN = function(x) try(get_vegan(distance = x[1], tibl = get(x[2]), group_col = x[3], group_row = x[4], group_col_ano = x[5], obs_methods = x[6], mp = TRUE)))
 
-# ____  Inspect analysis results ----
+# ____ Inspect analysis results ----
 
 # inspect results
 str(mpatt_results_fish)

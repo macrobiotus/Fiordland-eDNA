@@ -1226,25 +1226,39 @@
    * saved state after indicator species analysis `save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__multipatt_done.Rdata")`
  * obtaing stable results from `999_r_summarize_results.r`
  * in word file with todays date (24.08.2023) results are done matching file
+ * commit `5ab354b0177127910ea23bcc97fb196fea8bdf0e`
+
+## **25-August-2023** - work day 129 - revising  main text, discussion
+ 
+ * no notes 
+
+## **28-August-2023** - work day 130 - revising all for submission to coauthors
+ 
+ * created main text version for coauthors
+ * checked and rendered SI
+ * copied current version for coauthors to online staorage lacally availabel at `/Users/paul/Library/CloudStorage/OneDrive-UniversityofOtago/OU_Fiordland_eDNA`
  * commit ``
+
 
 
 ## **Pending important queue** (last updated 21-August-2023):
  
- * [ ] main text - finish results section
- * [ ] finish and re-run from  stable version of `999_r_summarize_results.r` from `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")`
+ * [x] main text - finish results section
+ * [x] finish and re-run from  stable version of `999_r_summarize_results.r` from `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")`
  * [x] get notes document - assemble new aspects for improvements
  * [x] main text - explode for restructuring using reviewer queries
  * [x] main text - adjust Introduction
- * [ ] main text - adjust Results, possibly while extending `999_r_summarize_results.r`
- * [ ] main text - adjust Discussion
- * [ ] main text -re-read entirely and check for flow
- * [ ] supplemnet - adjust after main text 
- * [ ] rebuttal - adjust after supplement
- * [ ] all files -  check crosslinks
+ * [x] main text - adjust Results, possibly while extending `999_r_summarize_results.r`
+ * [x] main text - adjust Discussion
+ * [x] main text -re-read entirely and check for flow
+ * [x] supplemnet - adjust after main text 
+ * [x] rebuttal - adjust after supplement
+ * [x] circulate to co-authors
+ * [x] all files - check crosslinks
+ * [ ] all files - revise with co-authors suggestions 
  * [ ] all files - collate data 
- * [ ] all files - and upload data
- * [ ] circulate
+ * [ ] all files - upload data
+ 
  * [ ] submit
  
 ## **Done from important queue** (last updated 16-August-2023):
