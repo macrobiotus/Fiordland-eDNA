@@ -1237,9 +1237,57 @@
  * created main text version for coauthors
  * checked and rendered SI
  * copied current version for coauthors to online staorage lacally availabel at `/Users/paul/Library/CloudStorage/OneDrive-UniversityofOtago/OU_Fiordland_eDNA`
- * commit ``
+ * commit `29b8533e827d419d5484f497d79cbc9649bfd770`
 
+## **31-August-2023** - work day 131 - sending modelling results to MdK
 
+ * in script `999_r_summarize_results.r` 
+   * loading `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")`
+   * sending regression input object to MdL `/Users/paul/Documents/OU_eDNA/201028_Robjects/230514_999_r_summarize_results__data_spc_distribution_vs_quality.Rds`
+
+## **01-September-2023** - work day 131
+
+ * [x] revising `230905_cover_letter.lyx`
+ * [x] revising `230901_response_text.docx`
+   * [x] after download from online repository
+ * [x] revising `230901_main_text.docx` with web version and removing scaffolding
+   * [x] after download from online repository
+   * [x] adress Wills commnets
+   * [x] adress MdLs comments
+   * [x] update MdLs regression results - to main text and SI 
+     * [x] `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230816_communication/230901_logistic_regression_fish.pdf`
+     * [x] `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230816_communication/230901_logistic_regression_fish.Rmd`
+     * [x] integrated MDL's results screenshot:
+       * [x] `mv "/Users/paul/Desktop/220422_screenshots/Screenshot 2023-09-01 at 15.42.10.png" "/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_si_di_development/7_model_coefficients_v3.png"`
+       * [x] `mv "/Users/paul/Desktop/220422_screenshots/Screenshot 2023-09-01 at 16.07.12.png" "/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_si_di_development/7_model_coefficients_v3_b.png"`
+ * [x] mail off to MK with invite to chat about submission 
+
+## **06-September-2023** - work day 132
+
+ * revised regression results in online version as per MdL
+
+## **08-September-2023** - work day 133
+
+ * online - revised rebuttal letter edits made by MK
+
+## **11-September-2023** - work day 134
+
+ * revised all materials
+ * uploaded all materials to shared drive
+ * started submission process
+ * pdf collation calls were:
+
+```
+502  2023-09-11 17:55:25 gs -sDEVICE=pdfwrite  -dNOPAUSE -dBATCH -dSAFER -sOutputFile=/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_main_text_supplement_for_review.pdf /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_main_text.pdf /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_si.pdf
+503  2023-09-11 18:03:28 gs -sDEVICE=pdfwrite  -dNOPAUSE -dBATCH -dSAFER -sOutputFile=/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_cover_letter__response_text.pdf /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_cover_letter.pdf  /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_response_text.pdf
+```
+ 
+ * provided proof to coauthors
+
+## **12-September-2023** - work day 134
+
+ * received comments on proofs updated todo
+ 
 
 ## **Pending important queue** (last updated 21-August-2023):
  
@@ -1255,10 +1303,11 @@
  * [x] rebuttal - adjust after supplement
  * [x] circulate to co-authors
  * [x] all files - check crosslinks
- * [ ] all files - revise with co-authors suggestions 
+ * [x] all files - revise with co-authors suggestions - **use online version** 
+ * [ ] correct proofs - change back title
+ * [ ] re-upload files
  * [ ] all files - collate data 
  * [ ] all files - upload data
- 
  * [ ] submit
  
 ## **Done from important queue** (last updated 16-August-2023):
