@@ -1287,7 +1287,7 @@
 ## **12-September-2023** - work day 134
 
  * received comments on proofs updated todo
- * `f838c4d19625f1fc77a3daa755d685086598b103`
+ * commit `f838c4d19625f1fc77a3daa755d685086598b103`
 
 ## **19-September-2023** - work day 135
 
@@ -1315,7 +1315,8 @@
      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results_map_obis.pdf`
      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__geoheat_edna_bruv_obis.pdf`
  * new fig 1 at `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/figure_1.pdf`
- * commit `2bea89e5c3bf9bdc899e575a2edaa33719cd322d`  
+ * commit `2bea89e5c3bf9bdc899e575a2edaa33719cd322d`
+ * cleaning out git repository as per `https://gist.github.com/boywijnmaalen/f052cd70fa6d924d58621b2e9c806adb`
 
 ## **Pending important queue** (last updated 19-September-2023):
  
