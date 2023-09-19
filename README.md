@@ -1287,7 +1287,20 @@
 ## **12-September-2023** - work day 134
 
  * received comments on proofs updated todo
- 
+ * `f838c4d19625f1fc77a3daa755d685086598b103`
+
+## **19-September-2023** - work day 135
+
+ * saved notes on proof correction at `/220826_eDNA_resubmission/230816_communication/230919_on_proof_correction.pdf`
+ * updated todo - worked on todo - see correction of proofs
+ * adjusting map in main text (Fig. 1) obfuscating sampling locations
+   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+   * loading from line 636 `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")`
+   * last modification Aug 23 13:33:18 2023 (`stat`)
+   * in `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_get_OBIS_and_map.r`
+   * loading from line 581 `/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_map_and_add_obis__end.Rdata`
+   * last modification "May 12 17:42:50 2023 (`stat`)
+   * modifying map generation in line 157
 
 ## **Pending important queue** (last updated 21-August-2023):
  
@@ -1304,10 +1317,16 @@
  * [x] circulate to co-authors
  * [x] all files - check crosslinks
  * [x] all files - revise with co-authors suggestions - **use online version** 
- * [ ] correct proofs - change back title
- * [ ] re-upload files
- * [ ] all files - collate data 
- * [ ] all files - upload data
+ * [ ] correct proofs 
+    * [x] change back title
+    * [x] remove map from SI
+    * [ ] remove specific locations from main text map
+    * [x] remove specific locations from main text
+    * [x] update data availability statement
+    * [ ] upload files to Manuscript Central
+ * [ ] re-upload files to Zenodo
+   * [ ] all files - collate data - obscure location data
+   * [ ] all files - upload data - request removal of old versions
  * [ ] submit
  
 ## **Done from important queue** (last updated 16-August-2023):

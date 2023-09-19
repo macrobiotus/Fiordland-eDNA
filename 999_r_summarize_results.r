@@ -741,7 +741,11 @@ fish_biodiv_df_obis <- get_plot_df(fish_biodiv_sf_km, "OBIS")
 # map 1: sampling map from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
 # map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
 
+# commented out - may read un-obfuscated plots
 map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_get_OBIS_and_map__mapggplot.Rds")
+
+# 19-Sept-2023 - get obfuscated locations
+map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_get_OBIS_and_map__mapggplot_redacted.Rds")
 
 ggsave("230515_999_r_summarize_results_map_main.pdf", plot = map_a, 
        device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",

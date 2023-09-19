@@ -153,14 +153,14 @@ lt_obis_lookup_sf_loc[rows_outside, ] %>% st_transform(crs = st_crs(2193))
 # map to check object and for publication - unit is in km
 #  check sf objects  - bounding box as defined per lt_obis_lookup_sf and 10 km in addition
 #  inset grob in degrees, but positioned in kilometers
-
+# 19-Sep-2023 - uncommnet all lines to get un-obfuscated locations
 map_main <- ggplot() +
     geom_sf(data = nzshp_hires_WGS84_loc, fill = "lightgrey") + 
     geom_sf(data = lt_obis_lookup_sf_buffer_loc, fill = NA, colour = "red") + 
-    geom_sf(data = filter(lt_obis_lookup_sf_loc, RESERVE.GROUP != "FI"), fill = NA, colour = "darkred") + 
+    # geom_sf(data = filter(lt_obis_lookup_sf_loc, RESERVE.GROUP != "FI"), fill = NA, colour = "darkred") + 
     geom_sf(data = bbox_loc, fill = NA, color = "darkred") +
-    stat_sf_coordinates(data = filter(lt_obis_lookup_sf_loc, RESERVE.GROUP != "FI"), aes(shape = RESERVE.GROUP), color = "darkred", size = 3) +
-    stat_sf_coordinates(data = filter(lt_obis_lookup_sf_loc, RESERVE.GROUP != "FI"), aes(shape = RESERVE.GROUP), color = "red", size = 1) +
+    # stat_sf_coordinates(data = filter(lt_obis_lookup_sf_loc, RESERVE.GROUP != "FI"), aes(shape = RESERVE.GROUP), color = "darkred", size = 3) +
+    # stat_sf_coordinates(data = filter(lt_obis_lookup_sf_loc, RESERVE.GROUP != "FI"), aes(shape = RESERVE.GROUP), color = "red", size = 1) +
     geom_sf_label(data=bbox_loc, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 4500, nudge_y = 4000) + 
     coord_sf( xlim = c((1125643-40000), (1125643+5000)), ylim = c((4909254-30000),(4909254+35000)), expand = FALSE) +
     annotation_custom(ggplotGrob(map_inset), xmin = 1125643-40000, xmax = 1125643-25000, ymin = 4909254+5000, ymax = 4909254+45000) + 
@@ -177,7 +177,11 @@ map_main <- ggplot() +
 
 
 # save image for combination with other plots
-saveRDS(map_main, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_get_OBIS_and_map__mapggplot.Rds")
+# saveRDS(map_main, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_get_OBIS_and_map__mapggplot.Rds")
+
+# 19-Sep-2023save redacvted image for combination with other plots
+saveRDS(map_main, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_get_OBIS_and_map__mapggplot_redacted.Rds")
+
 
 ggsave("221219_999_r_summarize_results_fig1_draft.pdf", plot = last_plot(), 
          device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
@@ -564,7 +568,7 @@ nrow(OBIS_records)     # 5263, now 5278
 sum(OBIS_records$used) # 5186, now 5199
 sum(OBIS_records$used) / nrow(OBIS_records) # 0.9853696, now 0.9850322
 
-# XI. Save results and workspace
+# XI. Save results and work space
 # ==============================
 
 # for verbosity
@@ -575,12 +579,11 @@ openxlsx::write.xlsx(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscrip
 # write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/998_r_map_and_add_obis__full_data_raw.csv")
 write.csv(long_table, "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/999_r_map_and_add_obis__full_data_raw.csv")
 
-# saving workspace manually
+# saving work space manually
 # save.image("/Users/paul/Documents/OU_eDNA/260705_r_workspaces/210705_998_r_map_and_add_obis__end.Rdata")
 # save.image("/Users/paul/Documents/OU_eDNA/201028_Robjects/210705_998_r_map_and_add_obis__end.Rdata")
 save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_map_and_add_obis__end.Rdata")
 save.image("/Users/paul/Documents/OU_eDNA/201028_Robjects/221220_999_r_map_and_add_obis__end.Rdata")
-
 
 # for subsequent analyses
 # saveRDS(long_table, file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_map_and_add_obiss__full_data_raw.Rds")
