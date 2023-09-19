@@ -1301,6 +1301,20 @@
    * loading from line 581 `/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221220_999_r_map_and_add_obis__end.Rdata`
    * last modification "May 12 17:42:50 2023 (`stat`)
    * modifying map generation in line 157
+     * minimal changes only, only created
+     * only created `999_r_get_OBIS_and_map__mapggplot_redacted.Rds"`
+     * in new branch `new_maps` commit `7c78d08b9e9b6278341dc4143f00ab79e539a250`
+   * adjusting in `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r`
+     * from line 748
+     * resaving at `save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping.Rdata")`
+     * resaving at `save.image("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__mapping_done.Rdata")`
+   * see new files at (circle size in subfigures needs to be adjusted manually - check commit history of main summary script)
+     * `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results_map_main.pdf`
+     * `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results_map_edna.pdf`
+     * `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results_map_bruv.pdf`
+     * `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results_map_obis.pdf`
+     * `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__geoheat_edna_bruv_obis.pdf`
+     * new fig 1 at `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/figure_1.pdf`
 
 ## **Pending important queue** (last updated 21-August-2023):
  

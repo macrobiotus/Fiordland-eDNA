@@ -635,7 +635,7 @@ fish_biodiv <- long_table %>% distinct() %>% filter(CLASS %in% c("Actinopteri", 
 # save.image(file = "/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 # load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/998_r_summarize_results__data_filtered.Rdata")
 
-# __c) Export data fot analysis by MdL ----
+# __c) Export data for analysis by MdL ----
 
 fish_biodiv_tbls <- fish_biodiv |> filter(!(SAMPLE.TYPE %in% c("OBIS") & SET.ID %in% c(1,3,4,5,7,8,9,10,11,12,17,18,19,21,22,23,24,26,27,28,29))) 
 saveRDS(fish_biodiv_tbls, "/Users/paul/Documents/OU_eDNA/201028_Robjects/230515_999_r_summarize_results__data_gtestimate_accumulation_curves.Rds")
@@ -739,13 +739,14 @@ fish_biodiv_df_obis <- get_plot_df(fish_biodiv_sf_km, "OBIS")
 # _2.) Main map ----
 
 # map 1: sampling map from `/Users/paul/Documents/OU_eDNA/200901_scripts/998_r_get_OBIS_and_map.r`
-# map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/998_r_get_OBIS_and_map__mapggplot.Rds")
 
 # commented out - may read un-obfuscated plots
 map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_get_OBIS_and_map__mapggplot.Rds")
+map_a
 
 # 19-Sept-2023 - get obfuscated locations
 map_a <- readRDS(file = "/Users/paul/Documents/OU_eDNA/201028_Robjects/999_r_get_OBIS_and_map__mapggplot_redacted.Rds")
+map_a
 
 ggsave("230515_999_r_summarize_results_map_main.pdf", plot = map_a, 
        device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
@@ -762,8 +763,8 @@ map_b <- ggplot() +
   # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
   geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
   # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
-  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "eDNA")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 3) +
-  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "eDNA")}, aes(shape = RESERVE.GROUP), color = "white", size = 2) +
+  # stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "eDNA")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 3) +
+  stat_sf_coordinates(data = {fish_biodiv_sf_km %>% filter(SAMPLE.TYPE == "eDNA") %>% dplyr::select(-c("PHYLUM", "CLASS",  "ORDER", "FAMILY", "GENUS", "SPECIES", "ASV","ABUNDANCE", "SAMPLE.TYPE")) %>% distinct}, shape = 1, color = "grey20", size = 5, alpha = 0.5) +
   coord_sf(xlim = c((1125643-40000), (1125643+4000)), ylim = c((4909254-30000),(4909254+31600)), expand = FALSE) +
   theme_bw() + 
   theme(legend.position= "none",
@@ -776,7 +777,7 @@ map_b <- ggplot() +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()
   )
-
+# if you save gere circles will be to small - size adjusted for compund figure
 ggsave("230515_999_r_summarize_results_map_edna.pdf", plot = map_b, 
        device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
        scale = 0.5, width = 152, height = 121, units = c("mm"),
@@ -790,8 +791,7 @@ map_c <- ggplot() +
   # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
   geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
   # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
-  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "BRUV")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 3) +
-  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "BRUV")}, aes(shape = RESERVE.GROUP), color = "white", size = 2) +
+  stat_sf_coordinates(data = {fish_biodiv_sf_km %>% filter(SAMPLE.TYPE == "BRUV") %>% dplyr::select(-c("PHYLUM", "CLASS",  "ORDER", "FAMILY", "GENUS", "SPECIES", "ASV","ABUNDANCE", "SAMPLE.TYPE")) %>% distinct}, shape = 1, color = "grey20", size = 5, alpha = 0.5) +
   coord_sf(xlim = c((1125643-40000), (1125643+4000)), ylim = c((4909254-30000),(4909254+31600)), expand = FALSE) +
   theme_bw() + 
   theme(legend.position= "none",
@@ -804,7 +804,7 @@ map_c <- ggplot() +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()
   )
-
+# if you save gere circles will be to small - size adjusted for compund figure
 ggsave("230515_999_r_summarize_results_map_bruv.pdf", plot = map_c, 
        device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
        scale = 0.5, width = 152, height = 121, units = c("mm"),
@@ -818,8 +818,7 @@ map_d <- ggplot() +
   # geom_sf(data = fish_biodiv_sf_km_sid_buff, fill = NA, colour = "darkgrey") +
   geom_sf(data = bbox_rgl_fish_biodiv_km, fill = NA, colour = "grey20", linetype = "dotted", size = 0.5) + 
   # geom_sf_label(data=bbox_rgl_fish_biodiv_km, aes(label = RESERVE.GROUP.LOCATION), nudge_x = 7, nudge_y = 6.5) +
-  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "OBIS")}, aes(shape = RESERVE.GROUP), color = "grey20", size = 3) +
-  stat_sf_coordinates(data = {fish_biodiv_sf_km |> filter(SAMPLE.TYPE == "OBIS")}, aes(shape = RESERVE.GROUP), color = "white", size = 2) +
+  stat_sf_coordinates(data = {fish_biodiv_sf_km %>% filter(SAMPLE.TYPE == "OBIS") %>% dplyr::select(-c("PHYLUM", "CLASS",  "ORDER", "FAMILY", "GENUS", "SPECIES", "ASV","ABUNDANCE", "SAMPLE.TYPE")) %>% distinct}, shape = 1, color = "grey20", size = 5, alpha = 0.5) +
   coord_sf(xlim = c((1125643-40000), (1125643-800)), ylim = c((4909254-30000),(4909254+30750)), expand = FALSE) +
   theme_bw() + 
   theme(legend.position= "none",
@@ -832,7 +831,7 @@ map_d <- ggplot() +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()
   )
-
+# if you save gere circles will be to small - size adjusted for compund figure
 ggsave("230515_999_r_summarize_results_map_obis.pdf", plot = map_d, 
        device = "pdf", path = "/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components",
        scale = .5, width = 152, height = 121, units = c("mm"),
