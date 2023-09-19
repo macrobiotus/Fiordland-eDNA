@@ -1314,9 +1314,10 @@
      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results_map_bruv.pdf`
      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results_map_obis.pdf`
      * `/Users/paul/Documents/OU_eDNA/200403_manuscript/3_main_figures_and_tables_components/230515_999_r_summarize_results__geoheat_edna_bruv_obis.pdf`
-     * new fig 1 at `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/figure_1.pdf`
+ * new fig 1 at `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/figure_1.pdf`
+ * commit `2bea89e5c3bf9bdc899e575a2edaa33719cd322d`  
 
-## **Pending important queue** (last updated 21-August-2023):
+## **Pending important queue** (last updated 19-September-2023):
  
  * [x] main text - finish results section
  * [x] finish and re-run from  stable version of `999_r_summarize_results.r` from `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")`
@@ -1334,10 +1335,10 @@
  * [ ] correct proofs 
     * [x] change back title
     * [x] remove map from SI
-    * [ ] remove specific locations from main text map
+    * [x] remove specific locations from main text map
     * [x] remove specific locations from main text
     * [x] update data availability statement
-    * [ ] upload files to Manuscript Central
+    * [x] upload files to Manuscript Central
  * [ ] re-upload files to Zenodo
    * [ ] all files - collate data - obscure location data
    * [ ] all files - upload data - request removal of old versions
