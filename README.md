@@ -1322,8 +1322,10 @@
 
   * moving files to Zenodo and Zenodo folder (`/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230920_Zenodo_contents`)
     * code release 1.2. from GitHub (with own DOI on Zenodo: `10.5281/zenodo.8359890`) `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230920_Zenodo_contents/Fiordland-eDNA-v1.2.zip`
-    * MEGAN file: `/Users/paul/Documents/OU_eDNA/201126_preprocessing/megan/751_12S_single_end_ee3-seq_blast-noenv.rma6`
-    * BLAST results: `/Users/paul/Documents/OU_eDNA/201126_preprocessing/megan/750_12S_single_end_ee3-seq_blast-noenv.xml.rma6`
+    * MEGAN file: `cp /Users/paul/Documents/OU_eDNA/201126_preprocessing/megan/751_12S_single_end_ee3-seq_blast-noenv.rma6 /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230920_Zenodo_contents/230920_megan.rma6`
+    * BLAST results: `cp /Users/paul/Documents/OU_eDNA/201126_preprocessing/blast/751_12S_single_end_ee3-seq_blast-noenv.xml.gz /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230920_Zenodo_contents/230920_blast.xml.gz`
+    * Qiime-exported-reads: `cp /Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.fasta.gz /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230920_Zenodo_contents/230920_asv_sequences.fasta.gz`
+  * commit
 
 
 
@@ -1337,7 +1339,7 @@
  * [x] main text - adjust Results, possibly while extending `999_r_summarize_results.r`
  * [x] main text - adjust Discussion
  * [x] main text -re-read entirely and check for flow
- * [x] supplemnet - adjust after main text 
+ * [x] supplement - adjust after main text 
  * [x] rebuttal - adjust after supplement
  * [x] circulate to co-authors
  * [x] all files - check crosslinks
