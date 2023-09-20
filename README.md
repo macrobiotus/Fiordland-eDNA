@@ -1318,6 +1318,15 @@
  * commit `2bea89e5c3bf9bdc899e575a2edaa33719cd322d`
  * cleaning out git repository as per `https://gist.github.com/boywijnmaalen/f052cd70fa6d924d58621b2e9c806adb`
 
+## **19-September-2023** - work day 135
+
+  * moving files to Zenodo and Zenodo folder (`/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230920_Zenodo_contents`)
+    * code release 1.2. from GitHub (with own DOI on Zenodo: `10.5281/zenodo.8359890`) `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230920_Zenodo_contents/Fiordland-eDNA-v1.2.zip`
+    * MEGAN file: `/Users/paul/Documents/OU_eDNA/201126_preprocessing/megan/751_12S_single_end_ee3-seq_blast-noenv.rma6`
+    * BLAST results: `/Users/paul/Documents/OU_eDNA/201126_preprocessing/megan/750_12S_single_end_ee3-seq_blast-noenv.xml.rma6`
+
+
+
 ## **Pending important queue** (last updated 19-September-2023):
  
  * [x] main text - finish results section
@@ -1340,9 +1349,9 @@
     * [x] remove specific locations from main text
     * [x] update data availability statement
     * [x] upload files to Manuscript Central
- * [ ] re-upload files to Zenodo
-   * [ ] all files - collate data - obscure location data
-   * [ ] all files - upload data - request removal of old versions
+ * [x] re-upload files to Zenodo
+   * [x] all files - collate data - obscure location data
+   * [x] all files - upload data - request removal of old versions
  * [ ] submit
  
 ## **Done from important queue** (last updated 16-August-2023):
