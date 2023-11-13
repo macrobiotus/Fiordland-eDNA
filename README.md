@@ -1281,7 +1281,6 @@
 502  2023-09-11 17:55:25 gs -sDEVICE=pdfwrite  -dNOPAUSE -dBATCH -dSAFER -sOutputFile=/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_main_text_supplement_for_review.pdf /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_main_text.pdf /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_si.pdf
 503  2023-09-11 18:03:28 gs -sDEVICE=pdfwrite  -dNOPAUSE -dBATCH -dSAFER -sOutputFile=/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_cover_letter__response_text.pdf /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_cover_letter.pdf  /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230911_response_text.pdf
 ```
- 
  * provided proof to coauthors
 
 ## **12-September-2023** - work day 134
@@ -1327,7 +1326,11 @@
     * Qiime-exported-reads: `cp /Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.fasta.gz /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230920_Zenodo_contents/230920_asv_sequences.fasta.gz`
   * commit
 
+## **13-Nov-2023** - work day 136
 
+  * received comments for second revision
+    * see `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/231113_eDNA_revisions`
+    * also updated `/Users/paul/Documents/OU_eDNA/200403_manuscript/README.md`
 
 ## **Pending important queue** (last updated 19-September-2023):
  
