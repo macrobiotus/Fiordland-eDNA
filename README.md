@@ -1326,42 +1326,46 @@
     * Qiime-exported-reads: `cp /Users/paul/Documents/OU_eDNA/201126_preprocessing/qiime/600_12S_single_end_ee3-seq.fasta.gz /Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230920_Zenodo_contents/230920_asv_sequences.fasta.gz`
   * commit
 
-## **13-Nov-2023** - work day 136
+## **13-Nov-2023** - work day 136 - received comments for second revision
 
   * received comments for second revision
     * see `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/231113_eDNA_revisions`
     * also updated `/Users/paul/Documents/OU_eDNA/200403_manuscript/README.md`
 
+## **16-Nov-2023** - work day 137 - starting on second revision
+
+ * copying `/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230919_main_text.docx`
+   * for keeping to `/OU_eDNA/200403_manuscript/9_submissions/231113_eDNA_revisions/230919_main_text.docx`
+   * for editing to `/OU_eDNA/200403_manuscript/9_submissions/231113_eDNA_revisions/231116_main_text.docx` 
+ * starting to address revisions in `/OU_eDNA/200403_manuscript/9_submissions/231113_eDNA_revisions/231116_response_text.docx`
+
+## **17-Nov-2023** - work day 138
+
+ * continued on second revision
+
+## **13-Dec-2023** - work day 138
+
+ * continued on second revision
+ * checked script `998_r_format_longtables.r`
+   * from loaded workspace `/Users/paul/Documents/OU_eDNA/210705_r_workspaces/221214_998_r_format_longtables__analysis_input__image.Rdata`
+ * working in `/Users/paul/Documents/OU_eDNA/200901_scripts/991_r_get_eDNA_long_table.r`
+   * checked and adjusted summary code
+   * no commit (yet)
+
+## **18-Dec-2023** - work day 139
+
+ * finished second revision
+ * uploaded to manuscript Central
+ * see `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/231113_eDNA_revisions`
+ * commit
+
 ## **Pending important queue** (last updated 19-September-2023):
  
- * [x] main text - finish results section
- * [x] finish and re-run from  stable version of `999_r_summarize_results.r` from `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")`
- * [x] get notes document - assemble new aspects for improvements
- * [x] main text - explode for restructuring using reviewer queries
- * [x] main text - adjust Introduction
- * [x] main text - adjust Results, possibly while extending `999_r_summarize_results.r`
- * [x] main text - adjust Discussion
- * [x] main text -re-read entirely and check for flow
- * [x] supplement - adjust after main text 
- * [x] rebuttal - adjust after supplement
- * [x] circulate to co-authors
- * [x] all files - check crosslinks
- * [x] all files - revise with co-authors suggestions - **use online version** 
- * [ ] correct proofs 
-    * [x] change back title
-    * [x] remove map from SI
-    * [x] remove specific locations from main text map
-    * [x] remove specific locations from main text
-    * [x] update data availability statement
-    * [x] upload files to Manuscript Central
- * [x] re-upload files to Zenodo
-   * [x] all files - collate data - obscure location data
-   * [x] all files - upload data - request removal of old versions
- * [ ] submit
- 
+ * [x] finish revisions in folder `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/231113_eDNA_revisions`
+
 ## **Done from important queue** (last updated 16-August-2023):
 
- * [x] revise erroneous species tables 
+* [x] revise erroneous species tables 
     * [x] by finishing correcting and re-running `/Users/paul/Documents/OU_eDNA/200901_scripts/999_r_summarize_results.r` 
     * [x] by adding MEGAN results from `/Users/paul/Documents/OU_eDNA/200403_manuscript/9_submissions/220826_eDNA_resubmission/230522_new_analysis_outputs/751_12S_single_end_ee3-seq_blast-noenv-ex__read_to_taxon.txt`
     * [x] by revising duplicates in species table DI and exports
@@ -1375,8 +1379,31 @@
  * [x] re-run `999_r_summarize_results.r`  to get stable environmental saves
  * [x] establish stable analysis results available from  `999_r_summarize_results.r` , otherwise update
  * [x] update cover letter
+ * [x] main text - finish results section
+ * [x] finish and re-run from  stable version of `999_r_summarize_results.r` from `load("/Users/paul/Documents/OU_eDNA/210705_r_workspaces/999_r_summarize_results__finished_megan_integration.Rdata")`
+ * [x] get notes document - assemble new aspects for improvements
+ * [x] main text - explode for restructuring using reviewer queries
+ * [x] main text - adjust Introduction
+ * [x] main text - adjust Results, possibly while extending `999_r_summarize_results.r`
+ * [x] main text - adjust Discussion
+ * [x] main text -re-read entirely and check for flow
+ * [x] supplement - adjust after main text 
+ * [x] rebuttal - adjust after supplement
+ * [x] circulate to co-authors
+ * [x] all files - check crosslinks
+ * [x] all files - revise with co-authors suggestions - **use online version** 
+ * [x] correct proofs 
+    * [x] change back title
+    * [x] remove map from SI
+    * [x] remove specific locations from main text map
+    * [x] remove specific locations from main text
+    * [x] update data availability statement
+    * [x] upload files to Manuscript Central
+ * [x] re-upload files to Zenodo
+   * [x] all files - collate data - obscure location data
+   * [x] all files - upload data - request removal of old versions
+ * [x] submit
 
- 
 ## **Miscellaneous todo (last updated 16-Mar-2023):**
 
  * for **new manuscript**

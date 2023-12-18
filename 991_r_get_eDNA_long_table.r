@@ -68,13 +68,51 @@ clean_molten_tax_strings <- function(molten_phyloseq_object){
 
   require(dplyr)
   
-  molten_phyloseq_object <- molten_phyloseq_object %>% mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "__", replacement = " "))
-
-  molten_phyloseq_object <- molten_phyloseq_object %>% mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "_", replacement = " "))
-
-  molten_phyloseq_object <- molten_phyloseq_object %>% mutate(across(c("superkingdom", "phylum", "class", "order", "family", "genus", "species"), .funs = gsub, pattern = "  ", replacement = " "))
-
-  molten_phyloseq_object <- molten_phyloseq_object %>% arrange(superkingdom, phylum, class, order, family, genus, species)
+  molten_phyloseq_object <-
+    molten_phyloseq_object %>% mutate(across(
+      c(
+        "superkingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "species"
+      ), function(x) {
+        gsub(x, pattern = "__", replacement = " ")
+      }
+    ))
+  
+  molten_phyloseq_object <-
+    molten_phyloseq_object %>% mutate(across(
+      c(
+        "superkingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "species"
+      ), function(x) {
+        gsub(x, pattern = "_", replacement = " ")
+      }
+    ))
+  
+  molten_phyloseq_object <-
+    molten_phyloseq_object %>% mutate(across(c(
+      "superkingdom",
+      "phylum",
+      "class",
+      "order",
+      "family",
+      "genus",
+      "species"
+    ), function(x) {
+      gsub(x, pattern = "  ", replacement = " ")
+    }))
+  
+  molten_phyloseq_object <-
+    molten_phyloseq_object %>% arrange(superkingdom, phylum, class, order, family, genus, species)
   
   return(molten_phyloseq_object)
 
@@ -247,6 +285,9 @@ get_molten_ps_description = function(ps, rank_level = "SUPERKINGDOM", rank_name 
   cov_a_sd <- sd(coverage_per_asv$x)
   
   # print summary text
+  print("summary(coverage_per_sample)")
+  print("summary(coverage_per_sample)")
+  print(summary(coverage_per_asv))
   print(paste0("The current data set contains ", f_count, " sequences across ", s_count, " samples and ",   
                  a_count, " ASV's (", ss_count," ", ss_string,
                  ", as well as ", nss_count, " non-", ss_string, ", i.e. ", nss_string,
